@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="XCAR">
 <meta name="theme-color" content="#14161c">
+<meta name="color-scheme" content="dark">
 <meta name="description" content="XCAR — учёт автопроката: машины, клиенты, договоры, отчёты, WhatsApp-уведомления">
 <link rel="manifest" href="manifest.json">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -18,6 +19,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root{
+  color-scheme:dark;
   --bg:#14161c;
   --surface:#1c2029;
   --surface-2:#242936;
@@ -31,15 +33,100 @@
   --text:#eef0f4;
   --text-dim:#9aa0ad;
   --text-faint:#5d6472;
+  --header-grad-start:rgba(20,22,28,0.97);
+  --header-grad-end:rgba(20,22,28,0);
+  --nav-bg:rgba(28,32,41,0.92);
+  --overlay-bg:rgba(10,11,14,0.6);
+  --card-grad-start:var(--surface);
+  --card-grad-end:#1a1e27;
+  --shadow-soft:0 1px 0 rgba(255,255,255,0.03) inset, 0 16px 32px -20px rgba(0,0,0,0.65);
+  --shadow-card:0 1px 0 rgba(255,255,255,0.02) inset, 0 6px 16px -12px rgba(0,0,0,0.6);
+  --shadow-pop:0 8px 20px rgba(0,0,0,0.35);
   --font-display:'Rajdhani',sans-serif;
   --font-body:'Inter',sans-serif;
   --radius:14px;
   --radius-sm:9px;
 }
+body.theme-light{
+  color-scheme:light;
+  --bg:#eef1f6;
+  --surface:rgba(255,255,255,0.6);
+  --surface-2:rgba(255,255,255,0.78);
+  --surface-3:rgba(255,255,255,0.92);
+  --border:rgba(255,255,255,0.65);
+  --accent:#ff9500;
+  --accent-dim:#ffd9a3;
+  --accent-2:#12b886;
+  --accent-2-dim:#c8f3e4;
+  --danger:#ff3b30;
+  --text:#1c1c1e;
+  --text-dim:#6e6e73;
+  --text-faint:#a3a3a8;
+  --header-grad-start:rgba(238,241,246,0.75);
+  --header-grad-end:rgba(238,241,246,0);
+  --nav-bg:rgba(255,255,255,0.55);
+  --overlay-bg:rgba(30,30,40,0.28);
+  --card-grad-start:rgba(255,255,255,0.66);
+  --card-grad-end:rgba(255,255,255,0.4);
+  --shadow-soft:inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.4), 0 16px 40px -18px rgba(60,70,110,0.35);
+  --shadow-card:inset 0 1px 0 rgba(255,255,255,0.85), inset 0 0 0 1px rgba(255,255,255,0.35), 0 8px 22px -14px rgba(60,70,110,0.28);
+  --shadow-pop:inset 0 1px 0 rgba(255,255,255,0.85), 0 14px 34px -10px rgba(50,60,100,0.3);
+  --glass-blur:blur(24px) saturate(190%);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255,183,143,0.55), transparent 42%),
+    radial-gradient(circle at 88% 12%, rgba(147,197,253,0.55), transparent 45%),
+    radial-gradient(circle at 15% 88%, rgba(167,243,208,0.5), transparent 45%),
+    radial-gradient(circle at 90% 85%, rgba(233,171,247,0.45), transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(253,224,171,0.35), transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+body.theme-light header.top,
+body.theme-light .nav-inner,
+body.theme-light .overlay,
+body.theme-light .card,
+body.theme-light .sheet,
+body.theme-light .stat-mini,
+body.theme-light .summary-card,
+body.theme-light .summary-card2,
+body.theme-light .dash-quick,
+body.theme-light .detail-block,
+body.theme-light .quick-action,
+body.theme-light .period-custom,
+body.theme-light .period-seg,
+body.theme-light .revenue-card,
+body.theme-light .inline-client-box,
+body.theme-light .search-bar,
+body.theme-light .chip,
+body.theme-light .field input,
+body.theme-light .field select,
+body.theme-light .field textarea,
+body.theme-light .icon-btn,
+body.theme-light .btn.ghost{
+  backdrop-filter:var(--glass-blur);
+  -webkit-backdrop-filter:var(--glass-blur);
+}
+body.theme-light .card,
+body.theme-light .stat-mini,
+body.theme-light .summary-card2,
+body.theme-light .dash-quick,
+body.theme-light .detail-block,
+body.theme-light .revenue-card,
+body.theme-light .search-bar,
+body.theme-light .period-custom{
+  border-color:rgba(255,255,255,0.55);
+}
+body.theme-light .chip{background:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.6);}
+body.theme-light .chip.active{background:var(--accent);border-color:var(--accent);box-shadow:0 6px 16px -6px rgba(255,149,0,0.55);}
+body.theme-light .icon-btn{background:rgba(255,255,255,0.55);border-color:rgba(255,255,255,0.6);}
+body.theme-light .btn.primary{box-shadow:0 8px 20px -8px rgba(255,149,0,0.55);}
+body.theme-light .btn.ghost{background:rgba(255,255,255,0.55);}
+body.theme-light #app{background:transparent;}
+body.theme-light .splash{background:transparent;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--font-body);height:100%;overscroll-behavior:none;}
-body{-webkit-font-smoothing:antialiased;}
-#app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;background:
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+#app{max-width:520px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;position:relative;background:
   radial-gradient(circle at 50% -10%, #1e2330 0%, var(--bg) 55%);}
 
 /* ---------- splash / welcome screen ---------- */
@@ -103,7 +190,7 @@ body.win-mode .dash-top .revenue-card{flex:1.3;}
 body.win-mode .dash-top .quick-stats{flex:1;display:flex;flex-direction:column;justify-content:center;}
 body.win-mode .fab{display:none;}
 body.win-mode nav.bottom{
-  left:0;right:auto;top:0;bottom:0;width:216px;height:100vh;justify-content:flex-start;
+  left:0;right:auto;top:0;bottom:0;width:216px;height:100vh;height:100dvh;justify-content:flex-start;
 }
 body.win-mode .nav-inner{
   flex-direction:column;max-width:216px;width:216px;height:100%;
@@ -124,11 +211,12 @@ body.win-mode .overlay{padding-left:216px;}
 
 /* ---------- header ---------- */
 header.top{
-  padding:18px 18px 14px;
+  padding:calc(18px + env(safe-area-inset-top)) 18px 14px;
   display:flex;align-items:center;justify-content:space-between;
   position:sticky;top:0;z-index:20;
-  background:linear-gradient(180deg, rgba(20,22,28,0.97) 70%, rgba(20,22,28,0));
+  background:linear-gradient(180deg, var(--header-grad-start) 70%, var(--header-grad-end));
   backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
   border-bottom:1px solid rgba(255,255,255,0.03);
 }
 .brand{display:flex;align-items:center;gap:10px;}
@@ -154,7 +242,7 @@ header.top{
 }
 
 /* ---------- main scroll area ---------- */
-main{flex:1;padding:4px 16px 110px;overflow-y:auto;}
+main{flex:1;padding:4px 16px calc(110px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .section-title{
   font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:0.5px;
   text-transform:uppercase;color:var(--text-dim);margin:22px 2px 10px;display:flex;align-items:center;gap:8px;justify-content:space-between;
@@ -168,7 +256,7 @@ main{flex:1;padding:4px 16px 110px;overflow-y:auto;}
   background:linear-gradient(160deg, var(--surface-2) 0%, var(--surface) 75%);
   border:1px solid var(--border);border-radius:22px;padding:24px 20px 16px;
   display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden;
-  box-shadow:0 1px 0 rgba(255,255,255,0.03) inset, 0 16px 32px -20px rgba(0,0,0,0.65);
+  box-shadow:var(--shadow-soft);
 }
 .revenue-card::before{
   content:"";position:absolute;inset:0;
@@ -219,11 +307,11 @@ main{flex:1;padding:4px 16px 110px;overflow-y:auto;}
 
 /* ---------- cards list ---------- */
 .card{
-  background:linear-gradient(160deg, var(--surface) 0%, #1a1e27 100%);
+  background:linear-gradient(160deg, var(--card-grad-start) 0%, var(--card-grad-end) 100%);
   border:1px solid var(--border);border-radius:var(--radius);
   padding:14px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:center;cursor:pointer;
   transition:border-color .15s, transform .1s, box-shadow .15s;
-  box-shadow:0 1px 0 rgba(255,255,255,0.02) inset, 0 6px 16px -12px rgba(0,0,0,0.6);
+  box-shadow:var(--shadow-card);
 }
 .card:active{border-color:var(--accent-dim);background:var(--surface-2);transform:scale(0.99);}
 .card.rented-glow{border-color:rgba(242,169,59,0.35);box-shadow:0 0 0 1px rgba(242,169,59,0.08) inset, 0 6px 18px -10px rgba(242,169,59,0.25);}
@@ -289,6 +377,11 @@ main{flex:1;padding:4px 16px 110px;overflow-y:auto;}
   font-size:12.5px;font-weight:600;color:var(--text-dim);cursor:pointer;
 }
 .chip.active{background:var(--accent);color:#241a06;border-color:var(--accent);}
+.chip-count{
+  display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;
+  background:rgba(255,255,255,0.12);border-radius:100px;font-size:10px;font-weight:800;margin-left:2px;
+}
+.chip.active .chip-count{background:rgba(36,26,6,0.25);}
 
 .period-seg{
   display:flex;background:var(--surface-2);border:1px solid var(--border);border-radius:100px;
@@ -305,7 +398,7 @@ main{flex:1;padding:4px 16px 110px;overflow-y:auto;}
 }
 .period-custom input{
   flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:8px 9px;
-  color:var(--text);font-size:13px;font-family:var(--font-body);outline:none;min-width:0;
+  color:var(--text);font-size:16px;font-family:var(--font-body);outline:none;min-width:0;
 }
 .period-custom span{color:var(--text-faint);font-size:12px;flex-shrink:0;}
 .summary-row4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0 6px;}
@@ -332,7 +425,7 @@ main{flex:1;padding:4px 16px 110px;overflow-y:auto;}
 /* search */
 .search-bar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:10px 12px;margin-bottom:12px;}
 .search-bar svg{width:16px;height:16px;color:var(--text-faint);flex-shrink:0;}
-.search-bar input{background:none;border:none;outline:none;color:var(--text);font-size:14px;width:100%;font-family:var(--font-body);}
+.search-bar input{background:none;border:none;outline:none;color:var(--text);font-size:16px;width:100%;font-family:var(--font-body);}
 .search-bar input::placeholder{color:var(--text-faint);}
 
 /* ---------- report ---------- */
@@ -351,7 +444,7 @@ nav.bottom{
   display:flex;justify-content:center;
 }
 .nav-inner{
-  max-width:520px;width:100%;display:flex;background:rgba(28,32,41,0.92);backdrop-filter:blur(14px);
+  max-width:520px;width:100%;display:flex;background:var(--nav-bg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   border-top:1px solid var(--border);padding:8px 6px calc(8px + env(safe-area-inset-bottom));
 }
 .nav-btn{
@@ -364,7 +457,7 @@ nav.bottom{
 .nav-btn.active::after{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px 1px rgba(242,169,59,0.7);}
 
 .fab{
-  position:fixed;right:calc(50% - 260px + 18px);bottom:88px;z-index:25;
+  position:fixed;right:calc(50% - 260px + 18px);bottom:calc(88px + env(safe-area-inset-bottom));z-index:25;
   width:54px;height:54px;border-radius:16px;background:var(--accent);border:none;
   display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px -6px rgba(242,169,59,0.55);
   cursor:pointer;
@@ -374,13 +467,13 @@ nav.bottom{
 
 /* ---------- modal ---------- */
 .overlay{
-  position:fixed;inset:0;background:rgba(10,11,14,0.6);backdrop-filter:blur(2px);z-index:50;
+  position:fixed;inset:0;background:var(--overlay-bg);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);z-index:50;
   display:none;align-items:flex-end;justify-content:center;
 }
 .overlay.show{display:flex;}
 .sheet{
-  width:100%;max-width:520px;max-height:92vh;background:var(--surface);border-radius:22px 22px 0 0;
-  border:1px solid var(--border);border-bottom:none;overflow-y:auto;
+  width:100%;max-width:520px;max-height:92vh;max-height:92dvh;background:var(--surface);border-radius:22px 22px 0 0;
+  border:1px solid var(--border);border-bottom:none;overflow-y:auto;-webkit-overflow-scrolling:touch;
   animation:slideup .22s ease-out;
 }
 @keyframes slideup{from{transform:translateY(24px);opacity:0;}to{transform:translateY(0);opacity:1;}}
@@ -388,13 +481,13 @@ nav.bottom{
 .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:8px 18px 4px;}
 .sheet-head-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .sheet-title{font-family:var(--font-display);font-weight:700;font-size:18px;}
-.sheet-body{padding:6px 18px 26px;}
+.sheet-body{padding:6px 18px calc(26px + env(safe-area-inset-bottom));}
 
 .field{margin-bottom:14px;}
 .field label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;font-weight:600;}
 .field input,.field select,.field textarea{
   width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 13px;
-  color:var(--text);font-size:14.5px;font-family:var(--font-body);outline:none;
+  color:var(--text);font-size:16px;font-family:var(--font-body);outline:none;
 }
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent-dim);}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -446,7 +539,7 @@ nav.bottom{
 .toast{
   position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--surface-3);
   border:1px solid var(--border);padding:11px 18px;border-radius:100px;font-size:13px;font-weight:600;
-  z-index:80;opacity:0;transition:opacity .25s, transform .25s;pointer-events:none;box-shadow:0 8px 20px rgba(0,0,0,0.35);
+  z-index:80;opacity:0;transition:opacity .25s, transform .25s;pointer-events:none;box-shadow:var(--shadow-pop);
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
 
@@ -504,6 +597,12 @@ nav.bottom{
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span id="notifBadge" class="notif-badge" style="display:none;">0</span>
       </button>
+      <button class="icon-btn" id="dashCustomizeBtn" onclick="openDashboardCustomize()" style="display:flex;" title="Настроить карточки">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="2" y1="14" x2="6" y2="14"/><line x1="10" y1="8" x2="14" y2="8"/><line x1="18" y1="16" x2="22" y2="16"/></svg>
+      </button>
+      <button class="icon-btn" id="carsShareBtn" onclick="shareCarsStatusImage()" style="display:none;" title="Поделиться статусом автопарка">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      </button>
       <button class="icon-btn" onclick="openSettings()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
       </button>
@@ -512,7 +611,7 @@ nav.bottom{
 
   <main id="main"></main>
 
-  <button class="fab" id="fab" onclick="handleFab()">
+  <button class="fab" id="fab" onclick="handleFab()" style="display:none;">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
   </button>
 
@@ -550,39 +649,6 @@ let DB = { cars: [], clients: [], contracts: [], clientLedger: [], oilChanges: [
 let currentTab = 'dashboard';
 let gaugePeriod = 'month';
 let reportCategory = 'income';
-let reportFilter = { mode:'month', from:null, to:null };
-function reportPeriodRange(filter){
-  if(filter.mode==='day'){ const d=todayISO(); return [d,d]; }
-  if(filter.mode==='custom'){ const f=filter.from||todayISO(), t=filter.to||todayISO(); return f<=t?[f,t]:[t,f]; }
-  return periodRange(filter.mode); // 'week' or 'month'
-}
-function periodFilterHtml(){
-  const filter = reportFilter;
-  const modes = [['day','День'],['week','Неделя'],['month','Месяц'],['custom','Свой']];
-  return `
-    <div class="period-seg">
-      ${modes.map(([m,label])=>`<button class="${filter.mode===m?'active':''}" onclick="setReportFilterMode('${m}')">${label}</button>`).join('')}
-    </div>
-    ${filter.mode==='custom' ? `
-    <div class="period-custom">
-      <input type="date" value="${filter.from||todayISO()}" onchange="setReportFilterCustom('from',this.value)">
-      <span>—</span>
-      <input type="date" value="${filter.to||todayISO()}" onchange="setReportFilterCustom('to',this.value)">
-    </div>` : ''}
-  `;
-}
-function setReportFilterMode(mode){
-  reportFilter.mode = mode;
-  if(mode==='custom' && !reportFilter.from){
-    reportFilter.from = todayISO();
-    reportFilter.to = todayISO();
-  }
-  render();
-}
-function setReportFilterCustom(field, value){
-  reportFilter[field] = value;
-  render();
-}
 let searchQ = { cars:'', clients:'', contracts:'' };
 let carFilter = 'all';
 
@@ -702,8 +768,15 @@ async function loadAll(){
     if(DB.settings.alarmSettings.duration===undefined) DB.settings.alarmSettings.duration = 0.4;
     if(DB.settings.graceHour===undefined) DB.settings.graceHour = false;
     if(!DB.settings.themeColor) DB.settings.themeColor = 'amber';
+    if(!DB.settings.colorMode) DB.settings.colorMode = 'dark';
     if(DB.settings.windowsMode===undefined) DB.settings.windowsMode = false;
     if(!DB.settings.readNotifKeys) DB.settings.readNotifKeys = [];
+    if(!DB.settings.dashCardsMigrated1){
+      if(DB.settings.dashboardCardOrder){
+        DB.settings.dashboardCardOrder = DB.settings.dashboardCardOrder.filter(id=>id!=='monthDebt' && id!=='cars');
+      }
+      DB.settings.dashCardsMigrated1 = true;
+    }
   }catch(e){ console.error('load error', e); }
 }
 function safeGet(key){
@@ -732,7 +805,9 @@ function switchTab(tab){
   document.getElementById('headerSub').textContent = {
     dashboard:'Панель учёта', cars:'Автопарк', clients:'База клиентов', contracts:'Договоры аренды', reports:'Финансовые отчёты'
   }[tab];
-  document.getElementById('fab').style.display = (tab==='reports') ? 'none' : 'flex';
+  document.getElementById('fab').style.display = (tab==='reports' || tab==='dashboard') ? 'none' : 'flex';
+  document.getElementById('dashCustomizeBtn').style.display = (tab==='dashboard') ? 'flex' : 'none';
+  document.getElementById('carsShareBtn').style.display = (tab==='cars') ? 'flex' : 'none';
   render();
 }
 function handleFab(){
@@ -921,10 +996,6 @@ function renderDashboard(){
   const pct = Math.min(1, revenue/scaleMax);
   const angle = pct * 180; // degrees across the semicircle
 
-  const activeContracts = DB.contracts.filter(c=>c.status==='active').length;
-  const freeCars = DB.cars.filter(c=>c.status==='free').length;
-  const unpaid = DB.contracts.filter(c=>c.status!=='cancelled' && !c.paid).length;
-
   const gaugeSvg = buildGauge(angle);
 
   const periodLabel = {week:'за неделю', month:'за месяц', year:'за год'}[gaugePeriod];
@@ -951,30 +1022,6 @@ function renderDashboard(){
           <button class="${gaugePeriod==='year'?'active':''}" onclick="gaugePeriod='year';render()">Год</button>
         </div>
       </div>
-      <div class="dash-quick quick-stats">
-        <div class="dq-item good">
-          <div class="dq-left">
-            <div class="icon-badge good"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.2-3.6A2 2 0 0 1 8.1 6h7.8a2 2 0 0 1 1.9 1.4L19 11"/><rect x="3" y="11" width="18" height="6.5" rx="2"/><circle cx="7.5" cy="17.5" r="1.3"/><circle cx="16.5" cy="17.5" r="1.3"/></svg></div>
-            <span>Машин свободно</span>
-          </div>
-          <div class="dq-n">${freeCars}/${DB.cars.length}</div>
-        </div>
-        <div class="dq-item">
-          <div class="dq-left">
-            <div class="icon-badge warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/></svg></div>
-            <span>Активных договоров</span>
-          </div>
-          <div class="dq-n">${activeContracts}</div>
-        </div>
-        ${unpaid>0 ? `
-        <div class="dq-item warn">
-          <div class="dq-left">
-            <div class="icon-badge danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.86 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.86a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
-            <span>Договоров с неоплатой</span>
-          </div>
-          <div class="dq-n">${unpaid}</div>
-        </div>` : ''}
-      </div>
     </div>
 
     ${renderDashboardCards()}
@@ -994,64 +1041,53 @@ function renderDashboard(){
     </div>` : ''}
   `;
 }
-const DASHBOARD_CARD_IDS_DEFAULT = ['income','clientDebt','monthDebt','finesUnpaid','finesPaid','cars','repairExpense'];
+const DASHBOARD_CARD_IDS_ALL = ['income','clientDebt','finesUnpaid','finesPaid','repairExpense'];
+const DASHBOARD_CARD_IDS_DEFAULT = ['income','clientDebt','finesUnpaid','finesPaid','repairExpense'];
 function dashboardCardDefs(){
-  const [ms,me] = periodRange('month');
   const totalIncome = DB.contracts.filter(c=>(!c.type||c.type==='rental') && c.status!=='cancelled').reduce((s,c)=>s+(c.total||0),0);
   const totalClientDebt = DB.clients.reduce((s,cl)=>{ const {debt}=clientDebt(cl.id); return s+Math.max(0,debt); },0);
-  const finesThisMonth = DB.clientLedger.filter(l=>l.type==='fine' && dateOnly(l.date)>=ms && dateOnly(l.date)<=me).reduce((s,l)=>s+(l.amount||0),0);
-  const paymentsThisMonth = DB.clientLedger.filter(l=>l.type==='payment' && dateOnly(l.date)>=ms && dateOnly(l.date)<=me).reduce((s,l)=>s+(l.amount||0),0);
-  const monthDebt = Math.max(0, finesThisMonth - paymentsThisMonth);
   const fineContracts = DB.contracts.filter(c=>c.type==='fine');
   const finesUnpaid = fineContracts.reduce((s,c)=>s+Math.max(0,(c.total||0)-finePaidAmount(c.id)),0);
   const finesPaid = fineContracts.reduce((s,c)=>s+Math.min(c.total||0, finePaidAmount(c.id)),0);
-  const freeCars = DB.cars.filter(c=>c.status==='free').length;
-  const busyCars = DB.cars.filter(c=>c.status==='rented'||c.status==='booked'||c.status==='service').length;
   const repairExpense = DB.contracts.filter(c=>c.type==='repair').reduce((s,c)=>s+(c.total||0),0);
   return {
     income: { icon:'💰', label:'Общий доход', value: money(totalIncome), cls:'c-income' },
     clientDebt: { icon:'⚠️', label:'Долг клиентов', value: money(totalClientDebt), cls: totalClientDebt>0?'c-warn':'' },
-    monthDebt: { icon:'📅', label:'Долг за месяц', value: money(monthDebt), cls: monthDebt>0?'c-warn':'' },
     finesUnpaid: { icon:'🔴', label:'Штрафы неоплаченные', value: money(finesUnpaid), cls: finesUnpaid>0?'c-warn':'' },
     finesPaid: { icon:'✅', label:'Штрафы оплаченные', value: money(finesPaid), cls:'c-income' },
-    cars: { icon:'🚗', label:'Машины', value: `${freeCars} своб. / ${busyCars} занято`, cls:'' },
     repairExpense: { icon:'🔧', label:'Расход на ремонт', value: money(repairExpense), cls:'c-warn' },
   };
 }
 function dashboardCardOrder(){
   const defs = dashboardCardDefs();
   let order = (DB.settings.dashboardCardOrder && DB.settings.dashboardCardOrder.length) ? DB.settings.dashboardCardOrder.slice() : DASHBOARD_CARD_IDS_DEFAULT.slice();
-  order = order.filter(id=>defs[id]);
-  DASHBOARD_CARD_IDS_DEFAULT.forEach(id=>{ if(!order.includes(id)) order.push(id); });
-  return order;
+  return order.filter(id=>defs[id]);
 }
 function renderDashboardCards(){
   const defs = dashboardCardDefs();
   const order = dashboardCardOrder();
   return `
-    <div class="section-title" style="margin-top:20px;">
-      <span>Показатели</span>
-      <span style="color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;text-transform:none;letter-spacing:0;" onclick="openDashboardCustomize()">⚙ Настроить</span>
-    </div>
-    <div class="summary-row2">
+    <div class="section-title" style="margin-top:20px;"><span>Показатели</span></div>
+    ${order.length ? `<div class="summary-row2">
       ${order.map(id=>{
         const d = defs[id];
         return `<div class="summary-card2 ${d.cls}"><div class="ic">${d.icon}</div><div class="n">${d.value}</div><div class="l">${d.label}</div></div>`;
       }).join('')}
-    </div>
+    </div>` : `<div style="color:var(--text-dim);font-size:13px;padding:8px 2px;">Карточки не выбраны — нажмите ⚙ в шапке</div>`}
   `;
 }
 function openDashboardCustomize(){
   const defs = dashboardCardDefs();
   const order = dashboardCardOrder();
+  const available = DASHBOARD_CARD_IDS_ALL.filter(id=>!order.includes(id) && defs[id]);
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">Настроить карточки</div>
       <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
     </div>
     <div class="sheet-body">
-      <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:10px;">Стрелками измените порядок карточек на главном экране</div>
-      ${order.map((id,i)=>{
+      <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:10px;">Стрелками измените порядок, крестиком уберите карточку с главного экрана</div>
+      ${order.length ? order.map((id,i)=>{
         const d = defs[id];
         const upDisabled = i===0;
         const downDisabled = i===order.length-1;
@@ -1063,9 +1099,24 @@ function openDashboardCustomize(){
           <div style="display:flex;gap:6px;">
             <button class="icon-btn" style="width:32px;height:32px;${upDisabled?'opacity:.3;':''}" ${upDisabled?'disabled':''} onclick="moveDashboardCard('${id}',-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M18 15l-6-6-6 6"/></svg></button>
             <button class="icon-btn" style="width:32px;height:32px;${downDisabled?'opacity:.3;':''}" ${downDisabled?'disabled':''} onclick="moveDashboardCard('${id}',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M6 9l6 6 6-6"/></svg></button>
+            <button class="icon-btn" style="width:32px;height:32px;" onclick="removeDashboardCard('${id}')" title="Убрать"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
           </div>
         </div>`;
+      }).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Нет активных карточек</div>`}
+
+      ${available.length ? `
+      <div class="section-title" style="margin-top:18px;">Добавить карточку</div>
+      ${available.map(id=>{
+        const d = defs[id];
+        return `<div class="settings-item">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+            <div style="font-size:19px;width:26px;text-align:center;flex-shrink:0;">${d.icon}</div>
+            <div class="st">${d.label}</div>
+          </div>
+          <button class="icon-btn" style="width:32px;height:32px;" onclick="addDashboardCard('${id}')" title="Добавить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>`;
       }).join('')}
+      ` : ''}
     </div>
   `);
 }
@@ -1075,6 +1126,19 @@ async function moveDashboardCard(id, dir){
   const newIdx = idx+dir;
   if(newIdx<0 || newIdx>=order.length) return;
   [order[idx],order[newIdx]] = [order[newIdx],order[idx]];
+  DB.settings.dashboardCardOrder = order;
+  await persist('settings');
+  openDashboardCustomize();
+}
+async function removeDashboardCard(id){
+  const order = dashboardCardOrder().filter(x=>x!==id);
+  DB.settings.dashboardCardOrder = order;
+  await persist('settings');
+  openDashboardCustomize();
+}
+async function addDashboardCard(id){
+  const order = dashboardCardOrder();
+  if(!order.includes(id)) order.push(id);
   DB.settings.dashboardCardOrder = order;
   await persist('settings');
   openDashboardCustomize();
@@ -1118,6 +1182,8 @@ function buildGauge(angleDeg){
 /* =================== CARS =================== */
 function renderCars(){
   const filters = [['all','Все'],['free','Свободны'],['rented','В аренде'],['booked','Забронированы'],['service','Ремонт']];
+  const counts = { all: DB.cars.length, free:0, rented:0, booked:0, service:0 };
+  DB.cars.forEach(c=>{ if(counts[c.status]!==undefined) counts[c.status]++; });
   let list = DB.cars.filter(c=>{
     if(carFilter!=='all' && c.status!==carFilter) return false;
     const q = searchQ.cars.toLowerCase();
@@ -1129,7 +1195,7 @@ function renderCars(){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <input placeholder="Поиск по марке, модели, номеру" value="${escapeAttr(searchQ.cars)}" oninput="searchQ.cars=this.value;render()">
     </div>
-    <div class="chips">${filters.map(([k,l])=>`<div class="chip ${carFilter===k?'active':''}" onclick="carFilter='${k}';render()">${l}</div>`).join('')}</div>
+    <div class="chips">${filters.map(([k,l])=>`<div class="chip ${carFilter===k?'active':''}" onclick="carFilter='${k}';render()">${l} <span class="chip-count">${counts[k]}</span></div>`).join('')}</div>
     <div class="section-title">Автопарк <span class="count">${list.length}</span></div>
     ${list.length ? list.map(carCard).join('') : emptyState('Пока нет машин','Нажмите «+», чтобы добавить первую машину в автопарк')}
   `;
@@ -2190,33 +2256,21 @@ async function rateClientAndClose(contractId, rating){
 
 /* =================== REPORTS =================== */
 function renderReports(){
-  const [s,e] = reportPeriodRange(reportFilter);
-  const totalIncome = DB.contracts.filter(c=>(!c.type||c.type==='rental') && c.status!=='cancelled' && dateOnly(c.start)<=e && dateOnly(c.end)>=s).reduce((s2,c)=>s2+(c.total||0),0);
-  const totalFines = DB.clientLedger.filter(l=>l.type==='fine' && dateOnly(l.date)>=s && dateOnly(l.date)<=e).reduce((s2,l)=>s2+(l.amount||0),0);
-  const totalRepair = DB.contracts.filter(c=>c.type==='repair' && dateOnly(c.start)>=s && dateOnly(c.start)<=e).reduce((s2,c)=>s2+(c.total||0),0);
-  const totalOil = DB.oilChanges.filter(o=>o.type==='change' && dateOnly(o.date)>=s && dateOnly(o.date)<=e).reduce((s2,o)=>s2+(o.amount||0),0);
   return `
-    ${periodFilterHtml()}
-    <div class="summary-row4">
-      <div class="summary-card c-income"><div class="ic">💰</div><div class="n">${money(totalIncome)}</div><div class="l">Доход</div></div>
-      <div class="summary-card c-warn"><div class="ic">⚠️</div><div class="n">${money(totalFines)}</div><div class="l">Штрафы</div></div>
-      <div class="summary-card c-warn"><div class="ic">🔧</div><div class="n">${money(totalRepair)}</div><div class="l">Ремонт</div></div>
-      <div class="summary-card c-warn"><div class="ic">🛢</div><div class="n">${money(totalOil)}</div><div class="l">Масло</div></div>
-    </div>
-    <div class="chips" style="margin-top:14px;">
+    <div class="chips">
       <div class="chip ${reportCategory==='income'?'active':''}" onclick="reportCategory='income';render()">💰 Доход</div>
       <div class="chip ${reportCategory==='fines'?'active':''}" onclick="reportCategory='fines';render()">⚠️ Штрафы</div>
       <div class="chip ${reportCategory==='repair'?'active':''}" onclick="reportCategory='repair';render()">🔧 Ремонт</div>
       <div class="chip ${reportCategory==='oil'?'active':''}" onclick="reportCategory='oil';render()">🛢 Замена масла</div>
     </div>
-    ${reportCategory==='income' ? renderIncomeReport(s,e)
-      : reportCategory==='fines' ? renderFinesReport(s,e)
-      : reportCategory==='repair' ? renderRepairReport(s,e)
-      : renderOilReport(s,e)}
+    ${reportCategory==='income' ? renderIncomeReport()
+      : reportCategory==='fines' ? renderFinesReport()
+      : reportCategory==='repair' ? renderRepairReport()
+      : renderOilReport()}
   `;
 }
-function renderIncomeReport(s,e){
-  const rentalContracts = DB.contracts.filter(c=>(!c.type || c.type==='rental') && c.status!=='cancelled' && dateOnly(c.start)<=e && dateOnly(c.end)>=s);
+function renderIncomeReport(){
+  const rentalContracts = DB.contracts.filter(c=>(!c.type || c.type==='rental') && c.status!=='cancelled');
   const list = DB.cars.map(car=>{
     const cs = rentalContracts.filter(c=>c.carId===car.id);
     return { car, count: cs.length, income: cs.reduce((s2,c)=>s2+(c.total||0),0) };
@@ -2229,12 +2283,12 @@ function renderIncomeReport(s,e){
           <span class="rl">${esc(car.make+' '+car.model)} <span style="color:var(--text-faint);">· ${count} ${rentalWord(count)}</span></span>
           <span class="rv" style="color:var(--accent-2);">${money(income)}</span>
         </div>
-      `).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Нет данных за выбранный период</div>`}
+      `).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Нет данных</div>`}
     </div>
   `;
 }
-function renderFinesReport(s,e){
-  const fines = DB.clientLedger.filter(l=>l.type==='fine' && dateOnly(l.date)>=s && dateOnly(l.date)<=e).sort((a,b)=>new Date(b.date)-new Date(a.date));
+function renderFinesReport(){
+  const fines = DB.clientLedger.filter(l=>l.type==='fine').sort((a,b)=>new Date(b.date)-new Date(a.date));
   return `
     <div class="section-title" style="margin-top:14px;">Все штрафы <span class="count">${fines.length}</span></div>
     <div class="card" style="display:block;">
@@ -2248,12 +2302,12 @@ function renderFinesReport(s,e){
           </span>
           <span class="rv" style="color:var(--danger);">${money(l.amount)}</span>
         </div>`;
-      }).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Штрафов за выбранный период нет</div>`}
+      }).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Штрафов пока нет</div>`}
     </div>
   `;
 }
-function renderRepairReport(s,e){
-  const repairs = DB.contracts.filter(c=>c.type==='repair' && dateOnly(c.start)>=s && dateOnly(c.start)<=e);
+function renderRepairReport(){
+  const repairs = DB.contracts.filter(c=>c.type==='repair');
   const list = DB.cars.map(car=>{
     const rs = repairs.filter(c=>c.carId===car.id);
     return { car, count: rs.length, expense: rs.reduce((s2,c)=>s2+(c.total||0),0) };
@@ -2266,11 +2320,11 @@ function renderRepairReport(s,e){
           <span class="rl">${esc(car.make+' '+car.model)} <span style="color:var(--text-faint);">· ${count} ${count===1?'ремонт':(count>=2&&count<=4?'ремонта':'ремонтов')}</span></span>
           <span class="rv" style="color:var(--danger);">${money(expense)}</span>
         </div>
-      `).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Нет данных за выбранный период</div>`}
+      `).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Нет данных</div>`}
     </div>
   `;
 }
-function renderOilReport(s,e){
+function renderOilReport(){
   return `
     <div class="section-title" style="margin-top:14px;">Машины <span class="count">${DB.cars.length}</span></div>
     <div class="card" style="display:block;">
@@ -2772,15 +2826,44 @@ function openAlarmSettings(){
 }
 function openThemeSettings(){
   const cur = DB.settings.themeColor || 'amber';
+  const curMode = DB.settings.colorMode || 'dark';
   const swatches = [
     ['amber','Янтарный (по умолчанию)','#f2a93b'],
     ['blue','Синий','#4a90e2'],
     ['red','Красный','#e85c5c'],
     ['green','Зелёный','#3ec97a'],
   ];
+  const modes = [
+    ['dark','Стандартная','Тёмный фон, как сейчас','flat','#14161c','#242936'],
+    ['light','Светлая','Жидкое стекло, как iOS','glass','',''],
+  ];
   openSheet(`
     ${subHead('Цветовая тема')}
     <div class="sheet-body">
+      <div class="section-title" style="margin-top:0;">Оформление</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px;">Выберите тёмный или светлый (жидкое стекло) фон приложения.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;">
+        ${modes.map(([key,label,sub,kind,c1,c2])=>`
+          <div onclick="setColorMode('${key}')" style="cursor:pointer;border-radius:14px;border:2px solid ${curMode===key?'var(--accent)':'var(--border)'};padding:12px;background:var(--surface);position:relative;">
+            ${curMode===key ? `<div style="position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;z-index:2;"><svg viewBox="0 0 24 24" fill="none" stroke="#241a06" stroke-width="3" width="12" height="12"><path d="M20 6 9 17l-5-5"/></svg></div>` : ''}
+            ${kind==='glass' ? `
+            <div style="height:44px;border-radius:9px;margin-bottom:9px;position:relative;overflow:hidden;
+              background:
+                radial-gradient(circle at 15% 15%, rgba(255,183,143,0.9), transparent 55%),
+                radial-gradient(circle at 85% 20%, rgba(147,197,253,0.9), transparent 55%),
+                radial-gradient(circle at 20% 90%, rgba(167,243,208,0.85), transparent 55%),
+                radial-gradient(circle at 90% 85%, rgba(233,171,247,0.8), transparent 55%),
+                #eef1f6;">
+              <div style="position:absolute;inset:6px;border-radius:6px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);backdrop-filter:blur(4px);"></div>
+            </div>` : `
+            <div style="height:44px;border-radius:9px;background:linear-gradient(135deg, ${c1} 0%, ${c1} 55%, ${c2} 55%, ${c2} 100%);border:1px solid var(--border);margin-bottom:9px;"></div>
+            `}
+            <div class="st" style="font-size:13px;">${label}</div>
+            <div class="sd" style="font-size:11px;">${sub}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="section-title">Акцентный цвет</div>
       <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;">Выберите акцентный цвет приложения — кнопки, значки и выделения поменяются сразу.</div>
       ${swatches.map(([key,label,hex])=>`
         <div class="settings-item" style="cursor:pointer;" onclick="setThemeColor('${key}')">
@@ -2793,6 +2876,17 @@ function openThemeSettings(){
       `).join('')}
     </div>
   `);
+}
+function applyColorMode(mode){
+  document.body.classList.toggle('theme-light', mode==='light');
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if(metaTheme) metaTheme.setAttribute('content', mode==='light' ? '#f6f7f9' : '#14161c');
+}
+async function setColorMode(mode){
+  DB.settings.colorMode = mode;
+  await persist('settings');
+  applyColorMode(mode);
+  openThemeSettings();
 }
 function openGeneralSettings(){
   openSheet(`
@@ -2988,6 +3082,99 @@ function drawContractCanvas(ct){
 }
 function canvasToBlob(canvas){ return new Promise(res => canvas.toBlob(res, 'image/png')); }
 
+function drawCarsStatusCanvas(){
+  const order = { free:0, rented:1, booked:2, service:3 };
+  const cars = DB.cars.slice().sort((a,b)=> (order[a.status]??9)-(order[b.status]??9) || a.make.localeCompare(b.make));
+  const STATUS_COLOR = { free:'#22c55e', rented:'#3b82f6', booked:'#f2a93b', service:'#e8604c' };
+  const STATUS_TEXT = { free:'Свободна', rented:'В аренде', booked:'Забронирована', service:'На ремонте' };
+  const shortDT = s => { const d=new Date(s); return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); };
+
+  // Compact right-side text per car: status label + date/time, all on one line
+  const carInfos = cars.map(car=>{
+    let rightText = STATUS_TEXT[car.status] || car.status;
+    if(car.status==='rented'){
+      const ct = activeContractForCar(car.id);
+      if(ct) rightText = `Аренда: ${shortDT(ct.start)} → ${shortDT(ct.end)}`;
+    } else if(car.status==='booked'){
+      const ct = DB.contracts.find(c=>c.carId===car.id && c.status==='booked');
+      if(ct) rightText = `Бронь: ${shortDT(ct.start)} → ${shortDT(ct.end)}`;
+    } else if(car.status==='service'){
+      const ct = DB.contracts.find(c=>c.carId===car.id && c.status==='service' && c.type==='repair');
+      if(ct) rightText = `Ремонт: с ${shortDT(ct.start)}`;
+    }
+    return { car, rightText };
+  });
+
+  const rowH = 56;
+  const W = 1000, H = 260 + cars.length*rowH + 60;
+  const canvas = document.createElement('canvas'); canvas.width=W; canvas.height=H;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#ffffff'; roundRectPath(ctx,0,0,W,H,28); ctx.fill();
+  ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 2; roundRectPath(ctx,16,16,W-32,H-32,22); ctx.stroke();
+
+  const mGrad = ctx.createLinearGradient(48,48,112,112);
+  mGrad.addColorStop(0,'#ffcf7a'); mGrad.addColorStop(1,'#f2a93b');
+  ctx.fillStyle = mGrad; roundRectPath(ctx,48,48,62,62,16); ctx.fill();
+  ctx.fillStyle = '#241a06'; ctx.font = '700 30px Georgia, serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('X', 79, 82);
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillStyle = '#111827'; ctx.font = '700 32px Arial, sans-serif';
+  ctx.fillText('XCAR', 126, 78);
+  ctx.fillStyle = '#6b7280'; ctx.font = '600 13px Arial, sans-serif';
+  ctx.fillText('СТАТУС АВТОПАРКА', 126, 100);
+
+  ctx.strokeStyle='#e5e7eb'; ctx.beginPath(); ctx.moveTo(48,144); ctx.lineTo(W-48,144); ctx.stroke();
+
+  let lx = 48;
+  const ly = 180;
+  [['free','Свободна'],['rented','В аренде'],['booked','Забронирована'],['service','На ремонте']].forEach(([k,label])=>{
+    ctx.beginPath(); ctx.arc(lx+7, ly, 7, 0, Math.PI*2); ctx.fillStyle = STATUS_COLOR[k]; ctx.fill();
+    ctx.fillStyle = '#374151'; ctx.font='600 14px Arial, sans-serif'; ctx.textAlign='left';
+    ctx.fillText(label, lx+20, ly+5);
+    lx += 20 + ctx.measureText(label).width + 30;
+  });
+
+  let y = 228;
+  if(cars.length===0){
+    ctx.fillStyle = '#9ca3af'; ctx.font = '500 16px Arial, sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Машин пока нет', W/2, y+20);
+    ctx.textAlign='left';
+  }
+  carInfos.forEach(({car, rightText})=>{
+    const boxH = rowH - 10;
+    const midY = y + boxH/2;
+    ctx.fillStyle = '#f8f9fb'; roundRectPath(ctx,48,y,W-96,boxH,12); ctx.fill();
+    ctx.beginPath(); ctx.arc(48+27, midY, 8, 0, Math.PI*2); ctx.fillStyle = STATUS_COLOR[car.status]||'#9ca3af'; ctx.fill();
+    ctx.fillStyle = '#111827'; ctx.font='700 16px Arial, sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(`${car.make} ${car.model}${car.plate?' · '+car.plate:''}`, 48+52, midY);
+    ctx.fillStyle = STATUS_COLOR[car.status]||'#9ca3af'; ctx.font='700 14px Arial, sans-serif'; ctx.textAlign='right';
+    ctx.fillText(rightText, W-72, midY);
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    y += rowH;
+  });
+
+  ctx.fillStyle = '#9ca3af'; ctx.font = '400 12.5px Arial, sans-serif';
+  ctx.fillText('Сформировано в приложении XCAR · ' + new Date().toLocaleDateString('ru-RU'), 48, H-30);
+
+  return canvas;
+}
+async function shareCarsStatusImage(){
+  if(DB.cars.length===0){ showToast('Сначала добавьте машины'); return; }
+  const canvas = drawCarsStatusCanvas();
+  const blob = await canvasToBlob(canvas);
+  if(!blob){ showToast('Не удалось создать изображение'); return; }
+  const filename = `xcar-park-status-${todayISO()}.png`;
+  const file = new File([blob], filename, {type:'image/png'});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:'Статус автопарка XCAR'}); return; }catch(e){ /* cancelled — fall back to download */ }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Изображение статуса автопарка сохранено');
+}
 async function shareContractImage(id){
   const ct = DB.contracts.find(c=>c.id===id); if(!ct) return;
   const canvas = drawContractCanvas(ct);
@@ -3767,6 +3954,7 @@ try{
 (async function init(){
   await loadAll();
   applyTheme(DB.settings.themeColor);
+  applyColorMode(DB.settings.colorMode);
   applyWindowsMode(DB.settings.windowsMode);
   render();
   checkOneHourReminders();
