@@ -76,7 +76,9 @@ body.theme-light #app{background:var(--bg);}
 body.theme-light .splash{background:var(--bg);}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--font-body);height:100%;overscroll-behavior:none;}
-body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
+  user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-webkit-touch-callout:none;}
+input, textarea{user-select:text;-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;-webkit-touch-callout:default;}
 #app{max-width:520px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;position:relative;background:
   radial-gradient(circle at 50% -10%, #1e2330 0%, var(--bg) 55%);}
 
@@ -112,80 +114,130 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-r
   #app{max-width:1180px;}
   header.top{padding:20px 30px 15px;}
   #headerAddBtn{display:flex !important;}
-  .fab{display:none;}
-  main{padding:6px 30px 60px;display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:14px;align-content:start;}
-  main > .search-bar, main > .chips, main > .section-title, main > .dash-top, main > .empty{grid-column:1 / -1;}
+  main{padding:6px 30px 60px;display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:14px;align-content:start;min-width:0;width:100%;}
+  main > .search-bar, main > .chips, main > .section-title, main > .dash-top, main > .empty,
+  main > .dash-filter-row, main > .summary-row2{grid-column:1 / -1;}
   main > .card{margin-bottom:0;}
   nav.bottom .nav-inner{max-width:1180px;padding:10px 20px calc(10px + env(safe-area-inset-bottom));}
   .dash-top{flex-direction:row;align-items:stretch;}
   .dash-top .revenue-card{flex:1.3;}
   .dash-top .quick-stats{flex:1;display:flex;flex-direction:column;justify-content:center;}
+  .dash-filter-row .period-seg{max-width:420px;}
+  .summary-row2{grid-template-columns:repeat(4, 1fr);gap:16px;}
 }
 @media (min-width: 1000px){
   main{grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));}
 }
 
 /* ---------- Windows mode (manual toggle: wide layout + left sidebar nav) ---------- */
-body.win-mode #app{max-width:none;margin:0 0 0 252px;width:calc(100% - 252px);}
-body.win-mode header.top{padding:22px 36px 16px;}
+body.win-mode{background:var(--bg);}
+body.win-mode #app{max-width:none;margin:0 0 0 264px;width:calc(100% - 264px);background:var(--bg);}
+body.win-mode header.top{padding:28px 40px 16px;background:var(--bg);}
 body.win-mode header.top .brand-mark,
 body.win-mode header.top .brand-text{display:none;}
-body.win-mode header.top .brand-sub{font-size:21px;font-weight:700;font-family:var(--font-display);color:var(--text);letter-spacing:0.2px;}
+body.win-mode header.top .brand-sub{font-size:22px;font-weight:700;font-family:var(--font-display);color:var(--text);letter-spacing:0.2px;}
 body.win-mode #headerAddBtn{display:flex !important;}
 body.win-mode main{
-  padding:26px 36px 40px;display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
-  gap:16px;align-content:start;max-width:1520px;margin:0 auto;
+  padding:6px 40px 40px;display:grid;grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+  gap:18px;align-content:start;max-width:1560px;margin:0 auto;min-width:0;width:100%;
 }
 body.win-mode main > .search-bar, body.win-mode main > .chips, body.win-mode main > .section-title,
-body.win-mode main > .dash-top, body.win-mode main > .empty{grid-column:1 / -1;}
+body.win-mode main > .dash-top, body.win-mode main > .empty,
+body.win-mode main > .dash-filter-row, body.win-mode main > .summary-row2{grid-column:1 / -1;}
 body.win-mode main > .card{margin-bottom:0;}
+body.win-mode main{grid-template-columns:repeat(auto-fill, minmax(310px, 1fr));}
+body.win-mode .card{
+  padding:20px 20px 18px;border-radius:20px;gap:15px;
+  box-shadow:var(--shadow-card);
+  border-color:var(--border);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+body.win-mode .card::before{opacity:0.2;width:96px;height:96px;top:-40px;right:-26px;}
+body.win-mode .card::after{opacity:0.16;width:56px;height:56px;}
+body.win-mode .card:hover{
+  transform:translateY(-4px);
+  border-color:var(--accent-dim);
+  box-shadow:0 24px 42px -22px rgba(0,0,0,0.55);
+  background:linear-gradient(160deg, var(--surface-2) 0%, var(--card-grad-end) 100%);
+}
+body.win-mode .card:hover .card-avatar{
+  border-color:var(--accent-dim);
+  box-shadow:0 6px 16px -6px rgba(242,169,59,0.4);
+}
+body.win-mode .card-avatar{
+  width:50px;height:50px;border-radius:15px;font-size:16px;
+  background:linear-gradient(155deg, var(--accent-dim), var(--surface-2) 70%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);
+  transition:box-shadow .18s ease, border-color .18s ease;
+}
+body.win-mode .card-title{font-size:16px;font-weight:700;letter-spacing:0.1px;}
+body.win-mode .card-sub{font-size:13px;}
+body.win-mode .card-amount{font-size:18px;}
+body.win-mode .badge{padding:4px 10px;font-size:10.5px;letter-spacing:0.5px;}
+body.win-mode .timer-pill{padding:5px 11px 5px 8px;font-size:11.5px;}
+body.win-mode .mini-icon-btn{width:31px;height:31px;border-radius:9px;transition:background .15s ease,border-color .15s ease,transform .1s ease;}
+body.win-mode .mini-icon-btn:hover{background:var(--accent-dim);border-color:var(--accent-dim);color:var(--accent);}
+body.win-mode .mini-icon-btn:active{transform:scale(0.94);}
+body.win-mode .summary-card2{transition:transform .16s ease, box-shadow .16s ease;}
+body.win-mode .summary-card2:hover{transform:translateY(-3px);box-shadow:0 18px 32px -20px rgba(0,0,0,0.5);}
+body.win-mode .chips{gap:8px;}
+body.win-mode .chip{padding:8px 16px;border-radius:11px;transition:transform .12s ease,border-color .15s ease;}
+body.win-mode .chip:hover{border-color:var(--accent-dim);}
+body.win-mode .chip.active{box-shadow:0 8px 18px -10px rgba(242,169,59,0.55);}
 body.win-mode .dash-top{flex-direction:row;align-items:stretch;}
 body.win-mode .dash-top .revenue-card{flex:1.3;}
 body.win-mode .dash-top .quick-stats{flex:1;display:flex;flex-direction:column;justify-content:center;}
-body.win-mode .fab{display:none;}
+body.win-mode .dash-filter-row .period-seg{max-width:420px;}
+body.win-mode .summary-row2{grid-template-columns:repeat(4, 1fr);gap:16px;}
+body.win-mode .summary-card2{padding:20px 18px;border-radius:18px;}
+body.win-mode .summary-card2 .ic{width:44px;height:44px;border-radius:13px;font-size:20px;}
+body.win-mode .summary-card2 .n{font-size:23px;}
 body.win-mode nav.bottom{
-  left:0;right:auto;top:0;bottom:0;width:252px;height:100vh;height:100dvh;justify-content:flex-start;
-  box-shadow:0 0 40px -20px rgba(0,0,0,0.25);
+  left:0;right:auto;top:0;bottom:0;width:264px;height:100vh;height:100dvh;justify-content:flex-start;
+  box-shadow:4px 0 40px -24px rgba(0,0,0,0.7);
 }
 body.win-mode .nav-inner{
-  flex-direction:column;max-width:252px;width:252px;height:100%;
+  flex-direction:column;max-width:264px;width:264px;height:100%;
   justify-content:flex-start;align-items:stretch;gap:3px;
-  padding:22px 14px;border-top:none;border-right:1px solid #ddcfa9;
-  overflow-y:auto;background:#f3e9d2;backdrop-filter:none;-webkit-backdrop-filter:none;
+  padding:22px 14px;border-top:none;border-right:1px solid var(--border);
+  overflow-y:auto;background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;
 }
 .sidebar-brand{display:none;}
 .sidebar-divider{display:none;}
 body.win-mode .sidebar-brand{
-  display:flex;align-items:center;gap:12px;padding:2px 10px 20px;
+  display:flex;align-items:center;gap:12px;padding:2px 10px 22px;
 }
 body.win-mode .sidebar-mark{
   width:42px;height:42px;border-radius:13px;flex-shrink:0;
-  background:linear-gradient(150deg, #d98a1c 0%, #b56e12 100%);
+  background:conic-gradient(from 220deg, var(--accent), #ffcf7a, var(--accent));
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 8px 16px -8px rgba(181,110,18,0.5);
+  box-shadow:0 8px 16px -8px rgba(242,169,59,0.5);
 }
-body.win-mode .sidebar-mark svg{width:23px;height:23px;}
-body.win-mode .sidebar-brand .t{font-family:var(--font-display);font-weight:700;font-size:18px;color:#3d2f18;letter-spacing:0.4px;line-height:1.2;}
-body.win-mode .sidebar-brand .s{font-size:11.5px;color:#8c7a54;margin-top:1px;}
+body.win-mode .sidebar-mark svg{width:23px;height:23px;color:#241a06;}
+body.win-mode .sidebar-brand .t{font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--text);letter-spacing:0.4px;line-height:1.2;}
+body.win-mode .sidebar-brand .s{font-size:11.5px;color:var(--text-faint);margin-top:1px;}
 body.win-mode .sidebar-divider{
-  display:block;height:1px;background:#e0d3ac;margin:0 6px 16px;
+  display:block;height:1px;background:var(--border);margin:0 6px 16px;
 }
 body.win-mode .nav-btn{
-  flex-direction:row;justify-content:flex-start;gap:13px;
-  padding:12px 14px;border-radius:12px;color:#6f5f3f;
+  flex:none;flex-direction:row;justify-content:flex-start;gap:13px;
+  padding:12px 14px;border-radius:12px;color:var(--text-dim);
   transition:background .16s ease,color .16s ease,transform .1s ease;
 }
 body.win-mode .nav-btn svg{width:19px;height:19px;flex-shrink:0;}
 body.win-mode .nav-btn span{font-size:14px;font-weight:600;}
-body.win-mode .nav-btn:hover{background:#e9dbb4;color:#3d2f18;}
+body.win-mode .nav-btn:hover{background:var(--surface-2);color:var(--text);}
 body.win-mode .nav-btn:active{transform:scale(0.98);}
-body.win-mode .nav-btn.active{background:rgba(181,110,18,0.14);color:#a5620c;font-weight:700;}
-body.win-mode .nav-btn.active:hover{background:rgba(181,110,18,0.18);}
+body.win-mode .nav-btn.active{background:var(--accent);color:#241a06;font-weight:700;box-shadow:0 10px 22px -10px rgba(242,169,59,0.5);}
+body.win-mode .nav-btn.active:hover{background:var(--accent);color:#241a06;}
 body.win-mode .nav-btn.active::after{display:none;}
-body.win-mode .nav-btn.active::before{
-  content:"";position:absolute;left:-14px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:#b56e12;
+body.win-mode .nav-btn.active::before{display:none;}
+body.win-mode .overlay{padding-left:264px;}
+.sidebar-bottom{display:none;}
+body.win-mode .sidebar-bottom{
+  display:flex;flex-direction:column;gap:3px;margin-top:auto;padding-top:14px;
 }
-body.win-mode .overlay{padding-left:252px;}
+body.win-mode .sidebar-bottom .sidebar-divider{display:block;margin:0 6px 12px;}
 
 /* ---------- header ---------- */
 header.top{
@@ -248,7 +300,7 @@ main{flex:1;padding:4px 16px calc(110px + env(safe-area-inset-bottom));overflow-
 .revenue-eyebrow{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-dim);position:relative;}
 .revenue-value{
   font-family:var(--font-display);font-weight:700;font-size:38px;letter-spacing:0.3px;margin-top:4px;position:relative;
-  background:linear-gradient(160deg,#ffffff,#f2a93b 130%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  background:linear-gradient(160deg,var(--text),var(--accent) 130%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
 }
 .gauge-wrap{position:relative;width:220px;height:130px;margin-top:6px;}
 .gauge-wrap svg{width:100%;height:100%;}
@@ -435,6 +487,12 @@ main{flex:1;padding:4px 16px calc(110px + env(safe-area-inset-bottom));overflow-
 .summary-card2 .l{font-size:10.5px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;position:relative;z-index:1;}
 .summary-card2.c-income .n{color:var(--accent-2);}
 .summary-card2.c-warn .n{color:var(--danger);}
+.summary-card2.icon-teal .ic{background:rgba(62,201,167,0.16);}
+.summary-card2.icon-orange .ic{background:rgba(255,159,67,0.18);}
+.summary-card2.icon-red .ic{background:rgba(232,96,76,0.16);}
+.summary-card2.icon-purple .ic{background:rgba(155,109,255,0.18);}
+.summary-card2.icon-blue .ic{background:rgba(74,144,226,0.16);}
+.summary-card2.icon-gray .ic{background:var(--surface-2);}
 
 /* search */
 .search-bar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:10px 12px;margin-bottom:12px;}
@@ -470,14 +528,20 @@ nav.bottom{
 .nav-btn.active{color:var(--accent);}
 .nav-btn.active::after{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px 1px rgba(242,169,59,0.7);}
 
-.fab{
-  position:fixed;right:calc(50% - 260px + 18px);bottom:calc(88px + env(safe-area-inset-bottom));z-index:25;
-  width:54px;height:54px;border-radius:16px;background:var(--accent);border:none;
-  display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px -6px rgba(242,169,59,0.55);
-  cursor:pointer;
+.nav-btn.nav-fab .fab-circle{
+  position:absolute;top:-24px;left:50%;transform:translateX(-50%);
+  width:52px;height:52px;border-radius:50%;background:var(--accent);border:4px solid var(--nav-bg);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px -6px rgba(242,169,59,0.55);
 }
-@media (max-width:559px){ .fab{right:18px;} }
-.fab svg{width:24px;height:24px;color:#241a06;}
+.nav-btn.nav-fab .fab-circle svg{width:22px;height:22px;color:#241a06;}
+.nav-btn.nav-fab .fab-label{margin-top:30px;font-size:10px;font-weight:600;letter-spacing:0.2px;}
+.nav-btn.nav-fab.active .fab-label{color:var(--accent);}
+.nav-btn.nav-fab.active::after{display:none;}
+body.win-mode .nav-btn.nav-fab .fab-circle{
+  position:static;width:19px;height:19px;border:none;box-shadow:none;background:none;transform:none;
+}
+body.win-mode .nav-btn.nav-fab .fab-circle svg{width:19px;height:19px;color:inherit;}
+body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weight:600;color:inherit;}
 
 /* ---------- modal ---------- */
 .overlay{
@@ -569,6 +633,21 @@ nav.bottom{
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
 
+.center-confirm{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.82);z-index:90;
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:20px;
+  padding:26px 32px;box-shadow:var(--shadow-pop);opacity:0;pointer-events:none;
+  transition:opacity .2s ease, transform .2s ease;max-width:78vw;
+}
+.center-confirm.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+.center-confirm .cc-check{
+  width:52px;height:52px;border-radius:50%;background:var(--accent-2);color:#0c2b23;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.center-confirm .cc-check svg{width:26px;height:26px;}
+.center-confirm .cc-text{font-size:14px;font-weight:700;color:var(--text);text-align:center;}
+
 .settings-item{display:flex;align-items:center;justify-content:space-between;padding:14px 2px;border-bottom:1px solid var(--border);}
 .settings-item:last-child{border-bottom:none;}
 .settings-item .st{font-size:14px;font-weight:600;}
@@ -594,7 +673,7 @@ nav.bottom{
     <div class="splash-mark">
       <svg viewBox="0 0 24 24" fill="none" stroke="#241a06" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 1 0 4 0h4a2 2 0 1 0 4 0h1a1 1 0 0 0 1-1v-3a2 2 0 0 0-.4-1.2l-2.1-2.8a2 2 0 0 0-1.6-.8H6a1 1 0 0 0-1 .8L4.2 12A2 2 0 0 0 4 12.8V16a1 1 0 0 0 1 1Z"/><path d="M4 12h16"/></svg>
     </div>
-    <div class="splash-title">XCAR</div>
+    <div class="splash-title" id="splashCompanyName">XCAR</div>
     <div class="splash-sub">Учёт автопроката: машины, клиенты,<br>договоры и отчёты в одном месте</div>
     <button class="splash-btn" onclick="enterApp()">
       <span>Войти в панель</span>
@@ -611,12 +690,12 @@ nav.bottom{
         <svg viewBox="0 0 24 24" fill="none" stroke="#241a06" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 1 0 4 0h4a2 2 0 1 0 4 0h1a1 1 0 0 0 1-1v-3a2 2 0 0 0-.4-1.2l-2.1-2.8a2 2 0 0 0-1.6-.8H6a1 1 0 0 0-1 .8L4.2 12A2 2 0 0 0 4 12.8V16a1 1 0 0 0 1 1Z"/><path d="M4 12h16"/></svg>
       </div>
       <div>
-        <div class="brand-text">XCAR</div>
+        <div class="brand-text" id="headerCompanyName">XCAR</div>
         <div class="brand-sub" id="headerSub">Панель учёта</div>
       </div>
     </div>
     <div style="display:flex;gap:8px;">
-      <button class="icon-btn" id="headerAddBtn" onclick="handleFab()" style="display:none;">
+      <button class="icon-btn" id="headerAddBtn" onclick="openQuickMenu()" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       </button>
       <button class="icon-btn" id="notifBtn" onclick="openNotifications()" style="position:relative;">
@@ -643,17 +722,13 @@ nav.bottom{
 
   <main id="main"></main>
 
-  <button class="fab" id="fab" onclick="handleFab()" style="display:none;">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-  </button>
-
   <nav class="bottom"><div class="nav-inner">
     <div class="sidebar-brand">
       <div class="sidebar-mark">
         <svg viewBox="0 0 24 24" fill="none" stroke="#241a06" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 1 0 4 0h4a2 2 0 1 0 4 0h1a1 1 0 0 0 1-1v-3a2 2 0 0 0-.4-1.2l-2.1-2.8a2 2 0 0 0-1.6-.8H6a1 1 0 0 0-1 .8L4.2 12A2 2 0 0 0 4 12.8V16a1 1 0 0 0 1 1Z"/><path d="M4 12h16"/></svg>
       </div>
       <div>
-        <div class="t">XCAR</div>
+        <div class="t" id="sidebarCompanyName">XCAR</div>
         <div class="s">Панель учёта</div>
       </div>
     </div>
@@ -666,6 +741,12 @@ nav.bottom{
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 1 0 4 0h4a2 2 0 1 0 4 0h1a1 1 0 0 0 1-1v-3a2 2 0 0 0-.4-1.2l-2.1-2.8a2 2 0 0 0-1.6-.8H6a1 1 0 0 0-1 .8L4.2 12A2 2 0 0 0 4 12.8V16a1 1 0 0 0 1 1Z"/><path d="M4 12h16"/></svg>
       <span>Машины</span>
     </button>
+    <button class="nav-btn nav-fab" onclick="openQuickMenu()" title="Быстрые действия">
+      <span class="fab-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      </span>
+      <span class="fab-label">Ещё</span>
+    </button>
     <button class="nav-btn" data-tab="clients" onclick="switchTab('clients')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span>Клиенты</span>
@@ -674,16 +755,27 @@ nav.bottom{
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
       <span>Договоры</span>
     </button>
-    <button class="nav-btn" data-tab="reports" onclick="switchTab('reports')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg>
-      <span>Отчёты</span>
-    </button>
+    <div class="sidebar-bottom">
+      <div class="sidebar-divider"></div>
+      <button class="nav-btn" onclick="openTariffs()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <span>Тарифы</span>
+      </button>
+      <button class="nav-btn" onclick="openSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+        <span>Настройки</span>
+      </button>
+    </div>
   </div></nav>
 
 </div>
 
 <div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
 <div class="toast" id="toast"></div>
+<div class="center-confirm" id="centerConfirm">
+  <div class="cc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+  <div class="cc-text" id="centerConfirmText"></div>
+</div>
 
 <script>
 /* =================== STORAGE / STATE =================== */
@@ -753,7 +845,8 @@ const SHEET_ICONS = {
   check: `<path d="M20 6 9 17l-5-5"/>`,
   list: `<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>`,
   trash: `<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14Z"/><path d="M10 11v6M14 11v6"/>`,
-  close: `<path d="M18 6 6 18M6 6l12 12"/>`
+  close: `<path d="M18 6 6 18M6 6l12 12"/>`,
+  refresh: `<path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>`
 };
 function iconBtn(icon, onclick, title){
   return `<button class="icon-btn" title="${title}" onclick="${onclick}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SHEET_ICONS[icon]}</svg></button>`;
@@ -783,6 +876,23 @@ function daysCeilGrace(ms){
   if(DB.settings.graceHour && wholeDays>=1 && overHours>0 && overHours<=1) return wholeDays;
   return Math.max(1, Math.ceil(days));
 }
+// Доплата за опоздание с возвратом, если включён режим 6-часовых блоков:
+// первый час опоздания — без доплаты (льготный), после него доплата начисляется
+// 6-часовыми блоками по цене "за 6 часов" машины.
+function overdueSurcharge(ct){
+  if(!DB.settings.overdue6hBlocks) return 0;
+  if(!ct || !ct.end || ct.status!=='active') return 0;
+  const now = new Date(), end = new Date(ct.end);
+  const overMs = now - end;
+  const graceMs = 3600*1000;
+  if(overMs <= graceMs) return 0;
+  const car = DB.cars.find(c=>c.id===ct.carId);
+  const rate6h = car?.rate6h || 0;
+  if(!rate6h) return 0;
+  const blockMs = 6*3600*1000;
+  const blocks = Math.ceil((overMs - graceMs)/blockMs);
+  return blocks * rate6h;
+}
 const THEME_COLORS = {
   amber:{accent:'#f2a93b', accentDim:'#7a5b25'},
   blue:{accent:'#4a90e2', accentDim:'#284a72'},
@@ -798,6 +908,11 @@ function applyTheme(name){
 }
 function applyWindowsMode(on){
   document.body.classList.toggle('win-mode', !!on);
+  if(on){
+    searchBarOpen.cars = true;
+    searchBarOpen.clients = true;
+    searchBarOpen.contracts = true;
+  }
 }
 async function toggleWindowsMode(){
   const on = document.getElementById('f_winmode').checked;
@@ -805,6 +920,25 @@ async function toggleWindowsMode(){
   await persist('settings');
   applyWindowsMode(on);
   showToast(on ? 'Режим для Windows включён' : 'Режим для Windows выключен');
+}
+function applyCompanyName(){
+  const name = (DB.settings.companyName || 'XCAR').trim() || 'XCAR';
+  ['splashCompanyName','headerCompanyName','sidebarCompanyName'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = name;
+  });
+  try{
+    document.title = `${name} — учёт аренды`;
+    const metaTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+    if(metaTitle) metaTitle.setAttribute('content', name);
+  }catch(e){}
+}
+async function saveCompanyName(){
+  const val = (document.getElementById('f_company_name').value || '').trim();
+  DB.settings.companyName = val || 'XCAR';
+  await persist('settings');
+  applyCompanyName();
+  showToast('Название компании сохранено');
 }
 function timeLeftLabel(endStr){
   const diffMs = new Date(endStr) - new Date();
@@ -856,8 +990,10 @@ async function loadAll(){
     if(DB.settings.alarmSettings.volume===undefined) DB.settings.alarmSettings.volume = 70;
     if(DB.settings.alarmSettings.duration===undefined) DB.settings.alarmSettings.duration = 0.4;
     if(DB.settings.graceHour===undefined) DB.settings.graceHour = false;
+    if(DB.settings.overdue6hBlocks===undefined) DB.settings.overdue6hBlocks = false;
     if(!DB.settings.themeColor) DB.settings.themeColor = 'amber';
-    if(!DB.settings.colorMode) DB.settings.colorMode = 'dark';
+    if(!DB.settings.colorMode) DB.settings.colorMode = 'light';
+    if(!DB.settings.companyName) DB.settings.companyName = 'XCAR';
     if(DB.settings.windowsMode===undefined) DB.settings.windowsMode = false;
     if(!DB.settings.readNotifKeys) DB.settings.readNotifKeys = [];
     if(!DB.settings.dashCardsMigrated1){
@@ -894,6 +1030,13 @@ function showToast(msg){
   clearTimeout(window.__tt);
   window.__tt = setTimeout(()=>t.classList.remove('show'), 1800);
 }
+function showCenterConfirm(msg){
+  const el = document.getElementById('centerConfirm');
+  document.getElementById('centerConfirmText').textContent = msg;
+  el.classList.add('show');
+  clearTimeout(window.__cct);
+  window.__cct = setTimeout(()=>el.classList.remove('show'), 1500);
+}
 
 /* =================== NAV =================== */
 function switchTab(tab){
@@ -902,7 +1045,6 @@ function switchTab(tab){
   document.getElementById('headerSub').textContent = {
     dashboard:'Панель учёта', cars:'Автопарк', clients:'База клиентов', contracts:'Договоры аренды', reports:'Финансовые отчёты'
   }[tab];
-  document.getElementById('fab').style.display = (tab==='reports' || tab==='dashboard') ? 'none' : 'flex';
   document.getElementById('dashCustomizeBtn').style.display = (tab==='dashboard') ? 'flex' : 'none';
   document.getElementById('carsShareBtn').style.display = (tab==='cars') ? 'flex' : 'none';
   document.getElementById('searchToggleBtn').style.display = (tab==='cars'||tab==='clients'||tab==='contracts') ? 'flex' : 'none';
@@ -925,16 +1067,132 @@ function handleFab(){
   else if(currentTab==='contracts') openContractForm();
   else openContractForm();
 }
+function openQuickMenu(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Быстрые действия</div>
+      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      ${settingsMenuItem('🧾','Новый договор','Оформить аренду машины', `closeSheet();openContractForm()`)}
+      ${settingsMenuItem('💵','Добавить платёж','Записать оплату от клиента', `closeSheet();openQuickPaymentPicker()`)}
+      ${settingsMenuItem('🔧','Добавить расход','Ремонт, замена масла, штраф или нарушение', `closeSheet();openQuickExpensePicker()`)}
+      ${settingsMenuItem('👤','Новый контакт','Добавить клиента в базу', `closeSheet();openClientForm()`)}
+      ${settingsMenuItem('🚗','Новая машина','Добавить машину в автопарк', `closeSheet();openCarForm()`)}
+      ${settingsMenuItem('📊','Отчёты','Финансовая статистика', `closeSheet();switchTab('reports')`)}
+      ${settingsMenuItem('📋','Все операции','Список договоров, ремонтов, штрафов', `closeSheet();switchTab('contracts')`)}
+    </div>
+  `);
+}
+function openQuickPaymentPicker(){
+  if(DB.clients.length===0){ showToast('Сначала добавьте клиента'); return; }
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Платёж — выберите клиента</div>
+      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      <div class="field"><label>Клиент</label>
+        <select id="qp_client">
+          ${DB.clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="closeSheet()">Отмена</button>
+        <button class="btn primary" onclick="proceedQuickPayment()">Далее</button>
+      </div>
+    </div>
+  `);
+}
+function proceedQuickPayment(){
+  const id = document.getElementById('qp_client').value;
+  if(!id) return;
+  openClientPaymentForm(id);
+}
+function openQuickExpensePicker(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Добавить расход</div>
+      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      <div class="field">
+        <label>Тип расхода</label>
+        <div class="gauge-period-row" id="qeTypeRow" style="width:100%;flex-wrap:wrap;">
+          <button type="button" class="active" style="flex:1;min-width:70px;" onclick="setQuickExpenseType('repair')">🔧 Ремонт</button>
+          <button type="button" style="flex:1;min-width:70px;" onclick="setQuickExpenseType('oil')">🛢 Масло</button>
+          <button type="button" style="flex:1;min-width:70px;" onclick="setQuickExpenseType('fine')">⚠️ Штраф</button>
+          <button type="button" style="flex:1;min-width:70px;" onclick="setQuickExpenseType('violation')">🚫 Наруш.</button>
+        </div>
+        <input type="hidden" id="qe_type" value="repair">
+      </div>
+      <div class="field" id="qeCarBox"><label>Машина</label>
+        <select id="qe_car">
+          ${DB.cars.length ? DB.cars.map(c=>`<option value="${c.id}">${esc(c.make)} ${esc(c.model)} · ${esc(c.plate)}</option>`).join('') : `<option value="">Нет машин — добавьте машину</option>`}
+        </select>
+      </div>
+      <div class="field" id="qeClientBox" style="display:none;"><label>Клиент</label>
+        <select id="qe_client">
+          ${DB.clients.length ? DB.clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('') : `<option value="">Нет клиентов — добавьте клиента</option>`}
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="closeSheet()">Отмена</button>
+        <button class="btn primary" onclick="proceedQuickExpense()">Далее</button>
+      </div>
+    </div>
+  `);
+}
+function setQuickExpenseType(type){
+  document.getElementById('qe_type').value = type;
+  const btns = document.querySelectorAll('#qeTypeRow button');
+  btns.forEach((b,i)=>b.classList.toggle('active', ['repair','oil','fine','violation'][i]===type));
+  const isClientBased = (type==='fine' || type==='violation');
+  document.getElementById('qeCarBox').style.display = isClientBased ? 'none' : 'block';
+  document.getElementById('qeClientBox').style.display = isClientBased ? 'block' : 'none';
+}
+function proceedQuickExpense(){
+  const type = document.getElementById('qe_type').value;
+  if(type==='fine' || type==='violation'){
+    const clientId = document.getElementById('qe_client').value;
+    if(!clientId){ showToast('Сначала добавьте клиента'); return; }
+    if(type==='violation') openClientViolationForm(clientId);
+    else openClientFineForm(clientId);
+    return;
+  }
+  const id = document.getElementById('qe_car').value;
+  if(!id){ showToast('Сначала добавьте машину'); return; }
+  if(type==='oil') openOilChangeForm(id);
+  else openQuickRepairForm(id);
+}
 
 /* =================== RENDER ROOT =================== */
 function render(){
   const main = document.getElementById('main');
+  const active = document.activeElement;
+  let restoreId = null, selStart = null, selEnd = null;
+  if(active && main.contains(active) && active.id){
+    restoreId = active.id;
+    if(typeof active.selectionStart === 'number'){
+      selStart = active.selectionStart;
+      selEnd = active.selectionEnd;
+    }
+  }
   if(currentTab==='dashboard') main.innerHTML = renderDashboard();
   else if(currentTab==='cars') main.innerHTML = renderCars();
   else if(currentTab==='clients') main.innerHTML = renderClients();
   else if(currentTab==='contracts') main.innerHTML = renderContracts();
   else if(currentTab==='reports') main.innerHTML = renderReports();
   updateNotifBadge();
+  if(restoreId){
+    const el = document.getElementById(restoreId);
+    if(el){
+      el.focus();
+      if(selStart!==null && el.setSelectionRange){
+        try{ el.setSelectionRange(selStart, selEnd); }catch(e){}
+      }
+    }
+  }
 }
 
 /* =================== NOTIFICATIONS =================== */
@@ -1170,7 +1428,7 @@ function dashboardCardDefs(){
   const totalClientDebt = DB.clients.reduce((s2,cl)=>{ const {debt}=clientDebt(cl.id); return s2+Math.max(0,debt); },0);
   const now = new Date();
   const overdueDebt = DB.contracts.filter(c=>(!c.type||c.type==='rental') && c.status==='active' && new Date(c.end) < now)
-    .reduce((s2,c)=>s2+(c.total||0),0);
+    .reduce((s2,c)=>s2+(c.total||0)+overdueSurcharge(c),0);
   const cutoff = new Date(now); cutoff.setDate(cutoff.getDate()-30);
   let monthAgedDebt = 0;
   DB.contracts.filter(c=>(!c.type||c.type==='rental') && c.status!=='cancelled' && !c.paid && new Date(c.start) < cutoff)
@@ -1182,13 +1440,13 @@ function dashboardCardDefs(){
   const finesPaid = fineContracts.reduce((s2,c)=>s2+Math.min(c.total||0, finePaidAmount(c.id)),0);
   const repairExpense = DB.contracts.filter(c=>c.type==='repair' && inRange(c.start)).reduce((s2,c)=>s2+(c.total||0),0);
   return {
-    income: { icon:'💰', label:'Общий доход', value: money(totalIncome), cls:'c-income' },
-    clientDebt: { icon:'⚠️', label:'Долг клиентов', value: money(totalClientDebt), cls: totalClientDebt>0?'c-warn':'' },
-    overdueDebt: { icon:'⏰', label:'Просроченные долги', value: money(overdueDebt), cls: overdueDebt>0?'c-warn':'' },
-    monthAgedDebt: { icon:'📆', label:'Долги старше месяца', value: money(monthAgedDebt), cls: monthAgedDebt>0?'c-warn':'' },
-    finesUnpaid: { icon:'🔴', label:'Штрафы неоплаченные', value: money(finesUnpaid), cls: finesUnpaid>0?'c-warn':'' },
-    finesPaid: { icon:'✅', label:'Штрафы оплаченные', value: money(finesPaid), cls:'c-income' },
-    repairExpense: { icon:'🔧', label:'Расход на ремонт', value: money(repairExpense), cls:'c-warn' },
+    income: { icon:'💰', label:'Общий доход', value: money(totalIncome), cls:'c-income', iconCls:'icon-teal' },
+    clientDebt: { icon:'⚠️', label:'Долг клиентов', value: money(totalClientDebt), cls: totalClientDebt>0?'c-warn':'', iconCls:'icon-orange' },
+    overdueDebt: { icon:'⏰', label:'Просроченные долги', value: money(overdueDebt), cls: overdueDebt>0?'c-warn':'', iconCls:'icon-red' },
+    monthAgedDebt: { icon:'📆', label:'Долги старше месяца', value: money(monthAgedDebt), cls: monthAgedDebt>0?'c-warn':'', iconCls:'icon-purple' },
+    finesUnpaid: { icon:'🔴', label:'Штрафы неоплаченные', value: money(finesUnpaid), cls: finesUnpaid>0?'c-warn':'', iconCls:'icon-red' },
+    finesPaid: { icon:'✅', label:'Штрафы оплаченные', value: money(finesPaid), cls:'c-income', iconCls:'icon-teal' },
+    repairExpense: { icon:'🔧', label:'Расход на ремонт', value: money(repairExpense), cls:'c-warn', iconCls:'icon-blue' },
   };
 }
 function dashboardCardOrder(){
@@ -1200,11 +1458,11 @@ function renderDashboardCards(){
   const defs = dashboardCardDefs();
   const order = dashboardCardOrder();
   return `
-    <div style="margin-top:18px;">${dashboardFilterHtml()}</div>
+    <div class="dash-filter-row" style="margin-top:18px;">${dashboardFilterHtml()}</div>
     ${order.length ? `<div class="summary-row2" style="margin-top:12px;">
       ${order.map(id=>{
         const d = defs[id];
-        return `<div class="summary-card2 ${d.cls}"><div class="ic">${d.icon}</div><div class="n">${d.value}</div><div class="l">${d.label}</div></div>`;
+        return `<div class="summary-card2 ${d.cls} ${d.iconCls||''}"><div class="ic">${d.icon}</div><div class="n">${d.value}</div><div class="l">${d.label}</div></div>`;
       }).join('')}
     </div>` : `<div style="color:var(--text-dim);font-size:13px;padding:8px 2px;">Карточки не выбраны — нажмите ⚙ в шапке</div>`}
   `;
@@ -1306,23 +1564,23 @@ function buildGauge(angleDeg){
   const fillLen = arcLen * (angleDeg/180);
   const ticks = [0,45,90,135,180].map(a=>{
     const [x1,y1]=arcPoint(a,r+3); const [x2,y2]=arcPoint(a,r-8);
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#333a4a" stroke-width="2" stroke-linecap="round"/>`;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--border)" stroke-width="2" stroke-linecap="round"/>`;
   }).join('');
   return `
   <svg viewBox="0 0 220 130">
-    <path d="${trackPath}" fill="none" stroke="#2c3242" stroke-width="12" stroke-linecap="round"/>
+    <path d="${trackPath}" fill="none" stroke="var(--surface-3)" stroke-width="12" stroke-linecap="round"/>
     <path d="${trackPath}" fill="none" stroke="url(#gaugeGrad)" stroke-width="12" stroke-linecap="round"
       stroke-dasharray="${fillLen} ${arcLen}"/>
     ${ticks}
     <defs>
       <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stop-color="#3ec9a7"/>
-        <stop offset="55%" stop-color="#f2a93b"/>
-        <stop offset="100%" stop-color="#f2a93b"/>
+        <stop offset="0%" stop-color="var(--accent-2)"/>
+        <stop offset="55%" stop-color="var(--accent)"/>
+        <stop offset="100%" stop-color="var(--accent)"/>
       </linearGradient>
     </defs>
-    <circle cx="${cx}" cy="${cy}" r="5" fill="#eef0f4"/>
-    <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="#eef0f4" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="5" fill="var(--text)"/>
+    <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/>
   </svg>`;
 }
 
@@ -1340,7 +1598,7 @@ function renderCars(){
   return `
     ${(searchBarOpen.cars || searchQ.cars) ? `<div class="search-bar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input placeholder="Поиск по марке, модели, номеру" value="${escapeAttr(searchQ.cars)}" oninput="searchQ.cars=this.value;render()">
+      <input id="searchInput" placeholder="Поиск по марке, модели, номеру" value="${escapeAttr(searchQ.cars)}" oninput="searchQ.cars=this.value;render()">
     </div>` : ''}
     <div class="chips">${filters.map(([k,l])=>`<div class="chip ${carFilter===k?'active':''}" onclick="carFilter='${k}';render()">${l} <span class="chip-count">${counts[k]}</span></div>`).join('')}</div>
     <div class="section-title">Автопарк <span class="count">${list.length}</span></div>
@@ -1402,7 +1660,6 @@ function openCarForm(existing){
           <option value="service" ${c.status==='service'?'selected':''}>На сервисе (ремонт)</option>
         </select>
       </div>
-      <div class="field"><label>VIN / доп. номер (необязательно)</label><input id="f_vin" value="${escapeAttr(c.vin)}"></div>
       <div class="field"><label>Заметки</label><textarea id="f_notes" placeholder="Особенности, комплектация...">${esc(c.notes)}</textarea></div>
       <div class="btn-row">
         <button class="btn ghost" onclick="closeSheet()">Отмена</button>
@@ -1423,7 +1680,6 @@ async function saveCar(id){
     rate: parseFloat(document.getElementById('f_rate').value)||0,
     rate6h: parseFloat(document.getElementById('f_rate6h').value)||0,
     status: document.getElementById('f_status').value,
-    vin: document.getElementById('f_vin').value.trim(),
     notes: document.getElementById('f_notes').value.trim(),
   };
   if(id){
@@ -1501,7 +1757,7 @@ async function startBookedRental(contractId){
 async function deleteCar(id){
   if(!confirm('Удалить машину? Связанные договоры останутся в истории.')) return;
   DB.cars = DB.cars.filter(c=>c.id!==id);
-  await persist('cars'); closeSheet(); render(); showToast('Машина удалена');
+  await persist('cars'); closeSheet(); render(); showCenterConfirm('Машина удалена');
 }
 
 /* =================== CLIENTS =================== */
@@ -1544,7 +1800,7 @@ function renderClients(){
   return `
     ${(searchBarOpen.clients || searchQ.clients) ? `<div class="search-bar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input placeholder="Поиск по имени, телефону" value="${escapeAttr(searchQ.clients)}" oninput="searchQ.clients=this.value;render()">
+      <input id="searchInput" placeholder="Поиск по имени, телефону" value="${escapeAttr(searchQ.clients)}" oninput="searchQ.clients=this.value;render()">
     </div>` : ''}
     <div class="chips">${filters.map(([k,l])=>`<div class="chip ${clientFilter===k?'active':''}" onclick="clientFilter='${k}';render()">${l} <span class="chip-count">${counts[k]}</span></div>`).join('')}</div>
     <div class="section-title">Клиенты <span class="count">${list.length}</span></div>
@@ -1682,7 +1938,7 @@ async function saveClient(id){
 }
 function clientDebt(clientId){
   const rentals = DB.contracts.filter(ct=>ct.clientId===clientId && ct.status!=='cancelled');
-  const unpaidSum = rentals.reduce((s,ct)=> s + (!ct.paid ? ct.total : 0), 0);
+  const unpaidSum = rentals.reduce((s,ct)=> s + (!ct.paid ? ct.total + overdueSurcharge(ct) : 0), 0);
   const ledger = DB.clientLedger.filter(l=>l.clientId===clientId);
   const finesSum = ledger.filter(l=>l.type==='fine').reduce((s,l)=>s+(l.amount||0),0);
   const paymentsSum = ledger.filter(l=>l.type==='payment').reduce((s,l)=>s+(l.amount||0),0);
@@ -1964,6 +2220,56 @@ async function saveClientFine(clientId){
   showToast('Штраф добавлен к долгу клиента');
   openClientDetail(clientId);
 }
+function openClientViolationForm(clientId){
+  const c = DB.clients.find(x=>x.id===clientId); if(!c) return;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Нарушение · ${esc(c.name)}</div>
+      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      <div class="field"><label>Дата и время</label><input id="f_viol_date" type="datetime-local" value="${nowDT()}"></div>
+      <div class="field"><label>Описание нарушения</label><textarea id="f_viol_note" placeholder="Например: превышение скорости, нарушение ПДД"></textarea></div>
+      <div class="field"><label>Сумма (необязательно, ${DB.settings.currency})</label><input id="f_viol_amount" type="number" placeholder="0"></div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="closeSheet()">Отмена</button>
+        <button class="btn primary" onclick="saveClientViolation('${clientId}')">Сохранить</button>
+      </div>
+    </div>
+  `);
+}
+async function saveClientViolation(clientId){
+  const note = document.getElementById('f_viol_note').value.trim();
+  if(!note){ showToast('Опишите нарушение'); return; }
+  const date = document.getElementById('f_viol_date').value || nowDT();
+  const amount = parseFloat(document.getElementById('f_viol_amount').value)||0;
+  const id = uid();
+  DB.contracts.push({ id, carId:null, clientId, start:date, end:date, rentalType:null, rate:0, total:amount, status:'done', paid:true, notes:note, type:'violation', notifiedOneHour:false });
+  await persist('contracts');
+  closeSheet(); render();
+  showCenterConfirm('Нарушение добавлено');
+}
+function openViolationDetail(ct){
+  const cl = DB.clients.find(c=>c.id===ct.clientId);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">🚫 Нарушение</div>
+      <div class="sheet-head-actions">${iconBtn('close', 'closeSheet()', 'Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div class="detail-block">
+        <div class="detail-row"><span class="k">Клиент</span><span class="v">${cl?esc(cl.name):'Удалён'}</span></div>
+        <div class="detail-row"><span class="k">Дата</span><span class="v">${fmtDateTime(ct.start)}</span></div>
+        ${ct.total ? `<div class="detail-row"><span class="k">Сумма</span><span class="v" style="color:var(--danger);">${money(ct.total)}</span></div>` : ''}
+        ${ct.notes ? `<div class="detail-row"><span class="k">Описание</span><span class="v">${esc(ct.notes)}</span></div>`:''}
+      </div>
+      <div class="btn-row">
+        <button class="btn danger-ghost" onclick="deleteContract('${ct.id}')">Удалить</button>
+        ${cl ? `<button class="btn primary" onclick="closeSheet();openClientDetail('${cl.id}')">Открыть клиента</button>` : `<button class="btn primary" onclick="closeSheet()">Готово</button>`}
+      </div>
+    </div>
+  `);
+}
 async function deleteLedgerEntry(id){
   if(!confirm('Удалить запись?')) return;
   const entry = DB.clientLedger.find(l=>l.id===id);
@@ -1976,7 +2282,7 @@ async function deleteLedgerEntry(id){
 async function deleteClient(id){
   if(!confirm('Удалить клиента? Связанные договоры останутся в истории.')) return;
   DB.clients = DB.clients.filter(c=>c.id!==id);
-  await persist('clients'); closeSheet(); render(); showToast('Клиент удалён');
+  await persist('clients'); closeSheet(); render(); showCenterConfirm('Клиент удалён');
 }
 function openClientContracts(id){
   const c = DB.clients.find(x=>x.id===id); if(!c) return;
@@ -1993,9 +2299,25 @@ function openClientContracts(id){
 }
 
 /* =================== CONTRACTS =================== */
+let contractFilter = 'all';
 function renderContracts(){
   const statusOrder = { active:0, service:0, booked:1, done:2, cancelled:2 };
+  const isDebt = ct => (!ct.type||ct.type==='rental') && !ct.paid && ct.status!=='cancelled';
+  const filters = [['all','Все'],['active','Активные'],['debt','Долги'],['fines','Штрафы'],['oil','Замена масла'],['violations','Нарушения']];
+  const counts = { all: DB.contracts.length, active:0, debt:0, fines:0, oil:0, violations:0 };
+  DB.contracts.forEach(ct=>{
+    if(ct.status==='active' || ct.status==='service') counts.active++;
+    if(isDebt(ct)) counts.debt++;
+    if(ct.type==='fine') counts.fines++;
+    if(ct.type==='oil') counts.oil++;
+    if(ct.type==='violation') counts.violations++;
+  });
   let list = DB.contracts.filter(ct=>{
+    if(contractFilter==='active' && !(ct.status==='active'||ct.status==='service')) return false;
+    if(contractFilter==='debt' && !isDebt(ct)) return false;
+    if(contractFilter==='fines' && ct.type!=='fine') return false;
+    if(contractFilter==='oil' && ct.type!=='oil') return false;
+    if(contractFilter==='violations' && ct.type!=='violation') return false;
     const q = searchQ.contracts.toLowerCase();
     if(!q) return true;
     const car = DB.cars.find(c=>c.id===ct.carId);
@@ -2014,8 +2336,9 @@ function renderContracts(){
   return `
     ${(searchBarOpen.contracts || searchQ.contracts) ? `<div class="search-bar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input placeholder="Поиск по клиенту, машине" value="${escapeAttr(searchQ.contracts)}" oninput="searchQ.contracts=this.value;render()">
+      <input id="searchInput" placeholder="Поиск по клиенту, машине" value="${escapeAttr(searchQ.contracts)}" oninput="searchQ.contracts=this.value;render()">
     </div>` : ''}
+    <div class="chips">${filters.map(([k,l])=>`<div class="chip ${contractFilter===k?'active':''}" onclick="contractFilter='${k}';render()">${l} <span class="chip-count">${counts[k]}</span></div>`).join('')}</div>
     <div class="section-title">Договоры <span class="count">${list.length}</span></div>
     ${list.length ? list.map(contractCard).join('') : emptyState('Пока нет договоров','Нажмите «+», чтобы оформить первую аренду')}
   `;
@@ -2073,6 +2396,18 @@ function contractCard(ct){
         <div class="card-sub">${ct.notes?esc(ct.notes):'Замена масла'} · ${fmtDateTime(ct.start)}</div>
       </div>
       <div class="card-right"><div class="card-amount" style="color:var(--danger);">-${money(ct.total)}</div></div>
+    </div>`;
+  }
+  if(ct.type==='violation'){
+    return `
+    <div class="card" onclick="openContractDetail('${ct.id}')" style="align-items:flex-start;">
+      <div class="card-avatar">🚫</div>
+      <div class="card-body">
+        <div class="card-title">${cl?esc(cl.name):'Клиент удалён'}</div>
+        <div class="card-sub"><span class="badge cancelled">Нарушение</span></div>
+        <div class="card-sub">${ct.notes?esc(ct.notes):'Нарушение'} · ${fmtDateTime(ct.start)}</div>
+      </div>
+      ${ct.total ? `<div class="card-right"><div class="card-amount" style="color:var(--danger);">${money(ct.total)}</div></div>` : ''}
     </div>`;
   }
   return `
@@ -2332,6 +2667,7 @@ function openContractDetail(id){
   if(ct.type==='repair'){ openRepairDetail(ct, car); return; }
   if(ct.type==='fine'){ openFineContractDetail(ct); return; }
   if(ct.type==='oil'){ openOilContractDetail(ct, car); return; }
+  if(ct.type==='violation'){ openViolationDetail(ct); return; }
   const cl = DB.clients.find(c=>c.id===ct.clientId);
   const statusCls = {active:'active',done:'done',cancelled:'cancelled',booked:'booked'}[ct.status];
   const statusText = {active:'Активен',done:'Завершён',cancelled:'Отменён',booked:'Забронирован'}[ct.status];
@@ -2355,6 +2691,8 @@ function openContractDetail(id){
         <div class="detail-row"><span class="k">Тариф</span><span class="v">${ct.rentalType==='6h'?'6 часов':'Сутки'}</span></div>
         <div class="detail-row"><span class="k">Цена по тарифу</span><span class="v">${money(ct.rate)}</span></div>
         <div class="detail-row"><span class="k">Итого</span><span class="v">${money(ct.total)}</span></div>
+        ${(()=>{ const s=overdueSurcharge(ct); return s>0 ? `<div class="detail-row"><span class="k">Доплата за опоздание</span><span class="v" style="color:var(--danger);">+${money(s)}</span></div>
+        <div class="detail-row"><span class="k">К оплате сейчас</span><span class="v" style="color:var(--danger);font-weight:700;">${money(ct.total+s)}</span></div>` : ''; })()}
         <div class="detail-row"><span class="k">Статус</span><span class="v"><span class="badge ${statusCls}">${statusText}</span></span></div>
         <div class="detail-row"><span class="k">Оплата</span><span class="v"><span class="badge ${ct.paid?'paid':'unpaid'}">${ct.paid?'Оплачено':'Не оплачено'}</span></span></div>
         ${ct.notes ? `<div class="detail-row"><span class="k">Заметки</span><span class="v">${esc(ct.notes)}</span></div>`:''}
@@ -2460,6 +2798,7 @@ async function settleFine(contractId){
   openFineContractDetail(ct);
 }
 function openOilContractDetail(ct, car){
+  const log = DB.oilChanges.find(l=>l.id===ct.id);
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">🛢 Замена масла</div>
@@ -2469,20 +2808,21 @@ function openOilContractDetail(ct, car){
       <div class="detail-block">
         <div class="detail-row"><span class="k">Машина</span><span class="v">${car?esc(car.make+' '+car.model):'Удалена'}</span></div>
         <div class="detail-row"><span class="k">Дата</span><span class="v">${fmtDateTime(ct.start)}</span></div>
+        ${log ? `<div class="detail-row"><span class="k">Замена</span><span class="v">${log.mileage.toLocaleString('ru-RU')} км → ${log.nextMileage.toLocaleString('ru-RU')} км</span></div>` : ''}
         <div class="detail-row"><span class="k">Сумма расхода</span><span class="v" style="color:var(--danger);">${money(ct.total)}</span></div>
         ${ct.notes ? `<div class="detail-row"><span class="k">Комментарий</span><span class="v">${esc(ct.notes)}</span></div>`:''}
       </div>
       <div class="btn-row">
-        ${car ? `<button class="btn primary" onclick="closeSheet();openOilChangeForm('${car.id}')">Новая замена масла</button>` : `<button class="btn primary" onclick="closeSheet()">Готово</button>`}
+        <button class="btn danger-ghost" onclick="deleteOilLogEntry('${ct.id}')">Удалить</button>
+        ${car ? `<button class="btn primary" onclick="closeSheet();openOilChangeForm('${car.id}','${ct.id}')">Изменить</button>` : `<button class="btn primary" onclick="closeSheet()">Изменить</button>`}
       </div>
-      <button class="btn danger-ghost" style="margin-top:10px;" onclick="deleteOilLogEntry('${ct.id}')">Удалить запись</button>
     </div>
   `);
 }
 async function deleteContract(id){
   if(!confirm('Удалить договор?')) return;
   DB.contracts = DB.contracts.filter(c=>c.id!==id);
-  await persist('contracts'); closeSheet(); render(); showToast('Договор удалён');
+  await persist('contracts'); closeSheet(); render(); showCenterConfirm('Договор удалён');
 }
 function openCompleteContract(id){
   const ct = DB.contracts.find(x=>x.id===id); if(!ct) return;
@@ -2697,7 +3037,7 @@ async function deleteOilLogEntry(id){
   await persist('oilChanges'); await persist('contracts');
   if(carId && document.getElementById('f_mileage')) openRecordMileage(carId);
   else if(carId && document.getElementById('f_oil_cur')) openOilChangeForm(carId);
-  else render();
+  else { closeSheet(); render(); showCenterConfirm('Запись удалена'); }
 }
 function rentalWord(n){
   const n10 = n%10, n100 = n%100;
@@ -2749,25 +3089,26 @@ async function saveMileageRecord(carId){
   showToast('Пробег записан');
   openRecordMileage(carId);
 }
-function openOilChangeForm(carId){
+function openOilChangeForm(carId, existingId){
   const car = DB.cars.find(c=>c.id===carId); if(!car) return;
-  const interval = car.oilIntervalKm || 8000;
-  const cur = car.currentMileage!=null ? car.currentMileage : 0;
+  const existing = existingId ? DB.oilChanges.find(l=>l.id===existingId) : null;
+  const interval = existing ? Math.max(0,(existing.nextMileage||0)-(existing.mileage||0)) || (car.oilIntervalKm||8000) : (car.oilIntervalKm || 8000);
+  const cur = existing ? (existing.mileage||0) : (car.currentMileage!=null ? car.currentMileage : 0);
   openSheet(`
     <div class="sheet-handle"></div>
-    <div class="sheet-head"><div class="sheet-title">Замена масла · ${esc(car.make+' '+car.model)}</div>
+    <div class="sheet-head"><div class="sheet-title">${existing?'Изменить запись':'Замена масла'} · ${esc(car.make+' '+car.model)}</div>
       <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
     </div>
     <div class="sheet-body">
-      <div class="field"><label>Текущий пробег (км)</label><input id="f_oil_cur" type="number" value="${car.currentMileage!=null?car.currentMileage:''}" placeholder="0" oninput="updateNextMileagePreview()"></div>
+      <div class="field"><label>Текущий пробег (км)</label><input id="f_oil_cur" type="number" value="${cur||''}" placeholder="0" oninput="updateNextMileagePreview()"></div>
       <div class="field"><label>Через сколько км следующая замена</label><input id="f_oil_interval" type="number" value="${interval}" placeholder="8000" oninput="updateNextMileagePreview()"></div>
       <div style="font-size:13px;color:var(--text-dim);margin:-6px 0 14px;">Следующий пробег: <b id="nextMileagePreview" style="color:var(--text);">${(cur+interval).toLocaleString('ru-RU')} км</b></div>
-      <div class="field"><label>Дата замены</label><input id="f_oil_date" type="date" value="${todayISO()}"></div>
-      <div class="field"><label>Сумма расхода (${DB.settings.currency})</label><input id="f_oil_amount" type="number" placeholder="0"></div>
-      <div class="field"><label>Комментарий (необязательно)</label><input id="f_oil_note" placeholder="Например: масло + фильтр"></div>
+      <div class="field"><label>Дата замены</label><input id="f_oil_date" type="date" value="${existing?existing.date:todayISO()}"></div>
+      <div class="field"><label>Сумма расхода (${DB.settings.currency})</label><input id="f_oil_amount" type="number" placeholder="0" value="${existing&&existing.amount?existing.amount:''}"></div>
+      <div class="field"><label>Комментарий (необязательно)</label><input id="f_oil_note" placeholder="Например: масло + фильтр" value="${existing?esc(existing.note||''):''}"></div>
       <div class="btn-row">
         <button class="btn ghost" onclick="closeSheet()">Отменить</button>
-        <button class="btn primary" onclick="saveOilChange('${carId}')">Добавить</button>
+        <button class="btn primary" onclick="saveOilChange('${carId}'${existingId?`,'${existingId}'`:''})">${existing?'Сохранить':'Добавить'}</button>
       </div>
     </div>
   `);
@@ -2781,7 +3122,7 @@ function updateNextMileagePreview(){
   const interval = parseFloat(intEl.value)||0;
   prevEl.textContent = (cur+interval).toLocaleString('ru-RU') + ' км';
 }
-async function saveOilChange(carId){
+async function saveOilChange(carId, existingId){
   const car = DB.cars.find(c=>c.id===carId); if(!car) return;
   const mileage = parseFloat(document.getElementById('f_oil_cur').value);
   if(isNaN(mileage) || mileage<0){ showToast('Укажите пробег на момент замены'); return; }
@@ -2790,9 +3131,18 @@ async function saveOilChange(carId){
   const date = document.getElementById('f_oil_date').value || todayISO();
   const amount = parseFloat(document.getElementById('f_oil_amount').value)||0;
   const note = document.getElementById('f_oil_note').value.trim();
-  const id = uid();
-  DB.oilChanges.push({ id, carId, type:'change', mileage, nextMileage, amount, note, date });
-  DB.contracts.push({ id, carId, clientId:null, start:date, end:date, rentalType:null, rate:0, total:amount, status:'done', paid:true, notes:note, type:'oil', notifiedOneHour:false });
+  const id = existingId || uid();
+  const logEntry = { id, carId, type:'change', mileage, nextMileage, amount, note, date };
+  const ctEntry = { id, carId, clientId:null, start:date, end:date, rentalType:null, rate:0, total:amount, status:'done', paid:true, notes:note, type:'oil', notifiedOneHour:false };
+  if(existingId){
+    const oi = DB.oilChanges.findIndex(l=>l.id===existingId);
+    if(oi>-1) DB.oilChanges[oi] = logEntry; else DB.oilChanges.push(logEntry);
+    const ci = DB.contracts.findIndex(c=>c.id===existingId);
+    if(ci>-1) DB.contracts[ci] = ctEntry; else DB.contracts.push(ctEntry);
+  } else {
+    DB.oilChanges.push(logEntry);
+    DB.contracts.push(ctEntry);
+  }
   car.currentMileage = mileage;
   car.currentMileageDate = date;
   car.lastOilChangeMileage = mileage;
@@ -2800,8 +3150,8 @@ async function saveOilChange(carId){
   car.nextOilMileage = nextMileage;
   car.oilIntervalKm = interval;
   await persist('oilChanges'); await persist('cars'); await persist('contracts');
-  showToast('Замена масла записана');
-  openOilChangeForm(carId);
+  closeSheet(); render();
+  showCenterConfirm(existingId ? 'Замена масла изменена' : 'Замена масла добавлена');
 }
 function openCarRepairHistory(carId){
   const car = DB.cars.find(c=>c.id===carId); if(!car) return;
@@ -2977,11 +3327,52 @@ const QUICK_ACTION_ICONS = {
   report: `<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>`,
   contract: `<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M12 12v6M9 15h6"/>`,
 };
+async function forceUpdateApp(){
+  showToast('Проверка обновлений…');
+  try{
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(reg => reg.update()));
+    }
+    if('caches' in window){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  }catch(e){}
+  setTimeout(()=>{ window.location.reload(); }, 300);
+}
+function openTariffs(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Тарифы</div>
+      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      <div class="card" style="cursor:default;">
+        <div class="card-avatar" style="background:linear-gradient(160deg,var(--accent-2),var(--accent));color:#241a06;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Демо <span class="badge free">Активен</span></div>
+          <div class="card-sub">Бесплатно, пока для Windows</div>
+        </div>
+        <div class="card-right">
+          <div class="card-amount">0 ₽</div>
+          <div class="card-sub" style="justify-content:flex-end;">/ мес</div>
+        </div>
+      </div>
+      <div style="color:var(--text-dim);font-size:12.5px;padding:6px 4px 0;">Сейчас доступен только демо-тариф — он бесплатный на время работы приложения в режиме для Windows. Новые тарифы появятся позже.</div>
+    </div>
+  `);
+}
 function openSettings(){
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">Настройки</div>
-      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <div class="sheet-head-actions">
+        ${iconBtn('refresh', 'forceUpdateApp()', 'Обновить приложение')}
+        <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
     </div>
     <div class="sheet-body">
       <div class="settings-item">
@@ -3130,6 +3521,10 @@ function openAlarmSettings(){
         <div><div class="st">Льготный час при опоздании</div><div class="sd">До 1 часа опоздания — без доплаты за сутки</div></div>
         <label class="switch"><input type="checkbox" id="f_grace" ${DB.settings.graceHour?'checked':''}><span class="slider"></span></label>
       </div>
+      <div class="settings-item">
+        <div><div class="st">Начисление 6-часовыми блоками</div><div class="sd">После льготного часа — доплата 6-часовыми блоками (цена «за 6 часов» машины), а не сразу за сутки</div></div>
+        <label class="switch"><input type="checkbox" id="f_overdue6h" ${DB.settings.overdue6hBlocks?'checked':''}><span class="slider"></span></label>
+      </div>
       <button class="btn primary" style="margin-top:12px;" onclick="saveGraceHour()">Сохранить</button>
     </div>
   `);
@@ -3193,6 +3588,9 @@ function openGeneralSettings(){
   openSheet(`
     ${subHead('Общие настройки')}
     <div class="sheet-body">
+      <div class="field"><label>Название компании</label>
+        <input id="f_company_name" value="${escapeAttr(DB.settings.companyName||'XCAR')}" placeholder="XCAR" onchange="saveCompanyName()">
+      </div>
       <div class="field"><label>Валюта</label>
         <select id="f_currency" onchange="changeCurrency()">
           <option value="₽" ${DB.settings.currency==='₽'?'selected':''}>₽ Рубль</option>
@@ -3352,7 +3750,7 @@ function drawContractCanvas(ct){
   ctx.fillText('X', 79, 82);
   ctx.textAlign='left'; ctx.textBaseline='alphabetic';
   ctx.fillStyle = '#eef0f4'; ctx.font = '700 32px Arial, sans-serif';
-  ctx.fillText('XCAR', 126, 78);
+  ctx.fillText(DB.settings.companyName || 'XCAR', 126, 78);
   ctx.fillStyle = '#9aa0ad'; ctx.font = '600 13px Arial, sans-serif';
   ctx.fillText('ДОГОВОР АРЕНДЫ АВТОМОБИЛЯ', 126, 100);
 
@@ -3421,7 +3819,7 @@ function drawCarsStatusCanvas(){
   ctx.fillText('X', 79, 82);
   ctx.textAlign='left'; ctx.textBaseline='alphabetic';
   ctx.fillStyle = '#111827'; ctx.font = '700 32px Arial, sans-serif';
-  ctx.fillText('XCAR', 126, 78);
+  ctx.fillText(DB.settings.companyName || 'XCAR', 126, 78);
   ctx.fillStyle = '#6b7280'; ctx.font = '600 13px Arial, sans-serif';
   ctx.fillText('СТАТУС АВТОПАРКА', 126, 100);
 
@@ -3541,7 +3939,7 @@ async function sendDebtToClient(carId){
   if(!cl || !cl.phone){ showToast('У клиента не указан телефон'); return; }
   if(!DB.settings.greenApi?.enabled){ showToast('Сначала подключите WhatsApp в настройках'); return; }
   const car = DB.cars.find(c=>c.id===carId);
-  const due = ac.paid ? 0 : currentDueAmount(ac);
+  const due = ac.paid ? 0 : currentDueAmount(ac) + overdueSurcharge(ac);
   const msg = `Здравствуйте, ${cl.name}!\n\nНакопленная сумма к оплате за аренду ${car?car.make+' '+car.model:''} на текущий момент: ${money(due)}.\nАренда началась: ${fmtDateTime(ac.start)}.\n\nПросим произвести оплату. Спасибо, что выбираете XCAR!`;
   showToast('Отправка...');
   const r = await sendWhatsApp(cl.phone, msg);
@@ -3567,7 +3965,7 @@ function drawClientReportCanvas(client){
   ctx.fillText('X', 79, 82);
   ctx.textAlign='left'; ctx.textBaseline='alphabetic';
   ctx.fillStyle = '#eef0f4'; ctx.font = '700 32px Arial, sans-serif';
-  ctx.fillText('XCAR', 126, 78);
+  ctx.fillText(DB.settings.companyName || 'XCAR', 126, 78);
   ctx.fillStyle = '#9aa0ad'; ctx.font = '600 13px Arial, sans-serif';
   ctx.fillText('ОТЧЁТ ПО КЛИЕНТУ', 126, 100);
 
@@ -3734,7 +4132,7 @@ function triggerOwnerAlarm(ct, text){
   showToast(msg);
   playBeep();
   if('Notification' in window && Notification.permission==='granted'){
-    try{ new Notification('XCAR', { body: msg, icon:'icon-192.png' }); }catch(e){}
+    try{ new Notification(DB.settings.companyName || 'XCAR', { body: msg, icon:'icon-192.png' }); }catch(e){}
   }
 }
 async function checkOwnerAlarms(){
@@ -3784,7 +4182,9 @@ function testAlarmSound(){
 }
 async function saveGraceHour(){
   DB.settings.graceHour = document.getElementById('f_grace').checked;
+  DB.settings.overdue6hBlocks = document.getElementById('f_overdue6h').checked;
   await persist('settings');
+  render();
   showToast('Настройки тарификации сохранены');
 }
 async function setThemeColor(name){
@@ -3893,7 +4293,7 @@ function drawDayReportCanvas(ct){
   ctx.fillText('X', 79, 82);
   ctx.textAlign='left'; ctx.textBaseline='alphabetic';
   ctx.fillStyle = '#eef0f4'; ctx.font = '700 32px Arial, sans-serif';
-  ctx.fillText('XCAR', 126, 78);
+  ctx.fillText(DB.settings.companyName || 'XCAR', 126, 78);
   ctx.fillStyle = '#9aa0ad'; ctx.font = '600 13px Arial, sans-serif';
   ctx.fillText('ОТЧЁТ ПО ДНЯМ АРЕНДЫ', 126, 100);
 
@@ -4257,6 +4657,7 @@ try{
   applyTheme(DB.settings.themeColor);
   applyColorMode(DB.settings.colorMode);
   applyWindowsMode(DB.settings.windowsMode);
+  applyCompanyName();
   render();
   checkOneHourReminders();
   checkEmailBackup();

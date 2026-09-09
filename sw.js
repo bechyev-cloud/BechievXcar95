@@ -1,4 +1,4 @@
-const CACHE_NAME = 'xcar-v2';
+const CACHE_NAME = 'xcar-v8';
 const CORE_ASSETS = [
   './',
   './index.html',
