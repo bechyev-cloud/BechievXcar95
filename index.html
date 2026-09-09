@@ -49,80 +49,31 @@
 }
 body.theme-light{
   color-scheme:light;
-  --bg:#eef1f6;
-  --surface:rgba(255,255,255,0.6);
-  --surface-2:rgba(255,255,255,0.78);
-  --surface-3:rgba(255,255,255,0.92);
-  --border:rgba(255,255,255,0.65);
+  --bg:#ffffff;
+  --surface:#ffffff;
+  --surface-2:#f5f5f7;
+  --surface-3:#ebebef;
+  --border:#e4e4e9;
   --accent:#ff9500;
-  --accent-dim:#ffd9a3;
+  --accent-dim:#ffe3b3;
   --accent-2:#12b886;
   --accent-2-dim:#c8f3e4;
   --danger:#ff3b30;
   --text:#1c1c1e;
   --text-dim:#6e6e73;
-  --text-faint:#a3a3a8;
-  --header-grad-start:rgba(238,241,246,0.75);
-  --header-grad-end:rgba(238,241,246,0);
-  --nav-bg:rgba(255,255,255,0.55);
-  --overlay-bg:rgba(30,30,40,0.28);
-  --card-grad-start:rgba(255,255,255,0.66);
-  --card-grad-end:rgba(255,255,255,0.4);
-  --shadow-soft:inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.4), 0 16px 40px -18px rgba(60,70,110,0.35);
-  --shadow-card:inset 0 1px 0 rgba(255,255,255,0.85), inset 0 0 0 1px rgba(255,255,255,0.35), 0 8px 22px -14px rgba(60,70,110,0.28);
-  --shadow-pop:inset 0 1px 0 rgba(255,255,255,0.85), 0 14px 34px -10px rgba(50,60,100,0.3);
-  --glass-blur:blur(24px) saturate(190%);
-  background:
-    radial-gradient(circle at 12% 8%, rgba(255,183,143,0.55), transparent 42%),
-    radial-gradient(circle at 88% 12%, rgba(147,197,253,0.55), transparent 45%),
-    radial-gradient(circle at 15% 88%, rgba(167,243,208,0.5), transparent 45%),
-    radial-gradient(circle at 90% 85%, rgba(233,171,247,0.45), transparent 45%),
-    radial-gradient(circle at 50% 50%, rgba(253,224,171,0.35), transparent 60%),
-    var(--bg);
-  background-attachment:fixed;
+  --text-faint:#aeaeb2;
+  --header-grad-start:rgba(255,255,255,0.94);
+  --header-grad-end:rgba(255,255,255,0);
+  --nav-bg:rgba(255,255,255,0.92);
+  --overlay-bg:rgba(20,20,24,0.35);
+  --card-grad-start:#ffffff;
+  --card-grad-end:#fbfbfc;
+  --shadow-soft:0 1px 0 rgba(255,255,255,1) inset, 0 22px 44px -26px rgba(28,28,30,0.16), 0 3px 10px -4px rgba(28,28,30,0.07);
+  --shadow-card:0 1px 0 rgba(255,255,255,1) inset, 0 8px 18px -12px rgba(28,28,30,0.12), 0 1px 4px rgba(28,28,30,0.05);
+  --shadow-pop:0 12px 32px -8px rgba(28,28,30,0.18);
 }
-body.theme-light header.top,
-body.theme-light .nav-inner,
-body.theme-light .overlay,
-body.theme-light .card,
-body.theme-light .sheet,
-body.theme-light .stat-mini,
-body.theme-light .summary-card,
-body.theme-light .summary-card2,
-body.theme-light .dash-quick,
-body.theme-light .detail-block,
-body.theme-light .quick-action,
-body.theme-light .period-custom,
-body.theme-light .period-seg,
-body.theme-light .revenue-card,
-body.theme-light .inline-client-box,
-body.theme-light .search-bar,
-body.theme-light .chip,
-body.theme-light .field input,
-body.theme-light .field select,
-body.theme-light .field textarea,
-body.theme-light .icon-btn,
-body.theme-light .btn.ghost{
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-}
-body.theme-light .card,
-body.theme-light .stat-mini,
-body.theme-light .summary-card2,
-body.theme-light .dash-quick,
-body.theme-light .detail-block,
-body.theme-light .revenue-card,
-body.theme-light .search-bar,
-body.theme-light .period-custom{
-  border-color:rgba(255,255,255,0.55);
-}
-body.theme-light .chip{background:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.6);}
-body.theme-light .chip.active{background:var(--accent);border-color:var(--accent);box-shadow:0 6px 16px -6px rgba(255,149,0,0.55);}
-body.theme-light .icon-btn{background:rgba(255,255,255,0.55);border-color:rgba(255,255,255,0.6);}
-body.theme-light .btn.primary{box-shadow:0 8px 20px -8px rgba(255,149,0,0.55);}
-body.theme-light .btn.ghost{background:rgba(255,255,255,0.55);}
-body.theme-light #app{background:transparent;}
-body.theme-light .splash{background:transparent;}
+body.theme-light #app{background:var(--bg);}
+body.theme-light .splash{background:var(--bg);}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--font-body);height:100%;overscroll-behavior:none;}
 body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
@@ -175,12 +126,15 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-r
 }
 
 /* ---------- Windows mode (manual toggle: wide layout + left sidebar nav) ---------- */
-body.win-mode #app{max-width:none;margin:0 0 0 216px;width:calc(100% - 216px);}
-body.win-mode header.top{padding:20px 26px 15px;}
+body.win-mode #app{max-width:none;margin:0 0 0 252px;width:calc(100% - 252px);}
+body.win-mode header.top{padding:22px 36px 16px;}
+body.win-mode header.top .brand-mark,
+body.win-mode header.top .brand-text{display:none;}
+body.win-mode header.top .brand-sub{font-size:21px;font-weight:700;font-family:var(--font-display);color:var(--text);letter-spacing:0.2px;}
 body.win-mode #headerAddBtn{display:flex !important;}
 body.win-mode main{
-  padding:6px 26px 30px;display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
-  gap:14px;align-content:start;
+  padding:26px 36px 40px;display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+  gap:16px;align-content:start;max-width:1520px;margin:0 auto;
 }
 body.win-mode main > .search-bar, body.win-mode main > .chips, body.win-mode main > .section-title,
 body.win-mode main > .dash-top, body.win-mode main > .empty{grid-column:1 / -1;}
@@ -190,24 +144,48 @@ body.win-mode .dash-top .revenue-card{flex:1.3;}
 body.win-mode .dash-top .quick-stats{flex:1;display:flex;flex-direction:column;justify-content:center;}
 body.win-mode .fab{display:none;}
 body.win-mode nav.bottom{
-  left:0;right:auto;top:0;bottom:0;width:216px;height:100vh;height:100dvh;justify-content:flex-start;
+  left:0;right:auto;top:0;bottom:0;width:252px;height:100vh;height:100dvh;justify-content:flex-start;
+  box-shadow:0 0 40px -20px rgba(0,0,0,0.25);
 }
 body.win-mode .nav-inner{
-  flex-direction:column;max-width:216px;width:216px;height:100%;
-  justify-content:flex-start;align-items:stretch;gap:6px;
-  padding:22px 12px;border-top:none;border-right:1px solid var(--border);
-  overflow-y:auto;
+  flex-direction:column;max-width:252px;width:252px;height:100%;
+  justify-content:flex-start;align-items:stretch;gap:3px;
+  padding:22px 14px;border-top:none;border-right:1px solid #ddcfa9;
+  overflow-y:auto;background:#f3e9d2;backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+.sidebar-brand{display:none;}
+.sidebar-divider{display:none;}
+body.win-mode .sidebar-brand{
+  display:flex;align-items:center;gap:12px;padding:2px 10px 20px;
+}
+body.win-mode .sidebar-mark{
+  width:42px;height:42px;border-radius:13px;flex-shrink:0;
+  background:linear-gradient(150deg, #d98a1c 0%, #b56e12 100%);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 16px -8px rgba(181,110,18,0.5);
+}
+body.win-mode .sidebar-mark svg{width:23px;height:23px;}
+body.win-mode .sidebar-brand .t{font-family:var(--font-display);font-weight:700;font-size:18px;color:#3d2f18;letter-spacing:0.4px;line-height:1.2;}
+body.win-mode .sidebar-brand .s{font-size:11.5px;color:#8c7a54;margin-top:1px;}
+body.win-mode .sidebar-divider{
+  display:block;height:1px;background:#e0d3ac;margin:0 6px 16px;
 }
 body.win-mode .nav-btn{
-  flex-direction:row;justify-content:flex-start;gap:12px;
-  padding:11px 14px;border-radius:10px;transition:background .15s;
+  flex-direction:row;justify-content:flex-start;gap:13px;
+  padding:12px 14px;border-radius:12px;color:#6f5f3f;
+  transition:background .16s ease,color .16s ease,transform .1s ease;
 }
-body.win-mode .nav-btn:hover{background:var(--surface-2);}
-body.win-mode .nav-btn span{font-size:13.5px;}
-body.win-mode .nav-btn.active{background:rgba(242,169,59,0.13);}
-body.win-mode .nav-btn.active:hover{background:rgba(242,169,59,0.13);}
+body.win-mode .nav-btn svg{width:19px;height:19px;flex-shrink:0;}
+body.win-mode .nav-btn span{font-size:14px;font-weight:600;}
+body.win-mode .nav-btn:hover{background:#e9dbb4;color:#3d2f18;}
+body.win-mode .nav-btn:active{transform:scale(0.98);}
+body.win-mode .nav-btn.active{background:rgba(181,110,18,0.14);color:#a5620c;font-weight:700;}
+body.win-mode .nav-btn.active:hover{background:rgba(181,110,18,0.18);}
 body.win-mode .nav-btn.active::after{display:none;}
-body.win-mode .overlay{padding-left:216px;}
+body.win-mode .nav-btn.active::before{
+  content:"";position:absolute;left:-14px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:#b56e12;
+}
+body.win-mode .overlay{padding-left:252px;}
 
 /* ---------- header ---------- */
 header.top{
@@ -312,19 +290,35 @@ main{flex:1;padding:4px 16px calc(110px + env(safe-area-inset-bottom));overflow-
   padding:14px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:center;cursor:pointer;
   transition:border-color .15s, transform .1s, box-shadow .15s;
   box-shadow:var(--shadow-card);
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:"";position:absolute;width:76px;height:76px;border-radius:50%;top:-34px;right:-22px;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.5), rgba(255,255,255,0.04) 42%, transparent 68%),
+    radial-gradient(circle, var(--accent) 0%, transparent 72%);
+  opacity:0.13;pointer-events:none;z-index:0;
+}
+.card::after{
+  content:"";position:absolute;width:44px;height:44px;border-radius:50%;bottom:-18px;left:-12px;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.5), rgba(255,255,255,0.04) 42%, transparent 68%),
+    radial-gradient(circle, var(--accent-2) 0%, transparent 72%);
+  opacity:0.11;pointer-events:none;z-index:0;
 }
 .card:active{border-color:var(--accent-dim);background:var(--surface-2);transform:scale(0.99);}
 .card.rented-glow{border-color:rgba(242,169,59,0.35);box-shadow:0 0 0 1px rgba(242,169,59,0.08) inset, 0 6px 18px -10px rgba(242,169,59,0.25);}
 .card.overdue-glow{border-color:rgba(232,96,76,0.5);box-shadow:0 0 0 1px rgba(232,96,76,0.1) inset, 0 6px 18px -10px rgba(232,96,76,0.35);}
 .card-avatar{
   width:44px;height:44px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(155deg, var(--surface-3), #232838);color:var(--accent);font-family:var(--font-display);font-weight:700;font-size:15px;
-  border:1px solid rgba(242,169,59,0.12);
+  background:linear-gradient(155deg, var(--surface-3), var(--surface-2));color:var(--accent);font-family:var(--font-display);font-weight:700;font-size:15px;
+  border:1px solid var(--border);
+  position:relative;z-index:1;
 }
-.card-body{flex:1;min-width:0;}
+.card-body{flex:1;min-width:0;position:relative;z-index:1;}
 .card-title{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:7px;}
 .card-sub{font-size:12.5px;color:var(--text-dim);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
-.card-right{text-align:right;flex-shrink:0;}
+.card-right{text-align:right;flex-shrink:0;position:relative;z-index:1;}
 .card-amount{font-family:var(--font-display);font-weight:700;font-size:15px;}
 .chev{color:var(--text-faint);width:16px;height:16px;flex-shrink:0;}
 
@@ -411,14 +405,34 @@ main{flex:1;padding:4px 16px calc(110px + env(safe-area-inset-bottom));overflow-
 .summary-card .l{font-size:9px;color:var(--text-dim);margin-top:4px;text-transform:uppercase;letter-spacing:.3px;line-height:1.2;}
 .summary-card.c-income .n{color:var(--accent-2);}
 .summary-card.c-warn .n{color:var(--danger);}
-.summary-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 4px;}
+.summary-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 4px;}
+.client-contact-row{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;}
+.cc-item{display:flex;align-items:center;gap:11px;color:var(--text);font-size:14.5px;font-weight:600;}
+.cc-item svg{width:17px;height:17px;color:var(--text-dim);flex-shrink:0;}
 .summary-card2{
-  background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:12px 14px;
-  display:flex;flex-direction:column;gap:4px;
+  background:linear-gradient(160deg, var(--card-grad-start) 0%, var(--card-grad-end) 100%);
+  border:1px solid var(--border);border-radius:16px;padding:16px 16px 14px;
+  display:flex;flex-direction:column;gap:9px;box-shadow:var(--shadow-card);
+  transition:transform .15s ease;
+  position:relative;overflow:hidden;
 }
-.summary-card2 .ic{font-size:17px;line-height:1;}
-.summary-card2 .n{font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--text);word-break:break-word;}
-.summary-card2 .l{font-size:11px;color:var(--text-dim);}
+.summary-card2::before{
+  content:"";position:absolute;width:64px;height:64px;border-radius:50%;top:-26px;right:-18px;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.5), rgba(255,255,255,0.04) 42%, transparent 68%),
+    radial-gradient(circle, var(--accent) 0%, transparent 72%);
+  opacity:0.13;pointer-events:none;z-index:0;
+}
+.summary-card2:active{transform:scale(0.98);}
+.summary-card2 .ic{
+  width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;background:var(--surface-2);flex-shrink:0;
+  position:relative;z-index:1;
+}
+.summary-card2.c-income .ic{background:rgba(62,201,167,0.16);}
+.summary-card2.c-warn .ic{background:rgba(232,96,76,0.14);}
+.summary-card2 .n{font-family:var(--font-display);font-weight:800;font-size:19px;color:var(--text);word-break:break-word;line-height:1.15;position:relative;z-index:1;}
+.summary-card2 .l{font-size:10.5px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;position:relative;z-index:1;}
 .summary-card2.c-income .n{color:var(--accent-2);}
 .summary-card2.c-warn .n{color:var(--danger);}
 
@@ -518,14 +532,26 @@ nav.bottom{
 .btn-row{display:flex;gap:10px;margin-top:6px;}
 .btn-row .btn{flex:1;}
 .quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px;}
+.quick-actions.cols-3{grid-template-columns:repeat(3,1fr);}
 .quick-action{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-  background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:11px 4px;
-  cursor:pointer;transition:background .15s,transform .1s;
+  display:flex;flex-direction:row;align-items:center;justify-content:center;gap:5px;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:5px 4px;
+  cursor:pointer;transition:background .15s,transform .1s,border-color .15s,box-shadow .15s;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
 }
-.quick-action:active{background:var(--surface-3);transform:scale(0.97);}
-.quick-action .ic{font-size:17px;line-height:1;}
-.quick-action .lb{font-size:10px;font-weight:700;color:var(--text-dim);text-align:center;line-height:1.15;}
+.quick-action:active{background:var(--surface-3);transform:scale(0.96);}
+.quick-action .ic{
+  width:17px;height:17px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  background:var(--surface-3);color:var(--text-dim);flex-shrink:0;
+}
+.quick-action .ic svg{width:10px;height:10px;}
+.quick-action .lb{font-size:9px;font-weight:700;color:var(--text-dim);text-align:center;line-height:1.1;letter-spacing:0.1px;}
+.quick-action.primary .ic{background:color-mix(in srgb, var(--accent) 20%, var(--surface-3));color:var(--accent);}
+.quick-action.primary .lb{color:var(--accent);}
+.quick-action.good .ic{background:color-mix(in srgb, var(--accent-2) 20%, var(--surface-3));color:var(--accent-2);}
+.quick-action.good .lb{color:var(--accent-2);}
+.quick-action.warn .ic{background:color-mix(in srgb, var(--danger) 18%, var(--surface-3));color:var(--danger);}
+.quick-action.warn .lb{color:var(--danger);}
 
 .detail-block{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
 .detail-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px;}
@@ -603,6 +629,12 @@ nav.bottom{
       <button class="icon-btn" id="carsShareBtn" onclick="shareCarsStatusImage()" style="display:none;" title="Поделиться статусом автопарка">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
       </button>
+      <button class="icon-btn" id="searchToggleBtn" onclick="toggleSearchBar()" style="display:none;" title="Поиск">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
+      <button class="icon-btn" id="reportsCalendarBtn" onclick="openReportsDateFilter()" style="display:none;" title="Период отчёта">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </button>
       <button class="icon-btn" onclick="openSettings()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
       </button>
@@ -616,6 +648,16 @@ nav.bottom{
   </button>
 
   <nav class="bottom"><div class="nav-inner">
+    <div class="sidebar-brand">
+      <div class="sidebar-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#241a06" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 1 0 4 0h4a2 2 0 1 0 4 0h1a1 1 0 0 0 1-1v-3a2 2 0 0 0-.4-1.2l-2.1-2.8a2 2 0 0 0-1.6-.8H6a1 1 0 0 0-1 .8L4.2 12A2 2 0 0 0 4 12.8V16a1 1 0 0 0 1 1Z"/><path d="M4 12h16"/></svg>
+      </div>
+      <div>
+        <div class="t">XCAR</div>
+        <div class="s">Панель учёта</div>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
     <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
       <span>Дашборд</span>
@@ -649,7 +691,52 @@ let DB = { cars: [], clients: [], contracts: [], clientLedger: [], oilChanges: [
 let currentTab = 'dashboard';
 let gaugePeriod = 'month';
 let reportCategory = 'income';
+let reportsDateFilter = { mode:'all', from:null, to:null };
+function reportsDateRange(){
+  if(reportsDateFilter.mode==='month') return periodRange('month');
+  if(reportsDateFilter.mode==='year') return periodRange('year');
+  if(reportsDateFilter.mode==='custom'){
+    const f = reportsDateFilter.from||todayISO(), t = reportsDateFilter.to||todayISO();
+    return f<=t ? [f,t] : [t,f];
+  }
+  return [null,null]; // 'all'
+}
+function openReportsDateFilter(){
+  const filter = reportsDateFilter;
+  const modes = [['all','Всё время'],['month','Этот месяц'],['year','Этот год'],['custom','Свой период']];
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">📅 Период отчёта</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      ${modes.map(([m,label])=>`
+        <div class="settings-item" style="cursor:pointer;" onclick="setReportsDateFilterMode('${m}')">
+          <div class="st">${label}</div>
+          ${filter.mode===m ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="18" height="18" style="color:var(--accent);"><path d="M20 6 9 17l-5-5"/></svg>` : ''}
+        </div>
+      `).join('')}
+      ${filter.mode==='custom' ? `
+      <div class="period-custom" style="margin-top:14px;">
+        <input type="date" value="${filter.from||todayISO()}" onchange="setReportsDateFilterCustom('from',this.value)">
+        <span>—</span>
+        <input type="date" value="${filter.to||todayISO()}" onchange="setReportsDateFilterCustom('to',this.value)">
+      </div>` : ''}
+    </div>
+  `);
+}
+async function setReportsDateFilterMode(mode){
+  reportsDateFilter.mode = mode;
+  if(mode==='custom' && !reportsDateFilter.from){ reportsDateFilter.from=todayISO(); reportsDateFilter.to=todayISO(); }
+  render();
+  openReportsDateFilter();
+}
+function setReportsDateFilterCustom(field, value){
+  reportsDateFilter[field] = value;
+  render();
+}
 let searchQ = { cars:'', clients:'', contracts:'' };
+let searchBarOpen = { cars:false, clients:false, contracts:false };
 let carFilter = 'all';
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
@@ -706,6 +793,8 @@ function applyTheme(name){
   const t = THEME_COLORS[name] || THEME_COLORS.amber;
   document.documentElement.style.setProperty('--accent', t.accent);
   document.documentElement.style.setProperty('--accent-dim', t.accentDim);
+  document.body.style.setProperty('--accent', t.accent);
+  document.body.style.setProperty('--accent-dim', t.accentDim);
 }
 function applyWindowsMode(on){
   document.body.classList.toggle('win-mode', !!on);
@@ -777,6 +866,14 @@ async function loadAll(){
       }
       DB.settings.dashCardsMigrated1 = true;
     }
+    if(!DB.settings.dashCardsMigrated2){
+      if(DB.settings.dashboardCardOrder){
+        ['overdueDebt','monthAgedDebt'].forEach(id=>{
+          if(!DB.settings.dashboardCardOrder.includes(id)) DB.settings.dashboardCardOrder.push(id);
+        });
+      }
+      DB.settings.dashCardsMigrated2 = true;
+    }
   }catch(e){ console.error('load error', e); }
 }
 function safeGet(key){
@@ -808,7 +905,19 @@ function switchTab(tab){
   document.getElementById('fab').style.display = (tab==='reports' || tab==='dashboard') ? 'none' : 'flex';
   document.getElementById('dashCustomizeBtn').style.display = (tab==='dashboard') ? 'flex' : 'none';
   document.getElementById('carsShareBtn').style.display = (tab==='cars') ? 'flex' : 'none';
+  document.getElementById('searchToggleBtn').style.display = (tab==='cars'||tab==='clients'||tab==='contracts') ? 'flex' : 'none';
+  document.getElementById('reportsCalendarBtn').style.display = (tab==='reports') ? 'flex' : 'none';
   render();
+}
+function toggleSearchBar(){
+  searchBarOpen[currentTab] = !searchBarOpen[currentTab];
+  render();
+  if(searchBarOpen[currentTab]){
+    setTimeout(()=>{
+      const inp = document.querySelector('main .search-bar input');
+      if(inp) inp.focus();
+    }, 30);
+  }
 }
 function handleFab(){
   if(currentTab==='cars') openCarForm();
@@ -987,30 +1096,20 @@ function periodRange(period){
 
 /* =================== DASHBOARD =================== */
 function renderDashboard(){
-  const map = dailyRevenueMap();
-  const [s,e] = periodRange(gaugePeriod);
-  const revenue = sumRange(map, s, e);
-  const maxRef = { week: 30000, month: 120000, year: 1200000 }[gaugePeriod] || 100000;
-  // dynamic scale: use the greater of a sane baseline or 1.3x current revenue
-  const scaleMax = Math.max(maxRef, revenue*1.15, 1000);
-  const pct = Math.min(1, revenue/scaleMax);
-  const angle = pct * 180; // degrees across the semicircle
-
-  const gaugeSvg = buildGauge(angle);
-
-  const periodLabel = {week:'за неделю', month:'за месяц', year:'за год'}[gaugePeriod];
-
-  const hasData = DB.cars.length || DB.clients.length || DB.contracts.length;
-  const lastBk = DB.settings.lastBackupAt;
-  const daysSinceBk = lastBk ? Math.floor((Date.now()-new Date(lastBk))/86400000) : Infinity;
-  const needsBackup = hasData && daysSinceBk >= 7;
-
-  const upcoming = DB.contracts
-    .filter(c=>c.status==='active')
-    .sort((a,b)=> new Date(a.end) - new Date(b.end))
-    .slice(0,3);
-
-  return `
+  const showGauge = DB.settings.showRevenueGauge !== false;
+  let gaugeHtml = '';
+  if(showGauge){
+    const map = dailyRevenueMap();
+    const [s,e] = periodRange(gaugePeriod);
+    const revenue = sumRange(map, s, e);
+    const maxRef = { week: 30000, month: 120000, year: 1200000 }[gaugePeriod] || 100000;
+    // dynamic scale: use the greater of a sane baseline or 1.3x current revenue
+    const scaleMax = Math.max(maxRef, revenue*1.15, 1000);
+    const pct = Math.min(1, revenue/scaleMax);
+    const angle = pct * 180; // degrees across the semicircle
+    const gaugeSvg = buildGauge(angle);
+    const periodLabel = {week:'за неделю', month:'за месяц', year:'за год'}[gaugePeriod];
+    gaugeHtml = `
     <div class="dash-top">
       <div class="revenue-card">
         <div class="revenue-eyebrow">Выручка ${periodLabel}</div>
@@ -1022,37 +1121,71 @@ function renderDashboard(){
           <button class="${gaugePeriod==='year'?'active':''}" onclick="gaugePeriod='year';render()">Год</button>
         </div>
       </div>
-    </div>
+    </div>`;
+  }
+
+  return `
+    ${gaugeHtml}
 
     ${renderDashboardCards()}
-
-    <div class="section-title">Скоро возврат</div>
-    ${upcoming.length ? upcoming.map(c=>contractCard(c)).join('') : `<div class="empty"><div class="t">Нет активных аренд</div><div class="d">Добавьте новый договор через кнопку «+»</div></div>`}
-
-    ${needsBackup ? `
-    <div class="card" style="border-color:rgba(242,169,59,0.4);cursor:pointer;" onclick="openSettings()">
-      <div class="card-avatar" style="color:var(--accent);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      </div>
-      <div class="card-body">
-        <div class="card-title">Пора сделать резервную копию</div>
-        <div class="card-sub">${lastBk ? `Последняя копия — ${daysSinceBk} дн. назад` : 'Резервная копия ещё ни разу не создавалась'}</div>
-      </div>
+  `;
+}
+const DASHBOARD_CARD_IDS_ALL = ['income','clientDebt','overdueDebt','monthAgedDebt','finesUnpaid','finesPaid','repairExpense'];
+const DASHBOARD_CARD_IDS_DEFAULT = ['income','clientDebt','overdueDebt','monthAgedDebt','finesUnpaid','finesPaid','repairExpense'];
+let dashboardFilter = { mode:'all', from:null, to:null };
+function dashboardPeriodRange(filter){
+  if(filter.mode==='month') return periodRange('month');
+  if(filter.mode==='year') return periodRange('year');
+  if(filter.mode==='custom'){ const f=filter.from||todayISO(), t=filter.to||todayISO(); return f<=t?[f,t]:[t,f]; }
+  return [null,null]; // 'all'
+}
+function dashboardFilterHtml(){
+  const filter = dashboardFilter;
+  const modes = [['all','Все'],['month','Месяц'],['year','Год'],['custom','Своё']];
+  return `
+    <div class="period-seg">
+      ${modes.map(([m,label])=>`<button class="${filter.mode===m?'active':''}" onclick="setDashboardFilterMode('${m}')">${label}</button>`).join('')}
+    </div>
+    ${filter.mode==='custom' ? `
+    <div class="period-custom">
+      <input type="date" value="${filter.from||todayISO()}" onchange="setDashboardFilterCustom('from',this.value)">
+      <span>—</span>
+      <input type="date" value="${filter.to||todayISO()}" onchange="setDashboardFilterCustom('to',this.value)">
     </div>` : ''}
   `;
 }
-const DASHBOARD_CARD_IDS_ALL = ['income','clientDebt','finesUnpaid','finesPaid','repairExpense'];
-const DASHBOARD_CARD_IDS_DEFAULT = ['income','clientDebt','finesUnpaid','finesPaid','repairExpense'];
+function setDashboardFilterMode(mode){
+  dashboardFilter.mode = mode;
+  if(mode==='custom' && !dashboardFilter.from){ dashboardFilter.from=todayISO(); dashboardFilter.to=todayISO(); }
+  render();
+}
+function setDashboardFilterCustom(field, value){
+  dashboardFilter[field] = value;
+  render();
+}
 function dashboardCardDefs(){
-  const totalIncome = DB.contracts.filter(c=>(!c.type||c.type==='rental') && c.status!=='cancelled').reduce((s,c)=>s+(c.total||0),0);
-  const totalClientDebt = DB.clients.reduce((s,cl)=>{ const {debt}=clientDebt(cl.id); return s+Math.max(0,debt); },0);
-  const fineContracts = DB.contracts.filter(c=>c.type==='fine');
-  const finesUnpaid = fineContracts.reduce((s,c)=>s+Math.max(0,(c.total||0)-finePaidAmount(c.id)),0);
-  const finesPaid = fineContracts.reduce((s,c)=>s+Math.min(c.total||0, finePaidAmount(c.id)),0);
-  const repairExpense = DB.contracts.filter(c=>c.type==='repair').reduce((s,c)=>s+(c.total||0),0);
+  const [s,e] = dashboardPeriodRange(dashboardFilter);
+  const inRange = d => !s || (dateOnly(d)>=s && dateOnly(d)<=e);
+  const totalIncome = DB.contracts.filter(c=>(!c.type||c.type==='rental') && c.status!=='cancelled' && inRange(c.start)).reduce((s2,c)=>s2+(c.total||0),0);
+  const totalClientDebt = DB.clients.reduce((s2,cl)=>{ const {debt}=clientDebt(cl.id); return s2+Math.max(0,debt); },0);
+  const now = new Date();
+  const overdueDebt = DB.contracts.filter(c=>(!c.type||c.type==='rental') && c.status==='active' && new Date(c.end) < now)
+    .reduce((s2,c)=>s2+(c.total||0),0);
+  const cutoff = new Date(now); cutoff.setDate(cutoff.getDate()-30);
+  let monthAgedDebt = 0;
+  DB.contracts.filter(c=>(!c.type||c.type==='rental') && c.status!=='cancelled' && !c.paid && new Date(c.start) < cutoff)
+    .forEach(c=>{ monthAgedDebt += c.total||0; });
+  DB.contracts.filter(c=>c.type==='fine' && new Date(c.start) < cutoff)
+    .forEach(c=>{ monthAgedDebt += Math.max(0, (c.total||0)-finePaidAmount(c.id)); });
+  const fineContracts = DB.contracts.filter(c=>c.type==='fine' && inRange(c.start));
+  const finesUnpaid = fineContracts.reduce((s2,c)=>s2+Math.max(0,(c.total||0)-finePaidAmount(c.id)),0);
+  const finesPaid = fineContracts.reduce((s2,c)=>s2+Math.min(c.total||0, finePaidAmount(c.id)),0);
+  const repairExpense = DB.contracts.filter(c=>c.type==='repair' && inRange(c.start)).reduce((s2,c)=>s2+(c.total||0),0);
   return {
     income: { icon:'💰', label:'Общий доход', value: money(totalIncome), cls:'c-income' },
     clientDebt: { icon:'⚠️', label:'Долг клиентов', value: money(totalClientDebt), cls: totalClientDebt>0?'c-warn':'' },
+    overdueDebt: { icon:'⏰', label:'Просроченные долги', value: money(overdueDebt), cls: overdueDebt>0?'c-warn':'' },
+    monthAgedDebt: { icon:'📆', label:'Долги старше месяца', value: money(monthAgedDebt), cls: monthAgedDebt>0?'c-warn':'' },
     finesUnpaid: { icon:'🔴', label:'Штрафы неоплаченные', value: money(finesUnpaid), cls: finesUnpaid>0?'c-warn':'' },
     finesPaid: { icon:'✅', label:'Штрафы оплаченные', value: money(finesPaid), cls:'c-income' },
     repairExpense: { icon:'🔧', label:'Расход на ремонт', value: money(repairExpense), cls:'c-warn' },
@@ -1067,8 +1200,8 @@ function renderDashboardCards(){
   const defs = dashboardCardDefs();
   const order = dashboardCardOrder();
   return `
-    <div class="section-title" style="margin-top:20px;"><span>Показатели</span></div>
-    ${order.length ? `<div class="summary-row2">
+    <div style="margin-top:18px;">${dashboardFilterHtml()}</div>
+    ${order.length ? `<div class="summary-row2" style="margin-top:12px;">
       ${order.map(id=>{
         const d = defs[id];
         return `<div class="summary-card2 ${d.cls}"><div class="ic">${d.icon}</div><div class="n">${d.value}</div><div class="l">${d.label}</div></div>`;
@@ -1080,13 +1213,21 @@ function openDashboardCustomize(){
   const defs = dashboardCardDefs();
   const order = dashboardCardOrder();
   const available = DASHBOARD_CARD_IDS_ALL.filter(id=>!order.includes(id) && defs[id]);
+  const showGauge = DB.settings.showRevenueGauge !== false;
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">Настроить карточки</div>
       <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
     </div>
     <div class="sheet-body">
-      <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:10px;">Стрелками измените порядок, крестиком уберите карточку с главного экрана</div>
+      <div class="settings-item">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+          <div style="font-size:19px;width:26px;text-align:center;flex-shrink:0;">⏱️</div>
+          <div><div class="st">Спидометр выручки</div><div class="sd">Круговой индикатор дохода сверху</div></div>
+        </div>
+        <label class="switch"><input type="checkbox" id="f_showgauge" ${showGauge?'checked':''} onchange="toggleRevenueGauge()"><span class="slider"></span></label>
+      </div>
+      <div style="font-size:12.5px;color:var(--text-dim);margin:14px 0 10px;">Стрелками измените порядок, крестиком уберите карточку с главного экрана</div>
       ${order.length ? order.map((id,i)=>{
         const d = defs[id];
         const upDisabled = i===0;
@@ -1119,6 +1260,12 @@ function openDashboardCustomize(){
       ` : ''}
     </div>
   `);
+}
+async function toggleRevenueGauge(){
+  const on = document.getElementById('f_showgauge').checked;
+  DB.settings.showRevenueGauge = on;
+  await persist('settings');
+  render();
 }
 async function moveDashboardCard(id, dir){
   const order = dashboardCardOrder();
@@ -1191,10 +1338,10 @@ function renderCars(){
     return (c.make+' '+c.model+' '+c.plate).toLowerCase().includes(q);
   });
   return `
-    <div class="search-bar">
+    ${(searchBarOpen.cars || searchQ.cars) ? `<div class="search-bar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <input placeholder="Поиск по марке, модели, номеру" value="${escapeAttr(searchQ.cars)}" oninput="searchQ.cars=this.value;render()">
-    </div>
+    </div>` : ''}
     <div class="chips">${filters.map(([k,l])=>`<div class="chip ${carFilter===k?'active':''}" onclick="carFilter='${k}';render()">${l} <span class="chip-count">${counts[k]}</span></div>`).join('')}</div>
     <div class="section-title">Автопарк <span class="count">${list.length}</span></div>
     ${list.length ? list.map(carCard).join('') : emptyState('Пока нет машин','Нажмите «+», чтобы добавить первую машину в автопарк')}
@@ -1314,24 +1461,21 @@ function openCarDetail(id){
         ${c.notes ? `<div class="detail-row"><span class="k">Заметки</span><span class="v">${esc(c.notes)}</span></div>`:''}
         ${ac ? `<div class="detail-row"><span class="k">Возврат</span><span class="v"><span class="timer-pill ${tl.overdue?'overdue':''}">${timerSvg()}${tl.text}</span></span></div>` : ''}
       </div>
-      <div class="btn-row" style="margin-top:16px;">
-        ${ac
-          ? `<button class="btn primary" onclick="closeSheet();openExtendContract('${ac.id}')">Продлить аренду</button>`
-          : bookedCt
-            ? `<button class="btn primary" onclick="startBookedRental('${bookedCt.id}')">Начать аренду</button>`
-            : c.status==='service'
-              ? `<button class="btn good" onclick="finishRepair('${c.id}')">Завершить ремонт</button>`
-              : `<button class="btn primary" onclick="closeSheet();openContractForm(null,'${c.id}')">Новый договор</button>`}
-      </div>
-      ${ac ? `<div class="btn-row" style="margin-top:10px;">
-        <button class="btn ghost" onclick="openCarDayReport('${c.id}')">📊 Отчёт</button>
-        <button class="btn ghost" onclick="openAddPayment('${c.id}')">💵 Добавить платёж</button>
-      </div>
-      <div class="btn-row" style="margin-top:10px;">
-        <button class="btn ghost" onclick="openTemplatePicker('${c.id}')">✈ Шаблон клиенту</button>
-        <button class="btn ghost" onclick="sendDebtToClient('${c.id}')">💰 Отправить долг</button>
+      ${!ac ? `<div class="btn-row" style="margin-top:16px;">
+        ${bookedCt
+          ? `<button class="btn primary" onclick="startBookedRental('${bookedCt.id}')">Начать аренду</button>`
+          : c.status==='service'
+            ? `<button class="btn good" onclick="finishRepair('${c.id}')">Завершить ремонт</button>`
+            : `<button class="btn primary" onclick="closeSheet();openContractForm(null,'${c.id}')">Новый договор</button>`}
       </div>` : ''}
-      ${ac ? `<button class="btn good" style="margin-top:10px;" onclick="openCompleteContract('${ac.id}')">Завершить аренду</button>` : ''}
+      ${ac ? `<div class="quick-actions cols-3" style="margin-top:16px;">
+        ${quickAction('🔄','Продлить',`closeSheet();openExtendContract('${ac.id}')`,'primary')}
+        ${quickAction('📊','Отчёт',`openCarDayReport('${c.id}')`)}
+        ${quickAction('💵','Платёж',`openAddPayment('${c.id}')`)}
+        ${quickAction('✈','Шаблон',`openTemplatePicker('${c.id}')`)}
+        ${quickAction('💰','Долг',`sendDebtToClient('${c.id}')`)}
+        ${quickAction('✅','Завершить',`openCompleteContract('${ac.id}')`,'good')}
+      </div>` : ''}
     </div>
   `);
 }
@@ -1361,17 +1505,48 @@ async function deleteCar(id){
 }
 
 /* =================== CLIENTS =================== */
+function clientHasActiveRental(clientId){
+  return DB.contracts.some(ct=>ct.clientId===clientId && ct.status==='active');
+}
+function clientHasBooking(clientId){
+  return DB.contracts.some(ct=>ct.clientId===clientId && ct.status==='booked');
+}
+function clientUnpaidFines(clientId){
+  return DB.contracts.filter(ct=>ct.clientId===clientId && ct.type==='fine')
+    .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-finePaidAmount(ct.id)),0);
+}
+let clientFilter = 'all';
+let expandedClientId = null;
+function toggleClientCardExpand(id){
+  expandedClientId = (expandedClientId===id) ? null : id;
+  render();
+}
 function renderClients(){
+  const filters = [['all','Все'],['rented','В аренде'],['debt','Долги'],['fines','Штрафы'],['booked','Брон'],['blacklist','Чёрный список']];
+  const counts = { all: DB.clients.length, rented:0, debt:0, fines:0, booked:0, blacklist:0 };
+  DB.clients.forEach(c=>{
+    if(clientHasActiveRental(c.id)) counts.rented++;
+    if(clientDebt(c.id).debt>0) counts.debt++;
+    if(clientUnpaidFines(c.id)>0) counts.fines++;
+    if(clientHasBooking(c.id)) counts.booked++;
+    if(c.blacklisted) counts.blacklist++;
+  });
   let list = DB.clients.filter(c=>{
+    if(clientFilter==='rented' && !clientHasActiveRental(c.id)) return false;
+    if(clientFilter==='debt' && !(clientDebt(c.id).debt>0)) return false;
+    if(clientFilter==='fines' && !(clientUnpaidFines(c.id)>0)) return false;
+    if(clientFilter==='booked' && !clientHasBooking(c.id)) return false;
+    if(clientFilter==='blacklist' && !c.blacklisted) return false;
     const q = searchQ.clients.toLowerCase();
     if(!q) return true;
     return (c.name+' '+c.phone+' '+(c.doc||'')).toLowerCase().includes(q);
   }).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
   return `
-    <div class="search-bar">
+    ${(searchBarOpen.clients || searchQ.clients) ? `<div class="search-bar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <input placeholder="Поиск по имени, телефону" value="${escapeAttr(searchQ.clients)}" oninput="searchQ.clients=this.value;render()">
-    </div>
+    </div>` : ''}
+    <div class="chips">${filters.map(([k,l])=>`<div class="chip ${clientFilter===k?'active':''}" onclick="clientFilter='${k}';render()">${l} <span class="chip-count">${counts[k]}</span></div>`).join('')}</div>
     <div class="section-title">Клиенты <span class="count">${list.length}</span></div>
     ${list.length ? list.map(clientCard).join('') : emptyState('Пока нет клиентов','Нажмите «+», чтобы добавить клиента')}
   `;
@@ -1381,19 +1556,28 @@ function clientCard(c){
   const initials = c.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
   const { debt } = clientDebt(c.id);
   const { avg, count } = computeClientRating(c.id);
+  const expanded = expandedClientId === c.id;
   return `
-  <div class="card" onclick="openClientDetail('${c.id}')">
-    <div class="card-avatar">${initials}</div>
-    <div class="card-body">
-      <div class="card-title">${esc(c.name)}</div>
-      <div class="card-sub">${esc(c.phone)||'—'} ${c.doc?'· '+esc(c.doc):''}</div>
-      ${count ? `<div class="card-sub stars-display" style="margin-top:3px;">${starsStr(Math.round(avg))}</div>` : ''}
-      ${debt>0 ? `<div class="card-sub" style="margin-top:3px;color:var(--danger);font-weight:700;">Долг: ${money(debt)}</div>` : ''}
+  <div class="card" style="flex-direction:column;align-items:stretch;cursor:default;">
+    <div style="display:flex;gap:12px;align-items:center;">
+      <div class="card-avatar" style="cursor:pointer;" onclick="event.stopPropagation();openClientQuickView('${c.id}')">${initials}</div>
+      <div class="card-body" style="cursor:pointer;" onclick="toggleClientCardExpand('${c.id}')">
+        <div class="card-title">${esc(c.name)}${c.blacklisted ? ` <span class="badge unpaid">🚫 Чёрный список</span>` : ''}</div>
+        <div class="card-sub">${esc(c.phone)||'—'} ${c.doc?'· '+esc(c.doc):''}</div>
+        ${count ? `<div class="card-sub stars-display" style="margin-top:3px;">${starsStr(Math.round(avg))}</div>` : ''}
+        ${debt>0 ? `<div class="card-sub" style="margin-top:3px;color:var(--danger);font-weight:700;">Долг: ${money(debt)}</div>` : ''}
+      </div>
+      <div class="card-right" style="cursor:pointer;" onclick="toggleClientCardExpand('${c.id}')">
+        <div class="card-amount">${rentals}</div>
+        <div class="card-sub" style="justify-content:flex-end;">аренд</div>
+      </div>
     </div>
-    <div class="card-right">
-      <div class="card-amount">${rentals}</div>
-      <div class="card-sub" style="justify-content:flex-end;">аренд</div>
-    </div>
+    ${expanded ? `<div class="quick-actions" style="margin-top:14px;position:relative;z-index:1;">
+      ${quickAction(QUICK_ACTION_ICONS.payment,'Платёж',`openClientPaymentForm('${c.id}')`)}
+      ${quickAction(QUICK_ACTION_ICONS.fine,'Штраф',`openFineActionsMenu('${c.id}')`,'warn')}
+      ${quickAction(QUICK_ACTION_ICONS.report,'Отчёт',`openClientDayReport('${c.id}')`)}
+      ${quickAction(QUICK_ACTION_ICONS.contract,'Договор',`closeSheet();openContractForm(null,null,'${c.id}')`)}
+    </div>` : ''}
   </div>`;
 }
 function starPickerHtml(rating, contractId){
@@ -1450,7 +1634,7 @@ function contractWord(n){
   return 'договоров';
 }
 function openClientForm(existing){
-  const c = existing || { id:'', name:'', phone:'', doc:'', licenseNum:'', notes:'' };
+  const c = existing || { id:'', name:'', phone:'', doc:'', licenseNum:'', notes:'', blacklisted:false };
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">${existing?'Редактировать клиента':'Новый клиент'}</div>
@@ -1464,6 +1648,10 @@ function openClientForm(existing){
         <div class="field"><label>Вод. удостоверение</label><input id="f_license" value="${escapeAttr(c.licenseNum)}"></div>
       </div>
       <div class="field"><label>Заметки</label><textarea id="f_cnotes" placeholder="Особые условия...">${esc(c.notes)}</textarea></div>
+      <div class="settings-item" style="background:var(--surface-2);border-radius:12px;padding:12px 14px;border-bottom:none;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:17px;">🚫</span><div class="st">Чёрный список</div></div>
+        <label class="switch"><input type="checkbox" id="f_blacklist" ${c.blacklisted?'checked':''}><span class="slider"></span></label>
+      </div>
       <div class="btn-row">
         <button class="btn ghost" onclick="closeSheet()">Отмена</button>
         <button class="btn primary" onclick="saveClient('${c.id}')">Сохранить</button>
@@ -1481,6 +1669,7 @@ async function saveClient(id){
     doc: document.getElementById('f_doc').value.trim(),
     licenseNum: document.getElementById('f_license').value.trim(),
     notes: document.getElementById('f_cnotes').value.trim(),
+    blacklisted: document.getElementById('f_blacklist').checked,
   };
   if(id){
     const idx = DB.clients.findIndex(c=>c.id===id);
@@ -1499,12 +1688,50 @@ function clientDebt(clientId){
   const paymentsSum = ledger.filter(l=>l.type==='payment').reduce((s,l)=>s+(l.amount||0),0);
   return { unpaidSum, finesSum, paymentsSum, debt: unpaidSum + finesSum - paymentsSum, ledger };
 }
+function openClientQuickView(id){
+  const c = DB.clients.find(x=>x.id===id); if(!c) return;
+  const rentals = DB.contracts.filter(ct=>ct.clientId===id);
+  const totalSpent = rentals.reduce((s,ct)=> s + (ct.status!=='cancelled'?ct.total:0), 0);
+  const { debt } = clientDebt(id);
+  const { avg, count } = computeClientRating(id);
+  const unpaidFine = DB.contracts.filter(ct=>ct.clientId===id && ct.type==='fine')
+    .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-finePaidAmount(ct.id)),0);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">${esc(c.name)}</div>
+      <div class="sheet-head-actions">${iconBtn('close', 'closeSheet()', 'Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div class="client-contact-row">
+        <div class="cc-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span>${esc(c.phone)||'—'}</span>
+        </div>
+        <div class="cc-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M14 9h5M14 13h5M6.5 17h6"/></svg>
+          <span>${esc(c.doc)||'—'}</span>
+        </div>
+      </div>
+
+      <div class="summary-row2" style="margin-top:12px;">
+        <div class="summary-card2 c-income"><div class="ic">💰</div><div class="n">${money(totalSpent)}</div><div class="l">Оплачено</div></div>
+        <div class="summary-card2 ${debt>0?'c-warn':''}"><div class="ic">📋</div><div class="n">${money(Math.max(0,debt))}</div><div class="l">Долг</div></div>
+        <div class="summary-card2 ${unpaidFine>0?'c-warn':''}"><div class="ic">⚠️</div><div class="n">${money(unpaidFine)}</div><div class="l">Неоплаченный штраф</div></div>
+        <div class="summary-card2"><div class="ic">⭐</div><div class="n">${count?avg.toFixed(1):'—'}</div><div class="l">Оценка клиента</div></div>
+      </div>
+
+      <button class="btn primary" style="margin-top:16px;width:100%;" onclick="openClientDetail('${c.id}')">Открыть полностью</button>
+    </div>
+  `);
+}
 function openClientDetail(id){
   const c = DB.clients.find(x=>x.id===id); if(!c) return;
   const rentals = DB.contracts.filter(ct=>ct.clientId===id).sort((a,b)=> new Date(b.start)-new Date(a.start));
   const totalSpent = rentals.reduce((s,ct)=> s + (ct.status!=='cancelled'?ct.total:0), 0);
-  const { finesSum, paymentsSum, debt, ledger } = clientDebt(id);
+  const { debt } = clientDebt(id);
   const { avg, count } = computeClientRating(id);
+  const unpaidFine = DB.contracts.filter(ct=>ct.clientId===id && ct.type==='fine')
+    .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-finePaidAmount(ct.id)),0);
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">${esc(c.name)}</div>
@@ -1517,26 +1744,68 @@ function openClientDetail(id){
       </div>
     </div>
     <div class="sheet-body">
-      <div class="detail-block">
-        <div class="detail-row"><span class="k">Телефон</span><span class="v">${esc(c.phone)||'—'}</span></div>
-        <div class="detail-row"><span class="k">Паспорт</span><span class="v">${esc(c.doc)||'—'}</span></div>
-        <div class="detail-row"><span class="k">В/У</span><span class="v">${esc(c.licenseNum)||'—'}</span></div>
-        <div class="detail-row"><span class="k">Всего потрачено</span><span class="v">${money(totalSpent)}</span></div>
-        ${finesSum>0 ? `<div class="detail-row"><span class="k">Штрафы</span><span class="v" style="color:var(--danger);">${money(finesSum)}</span></div>` : ''}
-        ${paymentsSum>0 ? `<div class="detail-row"><span class="k">Внесено платежей</span><span class="v" style="color:var(--accent-2);">${money(paymentsSum)}</span></div>` : ''}
-        ${debt>0 ? `<div class="detail-row"><span class="k">Долг клиента</span><span class="v" style="color:var(--danger);font-weight:800;">${money(debt)}</span></div>` : (debt<0 ? `<div class="detail-row"><span class="k">Переплата</span><span class="v" style="color:var(--accent-2);">${money(-debt)}</span></div>` : '')}
-        <div class="detail-row" style="cursor:pointer;" onclick="openClientRatingsList('${c.id}')">
-          <span class="k">Оценка клиента</span>
-          <span class="v" style="color:var(--accent);letter-spacing:1px;">${count ? `${starsStr(Math.round(avg))} <span style="color:var(--text-dim);letter-spacing:0;font-size:12px;">(${avg.toFixed(1)})</span>` : `<span style="color:var(--text-faint);letter-spacing:0;font-size:13px;">Нет оценок</span>`}</span>
+      <div class="client-contact-row">
+        <div class="cc-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span>${esc(c.phone)||'—'}</span>
+        </div>
+        <div class="cc-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M14 9h5M14 13h5M6.5 17h6"/></svg>
+          <span>${esc(c.doc)||'—'}</span>
         </div>
       </div>
 
-      <div class="quick-actions">
-        ${quickAction('💰','Платёж',`openClientPaymentForm('${c.id}')`)}
-        ${quickAction('⚠️','Штраф',`openClientFineForm('${c.id}')`)}
-        ${quickAction('📊','Отчёт',`openClientDayReport('${c.id}')`)}
-        ${quickAction('➕','Договор',`closeSheet();openContractForm(null,null,'${c.id}')`)}
+      <div class="summary-row2" style="margin-top:12px;">
+        <div class="summary-card2 c-income"><div class="ic">💰</div><div class="n">${money(totalSpent)}</div><div class="l">Оплачено</div></div>
+        <div class="summary-card2 ${debt>0?'c-warn':''}"><div class="ic">📋</div><div class="n">${money(Math.max(0,debt))}</div><div class="l">Долг</div></div>
+        <div class="summary-card2 ${unpaidFine>0?'c-warn':''}"><div class="ic">⚠️</div><div class="n">${money(unpaidFine)}</div><div class="l">Неоплаченный штраф</div></div>
+        <div class="summary-card2" style="cursor:pointer;" onclick="openClientRatingsList('${c.id}')"><div class="ic">⭐</div><div class="n">${count?avg.toFixed(1):'—'}</div><div class="l">Оценка клиента</div></div>
       </div>
+
+      <div class="quick-actions" style="margin-top:14px;">
+        ${quickAction(QUICK_ACTION_ICONS.payment,'Платёж',`openClientPaymentForm('${c.id}')`)}
+        ${quickAction(QUICK_ACTION_ICONS.fine,'Штраф',`openFineActionsMenu('${c.id}')`,'warn')}
+        ${quickAction(QUICK_ACTION_ICONS.report,'Отчёт',`openClientDayReport('${c.id}')`)}
+        ${quickAction(QUICK_ACTION_ICONS.contract,'Договор',`closeSheet();openContractForm(null,null,'${c.id}')`)}
+      </div>
+    </div>
+  `);
+}
+function openFineActionsMenu(clientId){
+  const c = DB.clients.find(x=>x.id===clientId); if(!c) return;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Штраф · ${esc(c.name)}</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div class="btn-row">
+        <button class="btn ghost" onclick="openClientFineForm('${clientId}')">➕ Новый штраф</button>
+        <button class="btn good" onclick="openPayFineMenu('${clientId}')">💰 Оплатить штраф</button>
+      </div>
+    </div>
+  `);
+}
+function openPayFineMenu(clientId){
+  const unpaid = DB.contracts.filter(ct=>ct.clientId===clientId && ct.type==='fine')
+    .filter(ct=>(ct.total-finePaidAmount(ct.id))>0)
+    .sort((a,b)=>new Date(b.start)-new Date(a.start));
+  if(unpaid.length===0){ showToast('Нет неоплаченных штрафов'); openClientDetail(clientId); return; }
+  if(unpaid.length===1){ openSettleFineForm(unpaid[0].id); return; }
+  const c = DB.clients.find(x=>x.id===clientId);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Какой штраф оплатить?</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      ${unpaid.map(ct=>{
+        const remaining = ct.total - finePaidAmount(ct.id);
+        return `<div class="report-row" style="cursor:pointer;" onclick="openSettleFineForm('${ct.id}')">
+          <span class="rl">${ct.notes?esc(ct.notes):'Штраф'} · ${fmtDate(ct.start)}</span>
+          <span class="rv" style="color:var(--danger);">${money(remaining)}</span>
+        </div>`;
+      }).join('')}
     </div>
   `);
 }
@@ -1551,7 +1820,7 @@ function openClientFullHistory(clientId){
       <div class="card" onclick="openClientPaymentForm('${clientId}')" style="align-items:flex-start;cursor:pointer;">
         <div class="card-avatar">💰</div>
         <div class="card-body">
-          <div class="card-title">Платёж</div>
+          <div class="card-title">Платёж${l.purpose ? ' · '+(l.purpose==='fine'?'штрафы':'аренда') : ''}</div>
           <div class="card-sub">${l.note?esc(l.note):'Оплата'} · ${fmtDateTime(l.date)}</div>
         </div>
         <div class="card-right"><div class="card-amount" style="color:var(--accent-2);">-${money(l.amount)}</div></div>
@@ -1616,6 +1885,11 @@ function dayWord(n){
 function openClientPaymentForm(clientId){
   const c = DB.clients.find(x=>x.id===clientId); if(!c) return;
   const { debt } = clientDebt(clientId);
+  const unpaidRental = DB.contracts.filter(ct=>ct.clientId===clientId && (!ct.type||ct.type==='rental') && ct.status!=='cancelled' && !ct.paid)
+    .reduce((s,ct)=>s+(ct.total||0),0);
+  const unpaidFines = DB.contracts.filter(ct=>ct.clientId===clientId && ct.type==='fine')
+    .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-finePaidAmount(ct.id)),0);
+  const defaultPurpose = unpaidFines>unpaidRental ? 'fine' : 'rental';
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">Платёж · ${esc(c.name)}</div>
@@ -1623,6 +1897,15 @@ function openClientPaymentForm(clientId){
     </div>
     <div class="sheet-body">
       ${debt>0 ? `<div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">Текущий долг клиента: <b style="color:var(--danger);">${money(debt)}</b></div>` : `<div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">У клиента сейчас нет долга.</div>`}
+      <div class="field">
+        <label>За что платёж</label>
+        <div class="gauge-period-row" id="payPurposeRow" style="width:100%;">
+          <button type="button" class="${defaultPurpose==='rental'?'active':''}" style="flex:1;" onclick="setPayPurpose('rental')">За аренду</button>
+          <button type="button" class="${defaultPurpose==='fine'?'active':''}" style="flex:1;" onclick="setPayPurpose('fine')">За штрафы</button>
+        </div>
+        <input type="hidden" id="f_pay_purpose" value="${defaultPurpose}">
+        <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px;">Долг за аренду: ${money(unpaidRental)} · Штрафы: ${money(unpaidFines)}</div>
+      </div>
       <div class="field"><label>Сумма платежа (${DB.settings.currency})</label><input id="f_pay_amount" type="number" placeholder="0" value="${debt>0?debt:''}"></div>
       <div class="field"><label>Дата платежа</label><input id="f_pay_date" type="datetime-local" value="${nowDT()}"></div>
       <div class="field"><label>Комментарий (необязательно)</label><input id="f_pay_note" placeholder="Например: оплата наличными"></div>
@@ -1633,12 +1916,20 @@ function openClientPaymentForm(clientId){
     </div>
   `);
 }
+function setPayPurpose(purpose){
+  document.getElementById('f_pay_purpose').value = purpose;
+  document.querySelectorAll('#payPurposeRow button').forEach((btn,i)=>{
+    btn.classList.toggle('active', (purpose==='rental' && i===0) || (purpose==='fine' && i===1));
+  });
+}
 async function saveClientPayment(clientId){
   const amount = parseFloat(document.getElementById('f_pay_amount').value)||0;
   if(amount<=0){ showToast('Укажите сумму платежа'); return; }
   const date = document.getElementById('f_pay_date').value || nowDT();
-  const note = document.getElementById('f_pay_note').value.trim();
-  DB.clientLedger.push({ id: uid(), clientId, type:'payment', amount, date, note });
+  const purpose = document.getElementById('f_pay_purpose').value || 'rental';
+  let note = document.getElementById('f_pay_note').value.trim();
+  if(!note) note = purpose==='fine' ? 'Оплата штрафа' : 'Оплата аренды';
+  DB.clientLedger.push({ id: uid(), clientId, type:'payment', amount, date, note, purpose });
   await persist('clientLedger');
   showToast('Платёж добавлен, долг клиента уменьшен');
   openClientDetail(clientId);
@@ -1721,10 +2012,10 @@ function renderContracts(){
     return new Date(b.end) - new Date(a.end);
   });
   return `
-    <div class="search-bar">
+    ${(searchBarOpen.contracts || searchQ.contracts) ? `<div class="search-bar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <input placeholder="Поиск по клиенту, машине" value="${escapeAttr(searchQ.contracts)}" oninput="searchQ.contracts=this.value;render()">
-    </div>
+    </div>` : ''}
     <div class="section-title">Договоры <span class="count">${list.length}</span></div>
     ${list.length ? list.map(contractCard).join('') : emptyState('Пока нет договоров','Нажмите «+», чтобы оформить первую аренду')}
   `;
@@ -1808,7 +2099,7 @@ function openContractForm(existing, presetCarId, presetClientId){
   const defStart = nowDT();
   const defCarId = presetCarId || (existing ? existing.carId : availableCars[0].id);
   const defCar = DB.cars.find(c=>c.id===defCarId) || availableCars[0];
-  const ct = existing || { id:'', carId: defCarId, clientId: presetClientId||(DB.clients[0]?DB.clients[0].id:''),
+  const ct = existing || { id:'', carId: defCarId, clientId: presetClientId||'',
     start: defStart, end: plusDaysDT(defStart,1), rentalType:'daily', rate: defCar.rate, total: defCar.rate, status:'active', paid:false, notes:'', type:'rental' };
   const isRepair = ct.type==='repair';
   const lockedStatus = (ct.status==='done'||ct.status==='cancelled');
@@ -1831,6 +2122,7 @@ function openContractForm(existing, presetCarId, presetClientId){
             <option value="active" ${ct.status==='active'?'selected':''}>Активен</option>
             <option value="booked" ${ct.status==='booked'?'selected':''}>Забронирован</option>
             <option value="service" ${ct.status==='service'?'selected':''}>🔧 В ремонте</option>
+            <option value="oil">🛢 Замена масла</option>
             ${lockedStatus ? `<option value="${ct.status}" selected>${ct.status==='done'?'Завершён':'Отменён'}</option>` : ''}
           </select>
         </div>
@@ -1858,7 +2150,7 @@ function openContractForm(existing, presetCarId, presetClientId){
             <span id="toggleClientBtn" onclick="toggleInlineClient()" style="color:var(--accent);font-weight:700;cursor:pointer;text-transform:none;letter-spacing:0;">+ Новый клиент</span>
           </label>
           <select id="f_client">
-            ${DB.clients.length ? DB.clients.map(c=>`<option value="${c.id}" ${c.id===ct.clientId?'selected':''}>${esc(c.name)}</option>`).join('') : `<option value="">Нет клиентов — добавьте нового</option>`}
+            ${DB.clients.length ? `<option value="" ${!ct.clientId?'selected':''} disabled>Выберите клиента</option>` + DB.clients.map(c=>`<option value="${c.id}" ${c.id===ct.clientId?'selected':''}>${esc(c.name)}</option>`).join('') : `<option value="">Нет клиентов — добавьте нового</option>`}
           </select>
         </div>
 
@@ -1899,6 +2191,12 @@ function openContractForm(existing, presetCarId, presetClientId){
 }
 function onContractStatusChange(){
   const status = document.getElementById('f_cstatus').value;
+  if(status==='oil'){
+    const carId = document.getElementById('f_car').value;
+    closeSheet();
+    openOilChangeForm(carId);
+    return;
+  }
   const isRepair = status==='service';
   document.getElementById('rentalFieldsBox').style.display = isRepair ? 'none' : 'block';
   document.getElementById('repairFieldsBox').style.display = isRepair ? 'block' : 'none';
@@ -2175,7 +2473,7 @@ function openOilContractDetail(ct, car){
         ${ct.notes ? `<div class="detail-row"><span class="k">Комментарий</span><span class="v">${esc(ct.notes)}</span></div>`:''}
       </div>
       <div class="btn-row">
-        ${car ? `<button class="btn primary" onclick="closeSheet();openOilChangeForm('${car.id}')">История машины</button>` : `<button class="btn primary" onclick="closeSheet()">Готово</button>`}
+        ${car ? `<button class="btn primary" onclick="closeSheet();openOilChangeForm('${car.id}')">Новая замена масла</button>` : `<button class="btn primary" onclick="closeSheet()">Готово</button>`}
       </div>
       <button class="btn danger-ghost" style="margin-top:10px;" onclick="deleteOilLogEntry('${ct.id}')">Удалить запись</button>
     </div>
@@ -2256,7 +2554,9 @@ async function rateClientAndClose(contractId, rating){
 
 /* =================== REPORTS =================== */
 function renderReports(){
+  const filterLabel = {all:null, month:'Этот месяц', year:'Этот год', custom:`${fmtDate(reportsDateRange()[0])} — ${fmtDate(reportsDateRange()[1])}`}[reportsDateFilter.mode];
   return `
+    ${filterLabel ? `<div style="display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:9px 13px;margin-bottom:10px;font-size:12.5px;color:var(--text-dim);cursor:pointer;" onclick="openReportsDateFilter()">📅 <b style="color:var(--text);">${filterLabel}</b> <span style="margin-left:auto;color:var(--accent);font-weight:600;">Изменить</span></div>` : ''}
     <div class="chips">
       <div class="chip ${reportCategory==='income'?'active':''}" onclick="reportCategory='income';render()">💰 Доход</div>
       <div class="chip ${reportCategory==='fines'?'active':''}" onclick="reportCategory='fines';render()">⚠️ Штрафы</div>
@@ -2270,7 +2570,9 @@ function renderReports(){
   `;
 }
 function renderIncomeReport(){
-  const rentalContracts = DB.contracts.filter(c=>(!c.type || c.type==='rental') && c.status!=='cancelled');
+  const [s,e] = reportsDateRange();
+  const inRange = d => !s || (dateOnly(d)<=e && dateOnly(d)>=s);
+  const rentalContracts = DB.contracts.filter(c=>(!c.type || c.type==='rental') && c.status!=='cancelled' && inRange(c.start));
   const list = DB.cars.map(car=>{
     const cs = rentalContracts.filter(c=>c.carId===car.id);
     return { car, count: cs.length, income: cs.reduce((s2,c)=>s2+(c.total||0),0) };
@@ -2288,7 +2590,9 @@ function renderIncomeReport(){
   `;
 }
 function renderFinesReport(){
-  const fines = DB.clientLedger.filter(l=>l.type==='fine').sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const [s,e] = reportsDateRange();
+  const inRange = d => !s || (dateOnly(d)<=e && dateOnly(d)>=s);
+  const fines = DB.clientLedger.filter(l=>l.type==='fine' && inRange(l.date)).sort((a,b)=>new Date(b.date)-new Date(a.date));
   return `
     <div class="section-title" style="margin-top:14px;">Все штрафы <span class="count">${fines.length}</span></div>
     <div class="card" style="display:block;">
@@ -2307,7 +2611,9 @@ function renderFinesReport(){
   `;
 }
 function renderRepairReport(){
-  const repairs = DB.contracts.filter(c=>c.type==='repair');
+  const [s,e] = reportsDateRange();
+  const inRange = d => !s || (dateOnly(d)<=e && dateOnly(d)>=s);
+  const repairs = DB.contracts.filter(c=>c.type==='repair' && inRange(c.start));
   const list = DB.cars.map(car=>{
     const rs = repairs.filter(c=>c.carId===car.id);
     return { car, count: rs.length, expense: rs.reduce((s2,c)=>s2+(c.total||0),0) };
@@ -2460,11 +2766,9 @@ function openOilChangeForm(carId){
       <div class="field"><label>Сумма расхода (${DB.settings.currency})</label><input id="f_oil_amount" type="number" placeholder="0"></div>
       <div class="field"><label>Комментарий (необязательно)</label><input id="f_oil_note" placeholder="Например: масло + фильтр"></div>
       <div class="btn-row">
-        <button class="btn ghost" onclick="closeSheet()">Отмена</button>
-        <button class="btn primary" onclick="saveOilChange('${carId}')">Сохранить</button>
+        <button class="btn ghost" onclick="closeSheet()">Отменить</button>
+        <button class="btn primary" onclick="saveOilChange('${carId}')">Добавить</button>
       </div>
-      <div class="section-title" style="margin-top:18px;">История <span class="count">${DB.oilChanges.filter(l=>l.carId===carId).length}</span></div>
-      ${oilHistoryHtml(carId)}
     </div>
   `);
 }
@@ -2664,9 +2968,15 @@ function linkRowWithCount(icon, title, count, onclickFn, warn){
     </div>
   </div>`;
 }
-function quickAction(icon, label, onclickFn){
-  return `<div class="quick-action" onclick="${onclickFn}"><div class="ic">${icon}</div><div class="lb">${label}</div></div>`;
+function quickAction(iconSvg, label, onclickFn, cls){
+  return `<div class="quick-action${cls?' '+cls:''}" onclick="${onclickFn}"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${iconSvg}</svg></div><div class="lb">${label}</div></div>`;
 }
+const QUICK_ACTION_ICONS = {
+  payment: `<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>`,
+  fine: `<path d="M10.3 3.86 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.86a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>`,
+  report: `<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>`,
+  contract: `<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M12 12v6M9 15h6"/>`,
+};
 function openSettings(){
   openSheet(`
     <div class="sheet-handle"></div>
@@ -2834,30 +3144,21 @@ function openThemeSettings(){
     ['green','Зелёный','#3ec97a'],
   ];
   const modes = [
-    ['dark','Стандартная','Тёмный фон, как сейчас','flat','#14161c','#242936'],
-    ['light','Светлая','Жидкое стекло, как iOS','glass','',''],
+    ['dark','Стандартная','Тёмный фон, как сейчас','#14161c','#242936'],
+    ['light','Светлая','Чистый белый, минимализм','#ffffff','#f5f5f7'],
   ];
   openSheet(`
     ${subHead('Цветовая тема')}
     <div class="sheet-body">
       <div class="section-title" style="margin-top:0;">Оформление</div>
-      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px;">Выберите тёмный или светлый (жидкое стекло) фон приложения.</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px;">Выберите тёмный или светлый фон приложения.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;">
-        ${modes.map(([key,label,sub,kind,c1,c2])=>`
+        ${modes.map(([key,label,sub,c1,c2])=>`
           <div onclick="setColorMode('${key}')" style="cursor:pointer;border-radius:14px;border:2px solid ${curMode===key?'var(--accent)':'var(--border)'};padding:12px;background:var(--surface);position:relative;">
             ${curMode===key ? `<div style="position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;z-index:2;"><svg viewBox="0 0 24 24" fill="none" stroke="#241a06" stroke-width="3" width="12" height="12"><path d="M20 6 9 17l-5-5"/></svg></div>` : ''}
-            ${kind==='glass' ? `
-            <div style="height:44px;border-radius:9px;margin-bottom:9px;position:relative;overflow:hidden;
-              background:
-                radial-gradient(circle at 15% 15%, rgba(255,183,143,0.9), transparent 55%),
-                radial-gradient(circle at 85% 20%, rgba(147,197,253,0.9), transparent 55%),
-                radial-gradient(circle at 20% 90%, rgba(167,243,208,0.85), transparent 55%),
-                radial-gradient(circle at 90% 85%, rgba(233,171,247,0.8), transparent 55%),
-                #eef1f6;">
-              <div style="position:absolute;inset:6px;border-radius:6px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);backdrop-filter:blur(4px);"></div>
-            </div>` : `
-            <div style="height:44px;border-radius:9px;background:linear-gradient(135deg, ${c1} 0%, ${c1} 55%, ${c2} 55%, ${c2} 100%);border:1px solid var(--border);margin-bottom:9px;"></div>
-            `}
+            <div style="height:44px;border-radius:9px;background:${c1};border:1px solid ${key==='light'?'#e4e4e9':'var(--border)'};margin-bottom:9px;position:relative;overflow:hidden;">
+              <div style="position:absolute;left:8px;right:8px;bottom:8px;height:16px;border-radius:6px;background:${c2};box-shadow:0 2px 6px -2px rgba(0,0,0,0.15);"></div>
+            </div>
             <div class="st" style="font-size:13px;">${label}</div>
             <div class="sd" style="font-size:11px;">${sub}</div>
           </div>
