@@ -650,6 +650,27 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 .center-confirm .cc-check svg{width:26px;height:26px;}
 .center-confirm .cc-text{font-size:14px;font-weight:700;color:var(--text);text-align:center;}
 
+.update-overlay{
+  position:fixed;inset:0;z-index:300;background:var(--overlay-bg);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;
+}
+.update-overlay.show{opacity:1;pointer-events:auto;}
+.update-overlay-card{
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:22px;
+  padding:34px 30px;box-shadow:var(--shadow-pop);max-width:82vw;text-align:center;
+  transform:scale(0.9);transition:transform .25s ease;
+}
+.update-overlay.show .update-overlay-card{transform:scale(1);}
+.update-spinner{
+  width:52px;height:52px;border-radius:50%;flex-shrink:0;
+  border:4px solid var(--surface-3);border-top-color:var(--accent);
+  animation:updateSpin 0.9s linear infinite;
+}
+@keyframes updateSpin{to{transform:rotate(360deg);}}
+.update-overlay-title{font-family:var(--font-display);font-weight:700;font-size:16.5px;color:var(--text);}
+.update-overlay-msg{font-size:13px;color:var(--text-dim);min-height:18px;transition:opacity .2s ease;max-width:230px;}
+
 .settings-item{display:flex;align-items:center;justify-content:space-between;padding:14px 2px;border-bottom:1px solid var(--border);}
 .settings-item:last-child{border-bottom:none;}
 .settings-item .st{font-size:14px;font-weight:600;}
@@ -777,6 +798,13 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 <div class="center-confirm" id="centerConfirm">
   <div class="cc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
   <div class="cc-text" id="centerConfirmText"></div>
+</div>
+<div class="update-overlay" id="updateOverlay">
+  <div class="update-overlay-card">
+    <div class="update-spinner"></div>
+    <div class="update-overlay-title">Обновление приложения</div>
+    <div class="update-overlay-msg" id="updateOverlayMsg">Проверка обновлений…</div>
+  </div>
 </div>
 
 <script>
@@ -993,6 +1021,7 @@ async function loadAll(){
     if(DB.settings.alarmSettings.duration===undefined) DB.settings.alarmSettings.duration = 0.4;
     if(DB.settings.graceHour===undefined) DB.settings.graceHour = false;
     if(DB.settings.overdue6hBlocks===undefined) DB.settings.overdue6hBlocks = false;
+    if(!DB.settings.feedback) DB.settings.feedback = { enabled:false, sound:true, vibration:true };
     if(!DB.settings.themeColor) DB.settings.themeColor = 'amber';
     if(!DB.settings.colorMode) DB.settings.colorMode = 'light';
     if(!DB.settings.companyName) DB.settings.companyName = 'XCAR';
@@ -1031,6 +1060,10 @@ function showToast(msg){
   t.textContent = msg; t.classList.add('show');
   clearTimeout(window.__tt);
   window.__tt = setTimeout(()=>t.classList.remove('show'), 1800);
+  const kind = /удал|отмен|ошибк|не удалось|нельзя/i.test(msg) ? 'error'
+    : /укажите|выберите|заполните|сначала|опишите/i.test(msg) ? 'warning'
+    : 'success';
+  feedback(kind);
 }
 function showCenterConfirm(msg){
   const el = document.getElementById('centerConfirm');
@@ -1038,6 +1071,7 @@ function showCenterConfirm(msg){
   el.classList.add('show');
   clearTimeout(window.__cct);
   window.__cct = setTimeout(()=>el.classList.remove('show'), 1500);
+  feedback(/удал/i.test(msg) ? 'warning' : 'success');
 }
 
 /* =================== NAV =================== */
@@ -1794,7 +1828,7 @@ function clientCardPressStart(id){
   clearTimeout(clientPressTimer);
   clientPressTimer = setTimeout(()=>{
     clientPressFired = true;
-    if(navigator.vibrate){ try{ navigator.vibrate(12); }catch(e){} }
+    vibrateFeedback('success');
     openClientDetail(id);
   }, 1500);
 }
@@ -1965,8 +1999,9 @@ function clientDebt(clientId){
   const unpaidSum = rentals.reduce((s,ct)=> s + (!ct.paid ? ct.total + overdueSurcharge(ct) : 0), 0);
   const ledger = DB.clientLedger.filter(l=>l.clientId===clientId);
   const finesSum = ledger.filter(l=>l.type==='fine').reduce((s,l)=>s+(l.amount||0),0);
+  const violationsSum = ledger.filter(l=>l.type==='violation').reduce((s,l)=>s+(l.amount||0),0);
   const paymentsSum = ledger.filter(l=>l.type==='payment').reduce((s,l)=>s+(l.amount||0),0);
-  return { unpaidSum, finesSum, paymentsSum, debt: unpaidSum + finesSum - paymentsSum, ledger };
+  return { unpaidSum, finesSum, violationsSum, paymentsSum, debt: unpaidSum + finesSum + violationsSum - paymentsSum, ledger };
 }
 function openClientQuickView(id){
   const c = DB.clients.find(x=>x.id===id); if(!c) return;
@@ -2093,7 +2128,7 @@ function openClientFullHistory(clientId){
       <div class="card" onclick="openClientPaymentForm('${clientId}')" style="align-items:flex-start;cursor:pointer;">
         <div class="card-avatar">💰</div>
         <div class="card-body">
-          <div class="card-title">Платёж${l.purpose ? ' · '+(l.purpose==='fine'?'штрафы':'аренда') : ''}</div>
+          <div class="card-title">Платёж${l.purpose ? ' · '+(l.purpose==='fine'?'штрафы':l.purpose==='violation'?'нарушения':'аренда') : ''}</div>
           <div class="card-sub">${l.note?esc(l.note):'Оплата'} · ${fmtDateTime(l.date)}</div>
         </div>
         <div class="card-right"><div class="card-amount" style="color:var(--accent-2);">-${money(l.amount)}</div></div>
@@ -2125,7 +2160,7 @@ function operationRowHtml(item){
     const l = item.l;
     const cl = DB.clients.find(c=>c.id===l.clientId);
     return `<div class="report-row" style="cursor:pointer;" onclick="${cl?`openClientPaymentForm('${cl.id}')`:''}">
-      <span class="rl">💰 ${cl?esc(cl.name):'Клиент удалён'} · Платёж${l.purpose==='fine'?' (штраф)':''}${l.note?' · '+esc(l.note):''} · ${fmtDateTime(l.date)}</span>
+      <span class="rl">💰 ${cl?esc(cl.name):'Клиент удалён'} · Платёж${l.purpose==='fine'?' (штраф)':l.purpose==='violation'?' (нарушение)':''}${l.note?' · '+esc(l.note):''} · ${fmtDateTime(l.date)}</span>
       <span class="rv" style="color:var(--accent-2);">+${money(l.amount)}</span>
     </div>`;
   }
@@ -2218,7 +2253,11 @@ function openClientPaymentForm(clientId){
     .reduce((s,ct)=>s+(ct.total||0),0);
   const unpaidFines = DB.contracts.filter(ct=>ct.clientId===clientId && ct.type==='fine')
     .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-finePaidAmount(ct.id)),0);
-  const defaultPurpose = unpaidFines>unpaidRental ? 'fine' : 'rental';
+  const unpaidViolations = DB.contracts.filter(ct=>ct.clientId===clientId && ct.type==='violation')
+    .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-violationPaidAmount(ct.id)),0);
+  const amounts = { rental: unpaidRental, fine: unpaidFines, violation: unpaidViolations };
+  const defaultPurpose = Object.keys(amounts).reduce((best,k)=> amounts[k]>amounts[best] ? k : best, 'rental');
+  const PURPOSE_LABELS = { rental:'За аренду', fine:'За штрафы', violation:'За нарушения' };
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">Платёж · ${esc(c.name)}</div>
@@ -2229,11 +2268,10 @@ function openClientPaymentForm(clientId){
       <div class="field">
         <label>За что платёж</label>
         <div class="gauge-period-row" id="payPurposeRow" style="width:100%;">
-          <button type="button" class="${defaultPurpose==='rental'?'active':''}" style="flex:1;" onclick="setPayPurpose('rental')">За аренду</button>
-          <button type="button" class="${defaultPurpose==='fine'?'active':''}" style="flex:1;" onclick="setPayPurpose('fine')">За штрафы</button>
+          ${Object.keys(PURPOSE_LABELS).map(k=>`<button type="button" class="${defaultPurpose===k?'active':''}" data-purpose="${k}" style="flex:1;" onclick="setPayPurpose('${k}')">${PURPOSE_LABELS[k]}</button>`).join('')}
         </div>
         <input type="hidden" id="f_pay_purpose" value="${defaultPurpose}">
-        <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px;">Долг за аренду: ${money(unpaidRental)} · Штрафы: ${money(unpaidFines)}</div>
+        <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px;">Долг за аренду: ${money(unpaidRental)} · Штрафы: ${money(unpaidFines)} · Нарушения: ${money(unpaidViolations)}</div>
       </div>
       <div class="field"><label>Сумма платежа (${DB.settings.currency})</label><input id="f_pay_amount" type="number" placeholder="0" value="${debt>0?debt:''}"></div>
       <div class="field"><label>Дата платежа</label><input id="f_pay_date" type="datetime-local" value="${nowDT()}"></div>
@@ -2247,8 +2285,8 @@ function openClientPaymentForm(clientId){
 }
 function setPayPurpose(purpose){
   document.getElementById('f_pay_purpose').value = purpose;
-  document.querySelectorAll('#payPurposeRow button').forEach((btn,i)=>{
-    btn.classList.toggle('active', (purpose==='rental' && i===0) || (purpose==='fine' && i===1));
+  document.querySelectorAll('#payPurposeRow button').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.purpose===purpose);
   });
 }
 async function saveClientPayment(clientId){
@@ -2257,7 +2295,7 @@ async function saveClientPayment(clientId){
   const date = document.getElementById('f_pay_date').value || nowDT();
   const purpose = document.getElementById('f_pay_purpose').value || 'rental';
   let note = document.getElementById('f_pay_note').value.trim();
-  if(!note) note = purpose==='fine' ? 'Оплата штрафа' : 'Оплата аренды';
+  if(!note) note = purpose==='fine' ? 'Оплата штрафа' : purpose==='violation' ? 'Оплата нарушения' : 'Оплата аренды';
   DB.clientLedger.push({ id: uid(), clientId, type:'payment', amount, date, note, purpose });
   await persist('clientLedger');
   showToast('Платёж добавлен, долг клиента уменьшен');
@@ -2318,12 +2356,27 @@ async function saveClientViolation(clientId){
   const amount = parseFloat(document.getElementById('f_viol_amount').value)||0;
   const id = uid();
   DB.contracts.push({ id, carId:null, clientId, start:date, end:date, rentalType:null, rate:0, total:amount, status:'done', paid:true, notes:note, type:'violation', notifiedOneHour:false });
+  if(amount>0){
+    DB.clientLedger.push({ id, clientId, type:'violation', amount, date, note });
+    await persist('clientLedger');
+  }
   await persist('contracts');
   closeSheet(); render();
   showCenterConfirm('Нарушение добавлено');
 }
+async function deleteViolationEntry(id){
+  if(!confirm('Удалить запись?')) return;
+  const entry = DB.clientLedger.find(l=>l.id===id) || DB.contracts.find(c=>c.id===id);
+  const clientId = entry?.clientId;
+  DB.clientLedger = DB.clientLedger.filter(l=>l.id!==id && l.violationId!==id);
+  DB.contracts = DB.contracts.filter(c=>!(c.id===id && c.type==='violation'));
+  await persist('clientLedger'); await persist('contracts');
+  if(clientId) openClientDetail(clientId); else render();
+}
 function openViolationDetail(ct){
   const cl = DB.clients.find(c=>c.id===ct.clientId);
+  const paid = violationPaidAmount(ct.id);
+  const remaining = Math.max(0, (ct.total||0) - paid);
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">🚫 Нарушение</div>
@@ -2334,10 +2387,12 @@ function openViolationDetail(ct){
         <div class="detail-row"><span class="k">Клиент</span><span class="v">${cl?esc(cl.name):'Удалён'}</span></div>
         <div class="detail-row"><span class="k">Дата</span><span class="v">${fmtDateTime(ct.start)}</span></div>
         ${ct.total ? `<div class="detail-row"><span class="k">Сумма</span><span class="v" style="color:var(--danger);">${money(ct.total)}</span></div>` : ''}
+        ${ct.total && paid>0 ? `<div class="detail-row"><span class="k">Погашено</span><span class="v" style="color:var(--accent-2);">${money(paid)}</span></div>
+        <div class="detail-row"><span class="k">Остаток</span><span class="v" style="${remaining>0?'color:var(--danger);font-weight:800;':'color:var(--accent-2);'}">${remaining>0?money(remaining):'Погашен полностью'}</span></div>` : ''}
         ${ct.notes ? `<div class="detail-row"><span class="k">Описание</span><span class="v">${esc(ct.notes)}</span></div>`:''}
       </div>
       <div class="btn-row">
-        <button class="btn danger-ghost" onclick="deleteContract('${ct.id}')">Удалить</button>
+        <button class="btn danger-ghost" onclick="deleteViolationEntry('${ct.id}')">Удалить</button>
         ${cl ? `<button class="btn primary" onclick="closeSheet();openClientDetail('${cl.id}')">Открыть клиента</button>` : `<button class="btn primary" onclick="closeSheet()">Готово</button>`}
       </div>
     </div>
@@ -2804,6 +2859,9 @@ function openRepairDetail(ct, car){
       <button class="btn danger-ghost" style="margin-top:10px;" onclick="deleteContract('${ct.id}')">Удалить запись о ремонте</button>
     </div>
   `);
+}
+function violationPaidAmount(violationId){
+  return DB.clientLedger.filter(l=>l.type==='payment' && l.violationId===violationId).reduce((s,l)=>s+(l.amount||0),0);
 }
 function finePaidAmount(fineId){
   return DB.clientLedger.filter(l=>l.type==='payment' && l.fineId===fineId).reduce((s,l)=>s+(l.amount||0),0);
@@ -3392,8 +3450,29 @@ const QUICK_ACTION_ICONS = {
   report: `<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>`,
   contract: `<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M12 12v6M9 15h6"/>`,
 };
+const UPDATE_OVERLAY_MESSAGES = [
+  'Проверка обновлений…',
+  'Загрузка новой версии…',
+  'Обновление кэша приложения…',
+  'Применение изменений…',
+  'Почти готово…'
+];
+function showUpdateOverlay(){
+  const el = document.getElementById('updateOverlay');
+  const msgEl = document.getElementById('updateOverlayMsg');
+  let i = 0;
+  msgEl.textContent = UPDATE_OVERLAY_MESSAGES[0];
+  el.classList.add('show');
+  clearInterval(window.__uoi);
+  window.__uoi = setInterval(()=>{
+    i = (i+1) % UPDATE_OVERLAY_MESSAGES.length;
+    msgEl.style.opacity = '0';
+    setTimeout(()=>{ msgEl.textContent = UPDATE_OVERLAY_MESSAGES[i]; msgEl.style.opacity = '1'; }, 150);
+  }, 1000);
+}
 async function forceUpdateApp(){
-  showToast('Проверка обновлений…');
+  closeSheet();
+  showUpdateOverlay();
   try{
     if('serviceWorker' in navigator){
       const regs = await navigator.serviceWorker.getRegistrations();
@@ -3404,7 +3483,7 @@ async function forceUpdateApp(){
       await Promise.all(keys.map(k => caches.delete(k)));
     }
   }catch(e){}
-  setTimeout(()=>{ window.location.reload(); }, 300);
+  setTimeout(()=>{ window.location.reload(); }, 5000);
 }
 function openTariffs(){
   openSheet(`
@@ -3577,6 +3656,29 @@ function openAlarmSettings(){
         <button class="btn ghost" onclick="testAlarmSound()">▶️ Проверить звук</button>
       </div>
       <button class="btn primary" style="margin-top:12px;" onclick="saveAlarmSettings()">Сохранить сигналы</button>
+
+      <div class="section-title" style="margin-top:24px;">Вибрация и звуки</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:8px;">
+        Короткий звук и вибрация при важных действиях в приложении: сохранение, удаление, оплата, предупреждения.
+      </div>
+      <div class="settings-item">
+        <div><div class="st">Отклик при действиях</div><div class="sd">Включить звук и вибрацию для приложения</div></div>
+        <label class="switch"><input type="checkbox" id="f_fb_enabled" ${DB.settings.feedback?.enabled?'checked':''} onchange="toggleFeedbackSubOptions()"><span class="slider"></span></label>
+      </div>
+      <div id="feedbackSubOptions" style="${DB.settings.feedback?.enabled?'':'opacity:.45;pointer-events:none;'}">
+        <div class="settings-item">
+          <div><div class="st">Звук</div><div class="sd">Короткий сигнал при действии</div></div>
+          <label class="switch"><input type="checkbox" id="f_fb_sound" ${DB.settings.feedback?.sound!==false?'checked':''}><span class="slider"></span></label>
+        </div>
+        <div class="settings-item">
+          <div><div class="st">Вибрация</div><div class="sd">Тактильный отклик (если поддерживает устройство)</div></div>
+          <label class="switch"><input type="checkbox" id="f_fb_vibration" ${DB.settings.feedback?.vibration!==false?'checked':''}><span class="slider"></span></label>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:2px;">
+        <button class="btn ghost" onclick="testFeedback()">▶️ Проверить отклик</button>
+      </div>
+      <button class="btn primary" style="margin-top:12px;" onclick="saveFeedbackSettings()">Сохранить</button>
 
       <div class="section-title" style="margin-top:24px;">Тарификация опозданий</div>
       <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:8px;">
@@ -4247,6 +4349,62 @@ function testAlarmSound(){
     g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+duration);
     o.start(); o.stop(ctx.currentTime+duration+0.02);
   }catch(e){}
+}
+/* =================== ACTION FEEDBACK (sound + vibration) =================== */
+function toggleFeedbackSubOptions(){
+  const on = document.getElementById('f_fb_enabled').checked;
+  const box = document.getElementById('feedbackSubOptions');
+  if(box) box.style.cssText = on ? '' : 'opacity:.45;pointer-events:none;';
+}
+async function saveFeedbackSettings(){
+  const enabled = document.getElementById('f_fb_enabled').checked;
+  const sound = document.getElementById('f_fb_sound').checked;
+  const vibration = document.getElementById('f_fb_vibration').checked;
+  DB.settings.feedback = { enabled, sound, vibration };
+  await persist('settings');
+  showToast('Настройки отклика сохранены');
+  if(enabled) feedback('success');
+}
+function testFeedback(){
+  const enabled = document.getElementById('f_fb_enabled')?.checked;
+  const sound = document.getElementById('f_fb_sound')?.checked;
+  const vibration = document.getElementById('f_fb_vibration')?.checked;
+  if(!enabled){ showToast('Сначала включите отклик при действиях'); return; }
+  if(sound) playFeedbackSound('success');
+  if(vibration) vibrateFeedback('success');
+}
+// Спокойные, "серьёзные" тона (не игровые): success — короткий двухнотный восходящий сигнал,
+// warning — приглушённый нисходящий тон (удаление/предупреждение), error — низкий двойной сигнал.
+function playFeedbackSound(kind){
+  if(!DB.settings.feedback?.enabled || DB.settings.feedback?.sound===false) return;
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const notes = {
+      success: [[660,0,0.09],[880,0.08,0.11]],
+      warning: [[420,0,0.16]],
+      error:   [[300,0,0.12],[240,0.14,0.16]],
+    }[kind] || [[600,0,0.08]];
+    notes.forEach(([freq,offset,dur])=>{
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine'; o.frequency.value = freq;
+      const t0 = ctx.currentTime+offset;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.16, t0+0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+      o.start(t0); o.stop(t0+dur+0.02);
+    });
+  }catch(e){}
+}
+function vibrateFeedback(kind){
+  if(!DB.settings.feedback?.enabled || DB.settings.feedback?.vibration===false) return;
+  if(!navigator.vibrate) return;
+  const pattern = { success:[14], warning:[18,45,18], error:[28,55,28,55,40] }[kind] || [10];
+  try{ navigator.vibrate(pattern); }catch(e){}
+}
+function feedback(kind){
+  playFeedbackSound(kind);
+  vibrateFeedback(kind);
 }
 async function saveGraceHour(){
   DB.settings.graceHour = document.getElementById('f_grace').checked;
