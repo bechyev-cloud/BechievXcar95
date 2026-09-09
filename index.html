@@ -192,6 +192,35 @@ body.win-mode .summary-row2{grid-template-columns:repeat(4, 1fr);gap:16px;}
 body.win-mode .summary-card2{padding:20px 18px;border-radius:18px;}
 body.win-mode .summary-card2 .ic{width:44px;height:44px;border-radius:13px;font-size:20px;}
 body.win-mode .summary-card2 .n{font-size:23px;}
+
+/* ---------- Windows mode: bigger, centered modal cards/sheets ---------- */
+body.win-mode .overlay{align-items:center;padding:40px;}
+body.win-mode .sheet{
+  max-width:820px;max-height:91vh;max-height:91dvh;border-radius:28px;border-bottom:1px solid var(--border);
+  box-shadow:0 55px 100px -30px rgba(0,0,0,0.62);
+  animation:sheetPopIn .22s cubic-bezier(.2,.9,.3,1);
+}
+@keyframes sheetPopIn{from{transform:translateY(14px) scale(0.97);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
+body.win-mode .sheet-handle{display:none;}
+body.win-mode .sheet-head{padding:30px 40px 14px;}
+body.win-mode .sheet-title{font-size:26px;}
+body.win-mode .sheet-head-actions{gap:11px;}
+body.win-mode .icon-btn{width:46px;height:46px;border-radius:13px;}
+body.win-mode .icon-btn svg{width:21px;height:21px;}
+body.win-mode .sheet-body{padding:14px 40px 40px;font-size:15px;}
+body.win-mode .sheet-body .client-contact-row{gap:16px;padding:20px 24px;border-radius:18px;}
+body.win-mode .sheet-body .cc-item{font-size:16px;}
+body.win-mode .sheet-body .cc-item svg{width:22px;height:22px;}
+body.win-mode .sheet-body .summary-row2{margin:16px 0 8px;gap:18px;}
+body.win-mode .sheet-body .summary-card2{padding:26px 22px;border-radius:20px;}
+body.win-mode .sheet-body .summary-card2 .ic{width:50px;height:50px;border-radius:15px;font-size:23px;}
+body.win-mode .sheet-body .summary-card2 .n{font-size:26px;}
+body.win-mode .sheet-body .summary-card2 .l{font-size:11.5px;}
+body.win-mode .sheet-body .btn-row .btn{padding:18px;font-size:16px;border-radius:15px;}
+body.win-mode .sheet-body .field input,
+body.win-mode .sheet-body .field select,
+body.win-mode .sheet-body .field textarea{padding:14px 15px;font-size:16px;border-radius:12px;}
+body.win-mode .sheet-body .field label{font-size:13px;}
 body.win-mode nav.bottom{
   left:0;right:auto;top:0;bottom:0;width:264px;height:100vh;height:100dvh;justify-content:flex-start;
   box-shadow:4px 0 40px -24px rgba(0,0,0,0.7);
@@ -403,6 +432,50 @@ main.tab-anim{opacity:0;transform:translateY(10px);}
 }
 .mini-btn.finish{background:var(--accent);color:#241a06;border-color:var(--accent);}
 .mini-btn.finish:active{background:#d99a30;}
+
+/* ---------- elegant rental contract card ---------- */
+.contract-card{flex-direction:column;align-items:stretch;}
+.cc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;position:relative;z-index:1;}
+.cc-name{font-family:var(--font-display);font-weight:700;font-size:14.5px;color:var(--text);letter-spacing:0.1px;line-height:1.25;}
+.cc-amount{font-family:var(--font-display);font-weight:800;font-size:15.5px;color:var(--text);white-space:nowrap;flex-shrink:0;}
+.cc-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;position:relative;z-index:1;}
+.cc-divider{height:1px;background:var(--border);margin:10px 0;opacity:0.7;position:relative;z-index:1;}
+.cc-car{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--text);position:relative;z-index:1;}
+.cc-car svg{width:13px;height:13px;color:var(--accent);flex-shrink:0;}
+.cc-dates{font-size:11px;color:var(--text-dim);margin-top:3px;margin-left:19px;position:relative;z-index:1;}
+.cc-timer{margin-top:9px;position:relative;z-index:1;}
+.cc-finish-btn{
+  margin-top:12px;width:100%;padding:10px;border:none;border-radius:100px;cursor:pointer;
+  background:linear-gradient(155deg, #5fe0bd, var(--accent-2));color:#0c2b23;font-weight:700;font-size:12.5px;
+  font-family:var(--font-body);box-shadow:0 10px 20px -10px rgba(62,201,167,0.55);transition:transform .1s ease;
+  position:relative;z-index:1;
+}
+.cc-finish-btn:active{transform:scale(0.98);}
+
+/* ---------- elegant car card (Windows mode) ---------- */
+.win-car-card{flex-direction:column;align-items:stretch;}
+.wcc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;position:relative;z-index:1;}
+.wcc-name{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text);letter-spacing:0.1px;line-height:1.25;}
+.wcc-amount{font-family:var(--font-display);font-weight:800;font-size:17px;color:var(--text);white-space:nowrap;flex-shrink:0;text-align:right;line-height:1.2;}
+.wcc-amount-unit{display:block;font-family:var(--font-body);font-weight:600;font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.3px;margin-top:2px;}
+.wcc-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;position:relative;z-index:1;}
+.wcc-divider{height:1px;background:var(--border);margin:12px 0;opacity:0.7;position:relative;z-index:1;}
+.wcc-plate{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text);letter-spacing:0.3px;position:relative;z-index:1;}
+.wcc-plate svg{width:15px;height:15px;color:var(--accent);flex-shrink:0;}
+.wcc-timer{margin-top:10px;position:relative;z-index:1;}
+.wcc-actions{display:flex;gap:8px;margin-top:12px;position:relative;z-index:1;}
+.wcc-action-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 8px;border:none;border-radius:11px;
+  background:var(--surface-3);color:var(--text);font-family:var(--font-body);font-weight:700;font-size:11.5px;cursor:pointer;
+  transition:background .15s ease,transform .1s ease;
+}
+.wcc-action-btn:active{transform:scale(0.97);}
+.wcc-action-btn svg{width:14px;height:14px;flex-shrink:0;}
+.wcc-action-btn.tpl{background:rgba(242,169,59,0.14);color:var(--accent);}
+.wcc-action-btn.debt{background:rgba(232,96,76,0.14);color:var(--danger);}
+body.win-mode .win-car-card:hover .wcc-action-btn.tpl{background:rgba(242,169,59,0.22);}
+body.win-mode .win-car-card:hover .wcc-action-btn.debt{background:rgba(232,96,76,0.22);}
+
 .mini-icon-btn{
   margin-top:8px;width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);
   color:var(--accent);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
@@ -512,6 +585,18 @@ main.tab-anim{opacity:0;transform:translateY(10px);}
 .report-row .rl{font-size:13.5px;color:var(--text-dim);}
 .report-row .rv{font-family:var(--font-display);font-weight:700;font-size:14.5px;}
 
+/* ---------- day report (flat style) ---------- */
+.dr-row{display:flex;align-items:center;gap:11px;background:var(--surface-2);border-radius:14px;padding:10px 12px;margin-bottom:7px;}
+.dr-row-title{font-size:13px;color:var(--text);font-weight:600;}
+.dr-row-sub{font-size:11.5px;color:var(--text-faint);margin-top:1px;}
+.dr-stats{display:flex;gap:10px;margin-top:16px;}
+.dr-stat{flex:1;border-radius:18px;padding:16px 6px;text-align:center;}
+.dr-stat.paid{background:rgba(62,201,167,0.10);}
+.dr-stat.unpaid{background:rgba(232,96,76,0.10);}
+.dr-stat.total{background:rgba(234,179,8,0.10);}
+.dr-stat .val{font-family:var(--font-display);font-weight:800;font-size:15px;}
+.dr-stat .lbl{font-size:10.5px;color:var(--text-dim);margin-top:3px;}
+
 /* ---------- bottom nav ---------- */
 nav.bottom{
   position:fixed;left:0;right:0;bottom:0;z-index:30;
@@ -599,24 +684,27 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 .btn-row .btn{flex:1;}
 .quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px;}
 .quick-actions.cols-3{grid-template-columns:repeat(3,1fr);}
+.quick-actions.cols-2{grid-template-columns:repeat(2,1fr);gap:10px;}
 .quick-action{
-  display:flex;flex-direction:row;align-items:center;justify-content:center;gap:5px;
-  background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:5px 4px;
-  cursor:pointer;transition:background .15s,transform .1s,border-color .15s,box-shadow .15s;
-  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+  display:flex;flex-direction:row;align-items:center;gap:11px;
+  background:var(--surface-2);border-radius:16px;padding:12px 14px;
+  cursor:pointer;transition:background .15s ease,transform .1s ease;
 }
-.quick-action:active{background:var(--surface-3);transform:scale(0.96);}
+.quick-action:active{transform:scale(0.97);}
 .quick-action .ic{
-  width:17px;height:17px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;
   background:var(--surface-3);color:var(--text-dim);flex-shrink:0;
 }
-.quick-action .ic svg{width:10px;height:10px;}
-.quick-action .lb{font-size:9px;font-weight:700;color:var(--text-dim);text-align:center;line-height:1.1;letter-spacing:0.1px;}
-.quick-action.primary .ic{background:color-mix(in srgb, var(--accent) 20%, var(--surface-3));color:var(--accent);}
+.quick-action .ic svg{width:18px;height:18px;}
+.quick-action .lb{font-size:12.5px;font-weight:700;color:var(--text);text-align:left;line-height:1.25;letter-spacing:0.1px;}
+.quick-action.primary{background:rgba(242,169,59,0.10);}
+.quick-action.primary .ic{background:rgba(242,169,59,0.20);color:var(--accent);}
 .quick-action.primary .lb{color:var(--accent);}
-.quick-action.good .ic{background:color-mix(in srgb, var(--accent-2) 20%, var(--surface-3));color:var(--accent-2);}
+.quick-action.good{background:rgba(62,201,167,0.10);}
+.quick-action.good .ic{background:rgba(62,201,167,0.20);color:var(--accent-2);}
 .quick-action.good .lb{color:var(--accent-2);}
-.quick-action.warn .ic{background:color-mix(in srgb, var(--danger) 18%, var(--surface-3));color:var(--danger);}
+.quick-action.warn{background:rgba(232,96,76,0.10);}
+.quick-action.warn .ic{background:rgba(232,96,76,0.20);color:var(--danger);}
 .quick-action.warn .lb{color:var(--danger);}
 
 .detail-block{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
@@ -686,6 +774,16 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 .switch .slider::before{content:"";position:absolute;height:18px;width:18px;left:3px;top:2.5px;background:#cfd3db;border-radius:50%;transition:.2s;}
 .switch input:checked + .slider{background:var(--accent-dim);border-color:var(--accent);}
 .switch input:checked + .slider::before{transform:translateX(18px);background:var(--accent);}
+
+.wa-master-toggle{display:flex;gap:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:18px;padding:6px;margin-bottom:16px;}
+.wa-master-toggle button{
+  flex:1;border:none;background:transparent;color:var(--text-dim);font-family:var(--font-body);font-weight:700;font-size:13.5px;
+  padding:13px 10px;border-radius:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:background .18s ease,color .18s ease,transform .1s ease;
+}
+.wa-master-toggle button:active{transform:scale(0.97);}
+.wa-master-toggle button.on.active{background:rgba(62,201,167,0.18);color:var(--accent-2);box-shadow:0 6px 16px -8px rgba(62,201,167,0.5);}
+.wa-master-toggle button.off.active{background:rgba(232,96,76,0.16);color:var(--danger);box-shadow:0 6px 16px -8px rgba(232,96,76,0.45);}
 </style>
 </head>
 <body>
@@ -1007,7 +1105,7 @@ async function loadAll(){
     DB.settings = safeGet('settings') || { currency:'₽', lastBackupAt:null };
     if(!DB.settings.templates){
       DB.settings.templates = [
-        { id: uid(), name:'Условия аренды', text:'Здравствуйте, {client}!\n\nНапоминаем условия аренды автомобиля {car} ({plate}):\n— возврат с полным баком;\n— бережная эксплуатация, без штрафов на счету арендатора;\n— плановое время возврата: {end};\n— сумма к оплате: {total}.\n\nЕсли возникнут вопросы — просто напишите нам. Спасибо, что выбираете XCAR!' },
+        { id: uid(), name:'Условия аренды', text:'Здравствуйте, {client}!\n\nУсловия аренды автомобиля {car} ({plate}):\n— возврат с полным баком;\n— бережная эксплуатация, без штрафов на счету арендатора;\n— плановое время возврата: {end};\n— сумма к оплате: {total}.' },
         { id: uid(), name:'Напоминание о возврате', text:'{client}, добрый день! Напоминаем, что автомобиль {car} нужно вернуть до {end}. Если планируете продлить аренду — сообщите заранее.' }
       ];
     }
@@ -1022,6 +1120,7 @@ async function loadAll(){
     if(DB.settings.graceHour===undefined) DB.settings.graceHour = false;
     if(DB.settings.overdue6hBlocks===undefined) DB.settings.overdue6hBlocks = false;
     if(!DB.settings.feedback) DB.settings.feedback = { enabled:false, sound:true, vibration:true };
+    if(!DB.settings.autoNotify) DB.settings.autoNotify = { rental:true, payment:true, debt:true, complete:true };
     if(!DB.settings.themeColor) DB.settings.themeColor = 'amber';
     if(!DB.settings.colorMode) DB.settings.colorMode = 'light';
     if(!DB.settings.companyName) DB.settings.companyName = 'XCAR';
@@ -1659,6 +1758,32 @@ function carCard(c){
   const badgeText = {free:'Свободна',rented:'В аренде',booked:'Забронирована',service:'Ремонт'}[c.status];
   const ac = c.status==='rented' ? activeContractForCar(c.id) : null;
   const tl = ac ? timeLeftLabel(ac.end) : null;
+  if(DB.settings.windowsMode){
+    return `
+    <div class="card win-car-card ${ac ? (tl.overdue?'overdue-glow':'rented-glow') : ''}" onclick="openCarDetail('${c.id}')">
+      <div class="wcc-top">
+        <div class="wcc-name">${esc(c.make)} ${esc(c.model)}</div>
+        <div class="wcc-amount">${money(c.rate)}<span class="wcc-amount-unit">в сутки</span></div>
+      </div>
+      <div class="wcc-badges"><span class="badge ${badgeCls}">${badgeText}</span></div>
+      <div class="wcc-divider"></div>
+      <div class="wcc-plate">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 11h1M16 11h1"/></svg>
+        <span>${esc(c.plate)}${c.year?' · '+c.year:''}</span>
+      </div>
+      ${ac ? `<div class="wcc-timer"><span class="timer-pill ${tl.overdue?'overdue':''}">${timerSvg()}${tl.text}</span></div>` : ''}
+      ${ac ? `<div class="wcc-actions">
+        <button class="wcc-action-btn tpl" title="Отправить шаблон клиенту" onclick="event.stopPropagation();openTemplatePicker('${c.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>
+          Шаблон
+        </button>
+        <button class="wcc-action-btn debt" title="Отправить накопленный долг" onclick="event.stopPropagation();sendDebtToClient('${c.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Долг
+        </button>
+      </div>` : ''}
+    </div>`;
+  }
   return `
   <div class="card ${ac ? (tl.overdue?'overdue-glow':'rented-glow') : ''}" onclick="openCarDetail('${c.id}')">
     <div class="card-avatar">${(c.make||'?').slice(0,2).toUpperCase()}</div>
@@ -1773,13 +1898,13 @@ function openCarDetail(id){
             ? `<button class="btn good" onclick="finishRepair('${c.id}')">Завершить ремонт</button>`
             : `<button class="btn primary" onclick="closeSheet();openContractForm(null,'${c.id}')">Новый договор</button>`}
       </div>` : ''}
-      ${ac ? `<div class="quick-actions cols-3" style="margin-top:16px;">
-        ${quickAction('🔄','Продлить',`closeSheet();openExtendContract('${ac.id}')`,'primary')}
-        ${quickAction('📊','Отчёт',`openCarDayReport('${c.id}')`)}
-        ${quickAction('💵','Платёж',`openAddPayment('${c.id}')`)}
-        ${quickAction('✈','Шаблон',`openTemplatePicker('${c.id}')`)}
-        ${quickAction('💰','Долг',`sendDebtToClient('${c.id}')`)}
-        ${quickAction('✅','Завершить',`openCompleteContract('${ac.id}')`,'good')}
+      ${ac ? `<div class="quick-actions cols-2" style="margin-top:16px;">
+        ${quickAction(QUICK_ACTION_ICONS.contract,'Шаблон',`openTemplatePicker('${c.id}')`)}
+        ${quickAction(QUICK_ACTION_ICONS.report,'Отчёт',`openCarDayReport('${c.id}')`)}
+        ${quickAction(QUICK_ACTION_ICONS.debt,'Долг',`sendDebtToClient('${c.id}')`,'warn')}
+        ${quickAction(QUICK_ACTION_ICONS.payment,'Платёж',`openAddPayment('${c.id}')`,'good')}
+        ${quickAction(QUICK_ACTION_ICONS.extend,'Продлить',`closeSheet();openExtendContract('${ac.id}')`,'primary')}
+        ${quickAction(QUICK_ACTION_ICONS.complete,'Завершить',`openCompleteContract('${ac.id}')`,'good')}
       </div>` : ''}
     </div>
   `);
@@ -1821,28 +1946,6 @@ function clientUnpaidFines(clientId){
     .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-finePaidAmount(ct.id)),0);
 }
 let clientFilter = 'all';
-let clientPressTimer = null;
-let clientPressFired = false;
-function clientCardPressStart(id){
-  clientPressFired = false;
-  clearTimeout(clientPressTimer);
-  clientPressTimer = setTimeout(()=>{
-    clientPressFired = true;
-    vibrateFeedback('success');
-    openClientDetail(id);
-  }, 1500);
-}
-function clientCardPressEnd(id){
-  clearTimeout(clientPressTimer);
-  if(!clientPressFired){
-    openClientQuickView(id);
-  }
-  clientPressFired = false;
-}
-function clientCardPressCancel(){
-  clearTimeout(clientPressTimer);
-  clientPressFired = false;
-}
 function renderClients(){
   const filters = [['all','Все'],['rented','В аренде'],['debt','Долги'],['fines','Штрафы'],['booked','Брон'],['blacklist','Чёрный список']];
   const counts = { all: DB.clients.length, rented:0, debt:0, fines:0, booked:0, blacklist:0 };
@@ -1878,10 +1981,9 @@ function clientCard(c){
   const initials = c.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
   const { debt } = clientDebt(c.id);
   const { avg, count } = computeClientRating(c.id);
-  const pressAttrs = `onmousedown="clientCardPressStart('${c.id}')" onmouseup="clientCardPressEnd('${c.id}')" onmouseleave="clientCardPressCancel()" ontouchstart="clientCardPressStart('${c.id}')" ontouchend="clientCardPressEnd('${c.id}')" ontouchcancel="clientCardPressCancel()"`;
   return `
-  <div class="card" style="cursor:pointer;" ${pressAttrs}>
-    <div class="card-avatar" style="cursor:pointer;" onmousedown="event.stopPropagation();" ontouchstart="event.stopPropagation();" onclick="event.stopPropagation();openClientDetail('${c.id}')">${initials}</div>
+  <div class="card" style="cursor:pointer;" onclick="openClientDetail('${c.id}')">
+    <div class="card-avatar">${initials}</div>
     <div class="card-body">
       <div class="card-title">${esc(c.name)}${c.blacklisted ? ` <span class="badge unpaid">🚫 Чёрный список</span>` : ''}</div>
       <div class="card-sub">${esc(c.phone)||'—'} ${c.doc?'· '+esc(c.doc):''}</div>
@@ -2003,42 +2105,6 @@ function clientDebt(clientId){
   const paymentsSum = ledger.filter(l=>l.type==='payment').reduce((s,l)=>s+(l.amount||0),0);
   return { unpaidSum, finesSum, violationsSum, paymentsSum, debt: unpaidSum + finesSum + violationsSum - paymentsSum, ledger };
 }
-function openClientQuickView(id){
-  const c = DB.clients.find(x=>x.id===id); if(!c) return;
-  const rentals = DB.contracts.filter(ct=>ct.clientId===id);
-  const totalSpent = rentals.reduce((s,ct)=> s + (ct.status!=='cancelled'?ct.total:0), 0);
-  const { debt } = clientDebt(id);
-  const { avg, count } = computeClientRating(id);
-  const unpaidFine = DB.contracts.filter(ct=>ct.clientId===id && ct.type==='fine')
-    .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-finePaidAmount(ct.id)),0);
-  openSheet(`
-    <div class="sheet-handle"></div>
-    <div class="sheet-head"><div class="sheet-title">${esc(c.name)}</div>
-      <div class="sheet-head-actions">${iconBtn('close', 'closeSheet()', 'Закрыть')}</div>
-    </div>
-    <div class="sheet-body">
-      <div class="client-contact-row">
-        <div class="cc-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          <span>${esc(c.phone)||'—'}</span>
-        </div>
-        <div class="cc-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M14 9h5M14 13h5M6.5 17h6"/></svg>
-          <span>${esc(c.doc)||'—'}</span>
-        </div>
-      </div>
-
-      <div class="summary-row2" style="margin-top:12px;">
-        <div class="summary-card2 c-income"><div class="ic">💰</div><div class="n">${money(totalSpent)}</div><div class="l">Оплачено</div></div>
-        <div class="summary-card2 ${debt>0?'c-warn':''}"><div class="ic">📋</div><div class="n">${money(Math.max(0,debt))}</div><div class="l">Долг</div></div>
-        <div class="summary-card2 ${unpaidFine>0?'c-warn':''}"><div class="ic">⚠️</div><div class="n">${money(unpaidFine)}</div><div class="l">Неоплаченный штраф</div></div>
-        <div class="summary-card2"><div class="ic">⭐</div><div class="n">${count?avg.toFixed(1):'—'}</div><div class="l">Оценка клиента</div></div>
-      </div>
-
-      <button class="btn primary" style="margin-top:16px;width:100%;" onclick="openClientDetail('${c.id}')">Открыть полностью</button>
-    </div>
-  `);
-}
 function openClientDetail(id){
   const c = DB.clients.find(x=>x.id===id); if(!c) return;
   const rentals = DB.contracts.filter(ct=>ct.clientId===id).sort((a,b)=> new Date(b.start)-new Date(a.start));
@@ -2076,20 +2142,27 @@ function openClientDetail(id){
         <div class="summary-card2 ${unpaidFine>0?'c-warn':''}"><div class="ic">⚠️</div><div class="n">${money(unpaidFine)}</div><div class="l">Неоплаченный штраф</div></div>
         <div class="summary-card2" style="cursor:pointer;" onclick="openClientRatingsList('${c.id}')"><div class="ic">⭐</div><div class="n">${count?avg.toFixed(1):'—'}</div><div class="l">Оценка клиента</div></div>
       </div>
+
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="btn danger-ghost" onclick="openAddDebtMenu('${c.id}')">➕ Добавить долг</button>
+      </div>
+      <div class="btn-row" style="margin-top:10px;">
+        <button class="btn good" onclick="openClientPaymentForm('${c.id}')">💵 Добавить платёж</button>
+      </div>
     </div>
   `);
 }
-function openFineActionsMenu(clientId){
+function openAddDebtMenu(clientId){
   const c = DB.clients.find(x=>x.id===clientId); if(!c) return;
   openSheet(`
     <div class="sheet-handle"></div>
-    <div class="sheet-head"><div class="sheet-title">Штраф · ${esc(c.name)}</div>
+    <div class="sheet-head"><div class="sheet-title">Добавить долг · ${esc(c.name)}</div>
       <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
     </div>
     <div class="sheet-body">
       <div class="btn-row">
-        <button class="btn ghost" onclick="openClientFineForm('${clientId}')">➕ Новый штраф</button>
-        <button class="btn good" onclick="openPayFineMenu('${clientId}')">💰 Оплатить штраф</button>
+        <button class="btn danger-ghost" onclick="openClientFineForm('${clientId}')">⚠️ Штраф</button>
+        <button class="btn danger-ghost" onclick="openClientViolationForm('${clientId}')">🚫 Нарушение</button>
       </div>
     </div>
   `);
@@ -2298,6 +2371,9 @@ async function saveClientPayment(clientId){
   if(!note) note = purpose==='fine' ? 'Оплата штрафа' : purpose==='violation' ? 'Оплата нарушения' : 'Оплата аренды';
   DB.clientLedger.push({ id: uid(), clientId, type:'payment', amount, date, note, purpose });
   await persist('clientLedger');
+  const clForMsg = DB.clients.find(x=>x.id===clientId);
+  notifyClient(clientId, buildPaymentMessage(clForMsg, amount, purpose, note), 'payment');
+  sendPaymentHistoryDocument(clientId);
   showToast('Платёж добавлен, долг клиента уменьшен');
   openClientDetail(clientId);
 }
@@ -2328,6 +2404,8 @@ async function saveClientFine(clientId){
   DB.clientLedger.push({ id, clientId, type:'fine', amount, date, note });
   DB.contracts.push({ id, carId:null, clientId, start:date, end:date, rentalType:null, rate:0, total:amount, status:'done', paid:true, notes:note, type:'fine', notifiedOneHour:false });
   await persist('clientLedger'); await persist('contracts');
+  const clForMsg = DB.clients.find(x=>x.id===clientId);
+  notifyClient(clientId, buildDebtMessage(clForMsg, 'fine', amount, note), 'debt');
   showToast('Штраф добавлен к долгу клиента');
   openClientDetail(clientId);
 }
@@ -2359,6 +2437,8 @@ async function saveClientViolation(clientId){
   if(amount>0){
     DB.clientLedger.push({ id, clientId, type:'violation', amount, date, note });
     await persist('clientLedger');
+    const clForMsg = DB.clients.find(x=>x.id===clientId);
+    notifyClient(clientId, buildDebtMessage(clForMsg, 'violation', amount, note), 'debt');
   }
   await persist('contracts');
   closeSheet(); render();
@@ -2539,20 +2619,24 @@ function contractCard(ct){
     </div>`;
   }
   return `
-  <div class="card ${tl ? (tl.overdue?'overdue-glow':'rented-glow') : ''}" onclick="openContractDetail('${ct.id}')" style="align-items:flex-start;">
-    <div class="card-avatar">${car?(car.make||'?').slice(0,2).toUpperCase():'—'}</div>
-    <div class="card-body">
-      <div class="card-title">${cl?esc(cl.name):'Клиент удалён'}</div>
-      <div class="card-sub">
-        <span class="badge ${statusCls}">${statusText}</span>
-        <span class="badge ${ct.paid?'paid':'unpaid'}">${ct.paid?'Оплачено':'Не оплачено'}</span>
-        ${ct.rentalType==='6h' ? `<span class="badge booked">6 часов</span>` : ''}
-      </div>
-      <div class="card-sub">${car?esc(car.make+' '+car.model):'—'} · ${fmtDateTime(ct.start)} → ${fmtDateTime(ct.end)}</div>
-      ${tl ? `<div class="card-sub" style="margin-top:6px;"><span class="timer-pill ${tl.overdue?'overdue':''}">${timerSvg()}${tl.text}</span></div>` : ''}
-      ${ct.status==='active' ? `<div class="card-actions"><button class="mini-btn finish" onclick="event.stopPropagation();openCompleteContract('${ct.id}')">Завершить аренду</button></div>` : ''}
+  <div class="card contract-card ${tl ? (tl.overdue?'overdue-glow':'rented-glow') : ''}" onclick="openContractDetail('${ct.id}')">
+    <div class="cc-top">
+      <div class="cc-name">${cl?esc(cl.name):'Клиент удалён'}</div>
+      <div class="cc-amount">${money(ct.total)}</div>
     </div>
-    <div class="card-right"><div class="card-amount">${money(ct.total)}</div></div>
+    <div class="cc-badges">
+      <span class="badge ${statusCls}">${statusText}</span>
+      <span class="badge ${ct.paid?'paid':'unpaid'}">${ct.paid?'Оплачено':'Не оплачено'}</span>
+      ${ct.rentalType==='6h' ? `<span class="badge booked">6 часов</span>` : ''}
+    </div>
+    <div class="cc-divider"></div>
+    <div class="cc-car">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
+      <span>${car?esc(car.make+' '+car.model):'—'}</span>
+    </div>
+    <div class="cc-dates">${fmtDateTime(ct.start)} → ${fmtDateTime(ct.end)}</div>
+    ${tl ? `<div class="cc-timer"><span class="timer-pill ${tl.overdue?'overdue':''}">${timerSvg()}${tl.text}</span></div>` : ''}
+    ${ct.status==='active' ? `<button class="cc-finish-btn" onclick="event.stopPropagation();openCompleteContract('${ct.id}')">Завершить аренду</button>` : ''}
   </div>`;
 }
 function openContractForm(existing, presetCarId, presetClientId){
@@ -2768,7 +2852,7 @@ async function saveContract(id){
   } else {
     const newCt = { id: uid(), notifiedOneHour:false, ...data };
     DB.contracts.push(newCt);
-    if(data.type!=='repair'){
+    if(data.type!=='repair' && DB.settings.autoNotify?.rental!==false){
       const cl = DB.clients.find(c=>c.id===data.clientId);
       if(cl && cl.phone){
         sendWhatsApp(cl.phone, buildContractMessage(newCt)).then(r=>{
@@ -2997,6 +3081,7 @@ async function confirmComplete(id, markPaid){
   await persist('contracts'); await persist('cars');
   render();
   showToast(markPaid ? `Оплата ${money(sum)} добавлена, машина свободна` : 'Аренда завершена, машина свободна');
+  notifyClient(ct.clientId, buildCompleteMessage(ct, markPaid), 'complete');
   openRateClientSheet(ct.clientId, ct.id);
 }
 function openRateClientSheet(clientId, contractId){
@@ -3449,6 +3534,9 @@ const QUICK_ACTION_ICONS = {
   fine: `<path d="M10.3 3.86 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.86a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>`,
   report: `<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>`,
   contract: `<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M12 12v6M9 15h6"/>`,
+  debt: `<path d="M2 17V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2Z"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/>`,
+  extend: `<path d="M21 12a9 9 0 1 1-3.2-6.87"/><path d="M21 3v5h-5"/>`,
+  complete: `<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>`,
 };
 const UPDATE_OVERLAY_MESSAGES = [
   'Проверка обновлений…',
@@ -3534,23 +3622,46 @@ function openSettings(){
   `);
 }
 function openGreenApiSettings(){
+  const gaOn = !!DB.settings.greenApi?.enabled;
   openSheet(`
     ${subHead('WhatsApp-уведомления')}
     <div class="sheet-body">
+      <div class="wa-master-toggle">
+        <button class="on ${gaOn?'active':''}" onclick="toggleGreenApiMaster(true)">✅ Включено</button>
+        <button class="off ${!gaOn?'active':''}" onclick="toggleGreenApiMaster(false)">⛔ Выключено</button>
+      </div>
       <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px;">
         Подключите <a href="https://green-api.com" target="_blank" style="color:var(--accent);">Green API</a> — клиент автоматически получит договор в WhatsApp при оформлении, а за 1 час до окончания аренды придёт напоминание о возврате.
       </div>
       <div class="field"><label>ID инстанса (idInstance)</label><input id="f_ga_id" value="${escapeAttr(DB.settings.greenApi?.idInstance||'')}" placeholder="1101000001"></div>
       <div class="field"><label>API токен (apiTokenInstance)</label><input id="f_ga_token" type="password" value="${escapeAttr(DB.settings.greenApi?.apiTokenInstance||'')}" placeholder="d75b3a66374942c5b3c..."></div>
-      <div class="settings-item" style="padding-top:2px;">
-        <div><div class="st">Включить автоотправку</div><div class="sd">Договор при создании + напоминание за 1 час</div></div>
-        <label class="switch"><input type="checkbox" id="f_ga_enabled" ${DB.settings.greenApi?.enabled?'checked':''}><span class="slider"></span></label>
-      </div>
       <div class="btn-row" style="margin-top:12px;">
         <button class="btn ghost" onclick="saveGreenApi(false)">Сохранить</button>
         <button class="btn primary" onclick="saveGreenApi(true)">Сохранить и проверить</button>
       </div>
       <div id="gaStatus" style="font-size:12px;margin-top:8px;color:var(--text-dim);">${DB.settings.greenApi?.idInstance ? 'Ключи сохранены' : 'Ключи не указаны'}</div>
+
+      <div class="section-title" style="margin-top:24px;">Автоуведомления клиента</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:8px;">
+        Клиент будет автоматически получать красивое сообщение в WhatsApp при каждом из этих событий (работает только если включена автоотправка выше).
+      </div>
+      <div class="settings-item">
+        <div><div class="st">Новая аренда</div><div class="sd">Договор при оформлении аренды</div></div>
+        <label class="switch"><input type="checkbox" id="f_an_rental" ${DB.settings.autoNotify?.rental!==false?'checked':''}><span class="slider"></span></label>
+      </div>
+      <div class="settings-item">
+        <div><div class="st">Оплата</div><div class="sd">Когда клиент вносит платёж</div></div>
+        <label class="switch"><input type="checkbox" id="f_an_payment" ${DB.settings.autoNotify?.payment!==false?'checked':''}><span class="slider"></span></label>
+      </div>
+      <div class="settings-item">
+        <div><div class="st">Начисление долга</div><div class="sd">Штраф или нарушение</div></div>
+        <label class="switch"><input type="checkbox" id="f_an_debt" ${DB.settings.autoNotify?.debt!==false?'checked':''}><span class="slider"></span></label>
+      </div>
+      <div class="settings-item">
+        <div><div class="st">Завершение аренды</div><div class="sd">Итоговая сумма и статус оплаты</div></div>
+        <label class="switch"><input type="checkbox" id="f_an_complete" ${DB.settings.autoNotify?.complete!==false?'checked':''}><span class="slider"></span></label>
+      </div>
+      <button class="btn primary" style="margin-top:12px;" onclick="saveAutoNotifySettings()">Сохранить уведомления</button>
     </div>
   `);
 }
@@ -4110,7 +4221,7 @@ async function sendDebtToClient(carId){
   if(!DB.settings.greenApi?.enabled){ showToast('Сначала подключите WhatsApp в настройках'); return; }
   const car = DB.cars.find(c=>c.id===carId);
   const due = ac.paid ? 0 : currentDueAmount(ac) + overdueSurcharge(ac);
-  const msg = `Здравствуйте, ${cl.name}!\n\nНакопленная сумма к оплате за аренду ${car?car.make+' '+car.model:''} на текущий момент: ${money(due)}.\nАренда началась: ${fmtDateTime(ac.start)}.\n\nПросим произвести оплату. Спасибо, что выбираете XCAR!`;
+  const msg = `Здравствуйте, ${cl.name}!\n\nНакопленная сумма к оплате за аренду ${car?car.make+' '+car.model:''} на текущий момент: ${money(due)}.\nАренда началась: ${fmtDateTime(ac.start)}.`;
   showToast('Отправка...');
   const r = await sendWhatsApp(cl.phone, msg);
   showToast(r.ok ? `Долг отправлен: ${cl.name}` : 'Не удалось отправить сообщение');
@@ -4199,16 +4310,128 @@ async function sendClientReportWhatsApp(clientId){
   showToast(r.ok ? 'Отчёт отправлен клиенту' : 'Не удалось отправить — проверьте подключение WhatsApp');
 }
 
+/* ---------- payment history document (sent automatically on payment) ---------- */
+function drawPaymentHistoryCanvas(clientId){
+  const cl = DB.clients.find(c=>c.id===clientId);
+  const brand = DB.settings.companyName || 'XCAR';
+  const totalCharged = DB.contracts.filter(ct=>ct.clientId===clientId && ct.status!=='cancelled').reduce((s,ct)=>s+(ct.total||0),0);
+  const payments = DB.clientLedger.filter(l=>l.clientId===clientId && l.type==='payment').slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
+  let running = totalCharged;
+  const rows = payments.map((p,i)=>{
+    running = Math.max(0, running - (p.amount||0));
+    return { n:i+1, date:p.date, amount:p.amount, balance:running };
+  });
+
+  const W = 860, margin = 48;
+  const colW = [70, 260, 220, W-margin*2-70-260-220];
+  const colX = [margin, margin+colW[0], margin+colW[0]+colW[1], margin+colW[0]+colW[1]+colW[2]];
+  const rowH = 44;
+  const tableTop = 296;
+  const dataRows = Math.max(1, rows.length);
+  const tableH = rowH + dataRows*rowH;
+  const H = tableTop + tableH + 76;
+
+  const canvas = document.createElement('canvas'); canvas.width=W; canvas.height=H;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,W,H);
+
+  ctx.textAlign='center'; ctx.fillStyle='#14161c'; ctx.font='700 24px Arial, sans-serif';
+  ctx.fillText('ИСТОРИЯ ПЛАТЕЖЕЙ', W/2, 58);
+  ctx.textAlign='right'; ctx.font='400 13px Arial, sans-serif'; ctx.fillStyle='#6b7280';
+  ctx.fillText(`Дата: ${new Date().toLocaleDateString('ru-RU')}`, W-margin, 84);
+  ctx.textAlign='left';
+  ctx.strokeStyle='#d8dae0'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(margin,100); ctx.lineTo(W-margin,100); ctx.stroke();
+
+  let y = 136;
+  function infoRow(labelL, valueL, labelR, valueR){
+    ctx.textAlign='left';
+    ctx.font='700 14px Arial, sans-serif'; ctx.fillStyle='#14161c';
+    ctx.fillText(labelL, margin, y);
+    ctx.font='400 14px Arial, sans-serif';
+    ctx.fillText(valueL, margin+158, y);
+    if(labelR){
+      ctx.font='700 14px Arial, sans-serif'; ctx.fillStyle='#14161c';
+      ctx.fillText(labelR, W-margin-210, y);
+      ctx.font='400 14px Arial, sans-serif';
+      ctx.fillText(valueR, W-margin-165, y);
+    }
+    ctx.fillStyle='#14161c';
+    y += 30;
+  }
+  infoRow('Продавец:', brand, 'Тел:', DB.settings.companyPhone || '—');
+  infoRow('Покупатель:', cl ? cl.name : '—', 'Тел:', cl?.phone || '—');
+  y += 6;
+  infoRow('Начислено всего:', money(totalCharged));
+  ctx.font='700 15px Arial, sans-serif'; ctx.textAlign='left'; ctx.fillStyle='#14161c';
+  ctx.fillText('Остаток долга на сегодня:', margin, y);
+  ctx.textAlign='right'; ctx.fillStyle = running>0 ? '#c0392b' : '#1e824c';
+  ctx.fillText(money(running), W-margin, y);
+  ctx.textAlign='left'; ctx.fillStyle='#14161c';
+
+  const tableW = colX[3]+colW[3]-colX[0];
+  function cellBorders(rowY){
+    ctx.strokeStyle='#14161c'; ctx.lineWidth=1.2;
+    ctx.strokeRect(colX[0], rowY, tableW, rowH);
+    for(let i=1;i<4;i++){ ctx.beginPath(); ctx.moveTo(colX[i], rowY); ctx.lineTo(colX[i], rowY+rowH); ctx.stroke(); }
+  }
+  let tY = tableTop;
+  ctx.fillStyle='#f2f3f6'; ctx.fillRect(colX[0], tY, tableW, rowH);
+  ctx.fillStyle='#14161c'; ctx.font='700 14px Arial, sans-serif'; ctx.textAlign='center';
+  ['№','Дата','Сумма','Остаток долга'].forEach((h,i)=> ctx.fillText(h, colX[i]+colW[i]/2, tY+rowH/2+5));
+  cellBorders(tY);
+  tY += rowH;
+
+  if(!rows.length){
+    ctx.font='400 14px Arial, sans-serif'; ctx.fillStyle='#8a8f99';
+    ctx.fillText('Платежей ещё не было', W/2, tY+rowH/2+5);
+    cellBorders(tY);
+  } else {
+    rows.forEach(r=>{
+      ctx.font='400 14px Arial, sans-serif'; ctx.fillStyle='#14161c';
+      ctx.fillText(String(r.n), colX[0]+colW[0]/2, tY+rowH/2+5);
+      ctx.fillText(fmtDate(r.date), colX[1]+colW[1]/2, tY+rowH/2+5);
+      ctx.fillText(money(r.amount), colX[2]+colW[2]/2, tY+rowH/2+5);
+      ctx.font='700 14px Arial, sans-serif'; ctx.fillStyle = r.balance>0 ? '#c0392b' : '#1e824c';
+      ctx.fillText(money(r.balance), colX[3]+colW[3]/2, tY+rowH/2+5);
+      cellBorders(tY);
+      tY += rowH;
+    });
+  }
+  ctx.textAlign='left'; ctx.fillStyle='#9aa0ad'; ctx.font='400 12px Arial, sans-serif';
+  ctx.fillText(`Сформировано в приложении ${brand} · ${new Date().toLocaleDateString('ru-RU')}`, margin, H-28);
+
+  return canvas;
+}
+async function sendPaymentHistoryDocument(clientId){
+  if(!DB.settings.greenApi?.enabled) return;
+  if(DB.settings.autoNotify && DB.settings.autoNotify.payment===false) return;
+  const cl = DB.clients.find(c=>c.id===clientId);
+  if(!cl || !cl.phone) return;
+  try{
+    const canvas = drawPaymentHistoryCanvas(clientId);
+    const blob = await canvasToBlob(canvas);
+    if(!blob) return;
+    await sendWhatsAppFile(cl.phone, blob, `istoriya-platezhey-${clientId.slice(0,6)}.png`, 'История платежей');
+  }catch(e){}
+}
+
 /* =================== WHATSAPP / GREEN API =================== */
 function normalizePhone(phone){
   const digits = (phone||'').replace(/\D/g,'');
   if(digits.length<10) return null;
   return digits+'@c.us';
 }
+async function toggleGreenApiMaster(on){
+  if(!DB.settings.greenApi) DB.settings.greenApi = { idInstance:'', apiTokenInstance:'', enabled:false };
+  DB.settings.greenApi.enabled = on;
+  await persist('settings');
+  showToast(on ? 'WhatsApp-уведомления включены' : 'WhatsApp-уведомления выключены');
+  openGreenApiSettings();
+}
 async function saveGreenApi(testAfter){
   const idInstance = document.getElementById('f_ga_id').value.trim();
   const apiTokenInstance = document.getElementById('f_ga_token').value.trim();
-  const enabled = document.getElementById('f_ga_enabled').checked;
+  const enabled = !!DB.settings.greenApi?.enabled;
   DB.settings.greenApi = { idInstance, apiTokenInstance, enabled };
   await persist('settings');
   const statusEl = document.getElementById('gaStatus');
@@ -4235,6 +4458,16 @@ async function saveGreenApi(testAfter){
     statusEl.style.color = 'var(--danger)';
   }
 }
+async function saveAutoNotifySettings(){
+  DB.settings.autoNotify = {
+    rental: document.getElementById('f_an_rental').checked,
+    payment: document.getElementById('f_an_payment').checked,
+    debt: document.getElementById('f_an_debt').checked,
+    complete: document.getElementById('f_an_complete').checked,
+  };
+  await persist('settings');
+  showToast('Настройки уведомлений сохранены');
+}
 async function sendWhatsApp(phone, message){
   const ga = DB.settings.greenApi;
   if(!ga || !ga.enabled || !ga.idInstance || !ga.apiTokenInstance) return {ok:false, reason:'not_configured'};
@@ -4252,12 +4485,38 @@ async function sendWhatsApp(phone, message){
 function buildContractMessage(ct){
   const car = DB.cars.find(c=>c.id===ct.carId);
   const cl = DB.clients.find(c=>c.id===ct.clientId);
-  return `Здравствуйте${cl?', '+cl.name:''}!\n\nВаш договор аренды в XCAR оформлен:\n🚗 ${car?car.make+' '+car.model:''}${car?.plate?' · '+car.plate:''}\n📅 Начало: ${fmtDateTime(ct.start)}\n📅 Окончание: ${fmtDateTime(ct.end)}\n💰 Сумма: ${money(ct.total)}\n\nСпасибо, что выбираете XCAR!`;
+  const brand = DB.settings.companyName || 'XCAR';
+  return `Здравствуйте${cl?', '+cl.name:''}!\n\nДоговор аренды в ${brand} оформлен:\n🚗 ${car?car.make+' '+car.model:''}${car?.plate?' · '+car.plate:''}\n📅 Начало: ${fmtDateTime(ct.start)}\n📅 Окончание: ${fmtDateTime(ct.end)}\n💰 Сумма: ${money(ct.total)}`;
 }
 function buildReminderMessage(ct){
   const car = DB.cars.find(c=>c.id===ct.carId);
   const cl = DB.clients.find(c=>c.id===ct.clientId);
-  return `${cl?cl.name+', н':'Н'}апоминаем: через 1 час заканчивается аренда автомобиля ${car?car.make+' '+car.model:''}${car?.plate?' ('+car.plate+')':''}.\nПланируемое время возврата: ${fmtDateTime(ct.end)}.\nПросим вернуть машину вовремя. Спасибо!`;
+  return `${cl?cl.name+', н':'Н'}апоминаем: через 1 час заканчивается аренда автомобиля ${car?car.make+' '+car.model:''}${car?.plate?' ('+car.plate+')':''}.\nВремя возврата: ${fmtDateTime(ct.end)}.`;
+}
+/* ---------- automatic client notifications ---------- */
+async function notifyClient(clientId, message, eventKey){
+  if(!DB.settings.greenApi?.enabled) return;
+  if(DB.settings.autoNotify && DB.settings.autoNotify[eventKey]===false) return;
+  const cl = DB.clients.find(c=>c.id===clientId);
+  if(!cl || !cl.phone) return;
+  try{ await sendWhatsApp(cl.phone, message); }catch(e){}
+}
+function buildPaymentMessage(cl, amount, purpose, note){
+  const purposeLabel = purpose==='fine' ? 'оплату штрафа' : purpose==='violation' ? 'оплату нарушения' : 'оплату аренды';
+  return `Здравствуйте${cl?', '+cl.name:''}! ✅\n\nПлатёж получен.\n💳 Назначение: ${purposeLabel}\n💰 Сумма: ${money(amount)}${note?'\n📝 '+note:''}`;
+}
+function buildDebtMessage(cl, kind, amount, note){
+  const icon = kind==='violation' ? '🚫' : '⚠️';
+  const title = kind==='violation' ? 'зафиксировано нарушение' : 'начислен штраф';
+  return `Здравствуйте${cl?', '+cl.name:''}! ${icon}\n\nВам ${title}.\n💰 Сумма к оплате: ${money(amount)}${note?'\n📝 Причина: '+note:''}`;
+}
+function buildCompleteMessage(ct, markPaid){
+  const car = DB.cars.find(c=>c.id===ct.carId);
+  const cl = DB.clients.find(c=>c.id===ct.clientId);
+  const paidAmount = ct.paidAmount!=null ? ct.paidAmount : (ct.paid ? ct.total : 0);
+  const remaining = Math.max(0, (ct.total||0) - paidAmount);
+  const statusLine = (markPaid || remaining<=0) ? '✅ Оплата получена в полном объёме.' : `⚠️ Остаток к оплате: ${money(remaining)}`;
+  return `Здравствуйте${cl?', '+cl.name:''}! 🏁\n\nАренда автомобиля завершена:\n🚗 ${car?car.make+' '+car.model:''}${car?.plate?' · '+car.plate:''}\n💰 Итоговая сумма: ${money(ct.total)}\n${statusLine}`;
 }
 async function checkOneHourReminders(){
   const ga = DB.settings.greenApi;
@@ -4437,16 +4696,22 @@ function openCarDayReport(carId){
   const paidAmount = ac.paidAmount!=null ? ac.paidAmount : (ac.paid ? ac.total : 0);
   const paidPeriodsCount = periodRate>0 ? Math.floor(paidAmount/periodRate) : 0;
 
-  let rows = `<div class="report-row" style="border-left:3px solid var(--text-faint);padding-left:10px;margin-bottom:6px;">
-    <span class="rl">${periodLabel} 0 · Оформление · ${fmtDateTime(ac.start)}</span>
-    <span class="rv" style="color:var(--text-faint);">—</span>
+  let rows = `<div class="dr-row">
+    <div style="flex:1;min-width:0;">
+      <div class="dr-row-title">${periodLabel} 0</div>
+      <div class="dr-row-sub">Оформление · ${fmtDateTime(ac.start)}</div>
+    </div>
+    <span style="color:var(--text-faint);font-weight:700;font-family:var(--font-display);">—</span>
   </div>`;
   for(let i=1;i<=periodCount;i++){
     const d = new Date(start.getTime() + i*periodMs);
     const isPaid = i <= paidPeriodsCount;
-    rows += `<div class="report-row" style="border-left:3px solid ${isPaid?'var(--accent-2)':'var(--danger)'};padding-left:10px;margin-bottom:6px;">
-      <span class="rl">${periodLabel} ${i} · ${fmtDateTime(toLocalDT(d))}</span>
-      <span class="rv" style="color:${isPaid?'var(--accent-2)':'var(--danger)'};">${money(periodRate)}</span>
+    rows += `<div class="dr-row">
+      <div style="flex:1;min-width:0;">
+        <div class="dr-row-title">${periodLabel} ${i} <span class="badge ${isPaid?'paid':'unpaid'}" style="margin-left:6px;">${isPaid?'Оплачено':'Не оплачено'}</span></div>
+        <div class="dr-row-sub">${fmtDateTime(toLocalDT(d))}</div>
+      </div>
+      <span style="color:${isPaid?'var(--accent-2)':'var(--danger)'};font-weight:700;font-family:var(--font-display);">${money(periodRate)}</span>
     </div>`;
   }
   const noteHtml = periodCount===0
@@ -4468,22 +4733,18 @@ function openCarDayReport(carId){
       <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:14px;">${cl?esc(cl.name):''} · ${car?esc(car.make+' '+car.model):''} · с ${fmtDateTime(ac.start)}</div>
       ${rows}
       ${noteHtml}
-      <div style="display:flex;gap:16px;margin-top:14px;font-size:12px;color:var(--text-dim);">
-        <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--accent-2);margin-right:5px;vertical-align:-1px;"></span>Оплачено</span>
-        <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--danger);margin-right:5px;vertical-align:-1px;"></span>Не оплачено</span>
-      </div>
-      <div style="display:flex;gap:10px;margin-top:14px;">
-        <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 6px;text-align:center;">
-          <div style="font-size:19px;color:var(--accent-2);">✓</div>
-          <div style="font-weight:700;color:var(--accent-2);margin-top:3px;">${money(paidAmount)}</div>
+      <div class="dr-stats">
+        <div class="dr-stat paid">
+          <div class="val" style="color:var(--accent-2);">${money(paidAmount)}</div>
+          <div class="lbl">Оплачено</div>
         </div>
-        <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 6px;text-align:center;">
-          <div style="font-size:19px;color:var(--danger);">!</div>
-          <div style="font-weight:700;color:var(--danger);margin-top:3px;">${money(remaining)}</div>
+        <div class="dr-stat unpaid">
+          <div class="val" style="color:var(--danger);">${money(remaining)}</div>
+          <div class="lbl">Остаток</div>
         </div>
-        <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 6px;text-align:center;">
-          <div style="font-size:19px;color:#eab308;">Σ</div>
-          <div style="font-weight:700;color:#eab308;margin-top:3px;">${money(totalPeriod)}</div>
+        <div class="dr-stat total">
+          <div class="val" style="color:#eab308;">${money(totalPeriod)}</div>
+          <div class="lbl">Итого</div>
         </div>
       </div>
     </div>
@@ -4504,7 +4765,7 @@ function drawDayReportCanvas(ct){
   const totalPeriod = ct.total;
   const remaining = Math.max(0, totalPeriod - paidAmount);
 
-  const W = 860, H = 500 + (periodCount+1)*46;
+  const W = 860, H = 492 + (periodCount+1)*52;
   const canvas = document.createElement('canvas'); canvas.width=W; canvas.height=H;
   const ctx = canvas.getContext('2d');
   const bgGrad = ctx.createLinearGradient(0,0,0,H);
@@ -4531,45 +4792,57 @@ function drawDayReportCanvas(ct){
   ctx.fillText(`с ${fmtDateTime(ct.start)}`, 48, 202);
 
   let y = 234;
-  ctx.fillStyle = '#242936'; roundRectPath(ctx,48,y,W-96,38,10); ctx.fill();
-  ctx.fillStyle = '#5d6472'; ctx.font = '400 13px Arial, sans-serif';
-  ctx.fillText(`${periodLabel} 0 · Оформление · ${fmtDateTime(ct.start)}`, 62, y+24);
+  const rowH = 44, rowStep = rowH + 8;
+  ctx.fillStyle = '#242936'; roundRectPath(ctx,48,y,W-96,rowH,14); ctx.fill();
+  ctx.fillStyle = '#e9ebf0'; ctx.font = '700 14px Arial, sans-serif';
+  ctx.fillText(`${periodLabel} 0`, 66, y+20);
+  ctx.fillStyle = '#7a8090'; ctx.font = '400 12px Arial, sans-serif';
+  ctx.fillText(`Оформление · ${fmtDateTime(ct.start)}`, 66, y+34);
   ctx.fillStyle = '#5d6472'; ctx.font = '700 14px Arial, sans-serif'; ctx.textAlign='right';
-  ctx.fillText('—', W-62, y+24);
+  ctx.fillText('—', W-66, y+27);
   ctx.textAlign='left';
-  y += 46;
+  y += rowStep;
 
   for(let i=1;i<=periodCount;i++){
     const d = new Date(start.getTime() + i*periodMs);
     const isPaid = i<=paidPeriodsCount;
-    const barColor = isPaid ? '#3ec9a7' : '#e8604c';
-    ctx.fillStyle = barColor; ctx.fillRect(48,y,4,38);
-    ctx.fillStyle = '#242936'; roundRectPath(ctx,56,y,W-104,38,10); ctx.fill();
-    ctx.fillStyle = '#c9cdd6'; ctx.font = '400 13px Arial, sans-serif';
-    ctx.fillText(`${periodLabel} ${i} · ${fmtDateTime(toLocalDT(d))}`, 70, y+24);
-    ctx.fillStyle = barColor; ctx.font = '700 14px Arial, sans-serif'; ctx.textAlign='right';
-    ctx.fillText(money(periodRate), W-70, y+24);
+    const statusColor = isPaid ? '#3ec9a7' : '#e8604c';
+    ctx.fillStyle = '#242936'; roundRectPath(ctx,48,y,W-96,rowH,14); ctx.fill();
+    ctx.font = '700 14px Arial, sans-serif';
+    const titleText = `${periodLabel} ${i}`;
+    ctx.fillStyle = '#e9ebf0';
+    ctx.fillText(titleText, 66, y+20);
+    const titleW = ctx.measureText(titleText).width;
+    ctx.font = '700 11px Arial, sans-serif';
+    ctx.fillStyle = statusColor;
+    ctx.fillText(isPaid?'Оплачено':'Не оплачено', 66+titleW+10, y+20);
+    ctx.fillStyle = '#7a8090'; ctx.font = '400 12px Arial, sans-serif';
+    ctx.fillText(fmtDateTime(toLocalDT(d)), 66, y+34);
+    ctx.fillStyle = statusColor; ctx.font = '700 14px Arial, sans-serif'; ctx.textAlign='right';
+    ctx.fillText(money(periodRate), W-66, y+27);
     ctx.textAlign='left';
-    y += 46;
+    y += rowStep;
   }
 
   y += 24;
   const boxW = (W-96-24)/3;
   const summaries = [
-    { symbol:'✓', color:'#3ec9a7', value: paidAmount },
-    { symbol:'!', color:'#e8604c', value: remaining },
-    { symbol:'Σ', color:'#eab308', value: totalPeriod },
+    { color:'#3ec9a7', bg:'rgba(62,201,167,0.12)', label:'Оплачено', value: paidAmount },
+    { color:'#e8604c', bg:'rgba(232,96,76,0.12)', label:'Остаток', value: remaining },
+    { color:'#eab308', bg:'rgba(234,179,8,0.12)', label:'Итого', value: totalPeriod },
   ];
+  const tileH = 84;
   summaries.forEach((s,idx)=>{
     const x = 48 + idx*(boxW+12);
-    ctx.fillStyle = '#242936'; roundRectPath(ctx,x,y,boxW,92,14); ctx.fill();
-    ctx.fillStyle = s.color; ctx.font = '700 26px Arial, sans-serif'; ctx.textAlign='center';
-    ctx.fillText(s.symbol, x+boxW/2, y+38);
-    ctx.font = '700 17px Arial, sans-serif';
-    ctx.fillText(money(s.value), x+boxW/2, y+70);
+    const cx = x+boxW/2;
+    ctx.fillStyle = s.bg; roundRectPath(ctx,x,y,boxW,tileH,18); ctx.fill();
+    ctx.fillStyle = s.color; ctx.font = '800 19px Arial, sans-serif'; ctx.textAlign='center';
+    ctx.fillText(money(s.value), cx, y+40);
+    ctx.fillStyle = '#9aa0ad'; ctx.font = '600 12px Arial, sans-serif';
+    ctx.fillText(s.label, cx, y+62);
     ctx.textAlign='left';
   });
-  y += 92;
+  y += tileH;
 
   ctx.fillStyle = '#5d6472'; ctx.font = '400 12.5px Arial, sans-serif';
   ctx.fillText('Сформировано в приложении XCAR · ' + new Date().toLocaleDateString('ru-RU'), 48, H-30);
@@ -4703,7 +4976,7 @@ async function confirmExtend(id){
   const cl = DB.clients.find(c=>c.id===ct.clientId);
   const car = DB.cars.find(c=>c.id===ct.carId);
   if(cl && cl.phone && DB.settings.greenApi?.enabled){
-    sendWhatsApp(cl.phone, `Здравствуйте, ${cl.name}!\n\nАренда ${car?car.make+' '+car.model:''} продлена.\nНовое время возврата: ${fmtDateTime(ct.end)}.\nК оплате за продление: ${money(sum)}.\n\nСпасибо, что выбираете XCAR!`);
+    sendWhatsApp(cl.phone, `Здравствуйте, ${cl.name}!\n\nАренда ${car?car.make+' '+car.model:''} продлена.\nНовое время возврата: ${fmtDateTime(ct.end)}.\nК оплате за продление: ${money(sum)}.`);
   }
 }
 
