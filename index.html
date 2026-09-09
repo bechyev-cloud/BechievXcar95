@@ -294,6 +294,7 @@ header.top{
 }
 .icon-btn svg{width:18px;height:18px;}
 .icon-btn:active{background:var(--surface-3);}
+.icon-btn.wa-on{background:rgba(62,201,167,0.18);border-color:rgba(62,201,167,0.35);color:var(--accent-2);}
 .notif-badge{
   position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;padding:0 4px;
   background:var(--danger);color:#fff;border-radius:100px;font-size:10px;font-weight:800;
@@ -974,7 +975,8 @@ const SHEET_ICONS = {
   list: `<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>`,
   trash: `<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14Z"/><path d="M10 11v6M14 11v6"/>`,
   close: `<path d="M18 6 6 18M6 6l12 12"/>`,
-  refresh: `<path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>`
+  refresh: `<path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>`,
+  chat: `<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>`
 };
 function iconBtn(icon, onclick, title){
   return `<button class="icon-btn" title="${title}" onclick="${onclick}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SHEET_ICONS[icon]}</svg></button>`;
@@ -1411,6 +1413,7 @@ function openNotifications(){
     <div class="sheet-head"><div class="sheet-title">Уведомления</div>
       <div class="sheet-head-actions">
         ${unreadCount>0 ? iconBtn('check','markAllNotificationsRead()',`Прочитать всё (${unreadCount})`) : ''}
+        ${waNotifToggleBtn()}
         ${iconBtn('close','closeSheet()','Закрыть')}
       </div>
     </div>
@@ -1431,6 +1434,17 @@ function openNotifications(){
       }).join('')}</div>` : `<div style="text-align:center;color:var(--text-dim);font-size:13.5px;padding:40px 10px;">Уведомлений нет — всё под контролем 👍</div>`}
     </div>
   `);
+}
+function waNotifToggleBtn(){
+  const on = !!DB.settings.greenApi?.enabled;
+  return `<button class="icon-btn ${on?'wa-on':''}" title="${on?'WhatsApp-уведомления включены':'WhatsApp-уведомления выключены'}" onclick="toggleNotifWa()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SHEET_ICONS.chat}</svg></button>`;
+}
+async function toggleNotifWa(){
+  if(!DB.settings.greenApi) DB.settings.greenApi = { idInstance:'', apiTokenInstance:'', enabled:false };
+  DB.settings.greenApi.enabled = !DB.settings.greenApi.enabled;
+  await persist('settings');
+  showToast(DB.settings.greenApi.enabled ? 'WhatsApp-уведомления включены' : 'WhatsApp-уведомления выключены');
+  openNotifications();
 }
 async function markAllNotificationsRead(){
   const keys = computeNotifications().map(n=>n.key);
