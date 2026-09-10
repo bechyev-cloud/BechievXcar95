@@ -12,6 +12,7 @@
 <meta name="description" content="XCAR — учёт автопроката: машины, клиенты, договоры, отчёты, WhatsApp-уведомления">
 <link rel="manifest" href="manifest.json">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="icon" href="icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>XCAR — учёт аренды</title>
@@ -749,6 +750,7 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 .btn.primary:active{background:#d99a30;}
 .btn.ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--border);}
 .btn.danger-ghost{background:rgba(232,96,76,0.1);color:var(--danger);border:1px solid rgba(232,96,76,0.3);}
+.btn.danger{background:linear-gradient(155deg, #f07a68, var(--danger));color:#fff;box-shadow:0 8px 18px -8px rgba(232,96,76,0.55);}
 .btn.good{background:linear-gradient(155deg, #5fe0bd, var(--accent-2));color:#0c2b23;box-shadow:0 8px 18px -8px rgba(62,201,167,0.5);}
 .btn-row{display:flex;gap:10px;margin-top:6px;}
 .btn-row .btn{flex:1;}
@@ -807,6 +809,26 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 }
 .center-confirm .cc-check svg{width:26px;height:26px;}
 .center-confirm .cc-text{font-size:14px;font-weight:700;color:var(--text);text-align:center;}
+
+.del-modal{
+  position:fixed;inset:0;z-index:95;background:var(--overlay-bg);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s ease;padding:24px;
+}
+.del-modal.show{opacity:1;pointer-events:auto;}
+.del-card{
+  width:100%;max-width:320px;background:var(--surface-2);border:1px solid var(--border);border-radius:22px;
+  padding:28px 26px 22px;display:flex;flex-direction:column;align-items:center;gap:12px;
+  box-shadow:var(--shadow-pop);transform:scale(0.8) translateY(10px);opacity:0;transition:transform .22s cubic-bezier(.34,1.56,.64,1), opacity .18s ease;
+}
+.del-modal.show .del-card{transform:scale(1) translateY(0);opacity:1;}
+.del-icon{
+  width:54px;height:54px;border-radius:50%;background:rgba(232,96,76,0.14);color:var(--danger);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.del-icon svg{width:26px;height:26px;}
+.del-text{font-size:14.5px;font-weight:600;color:var(--text);text-align:center;line-height:1.45;}
+.del-actions{display:flex;gap:10px;width:100%;margin-top:6px;}
+.del-actions .btn{flex:1;padding:12px;}
 
 .update-overlay{
   position:fixed;inset:0;z-index:300;background:var(--overlay-bg);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
@@ -966,6 +988,16 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 <div class="center-confirm" id="centerConfirm">
   <div class="cc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
   <div class="cc-text" id="centerConfirmText"></div>
+</div>
+<div class="del-modal" id="delModal">
+  <div class="del-card" id="delCard">
+    <div class="del-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></div>
+    <div class="del-text" id="delModalText"></div>
+    <div class="del-actions">
+      <button class="btn ghost" id="delCancelBtn">Отмена</button>
+      <button class="btn danger" id="delOkBtn">Удалить</button>
+    </div>
+  </div>
 </div>
 <div class="update-overlay" id="updateOverlay">
   <div class="update-overlay-card">
@@ -1201,6 +1233,7 @@ async function loadAll(){
     if(!DB.settings.themeColor) DB.settings.themeColor = 'amber';
     if(!DB.settings.colorMode) DB.settings.colorMode = 'light';
     if(DB.settings.appIcon===undefined) DB.settings.appIcon = 'v8';
+    if(!DB.settings.docFormat) DB.settings.docFormat = 'image';
     if(!DB.settings.companyName) DB.settings.companyName = 'XCAR';
     if(DB.settings.windowsMode===undefined) DB.settings.windowsMode = false;
     if(!DB.settings.readNotifKeys) DB.settings.readNotifKeys = [];
@@ -1249,6 +1282,31 @@ function showCenterConfirm(msg){
   clearTimeout(window.__cct);
   window.__cct = setTimeout(()=>el.classList.remove('show'), 1500);
   feedback(/удал/i.test(msg) ? 'warning' : 'success');
+}
+function confirmDelete(msg){
+  return new Promise(resolve=>{
+    const modal = document.getElementById('delModal');
+    const okBtn = document.getElementById('delOkBtn');
+    const cancelBtn = document.getElementById('delCancelBtn');
+    document.getElementById('delModalText').textContent = msg;
+    modal.classList.add('show');
+    feedback('warning');
+    let done = false;
+    function finish(result){
+      if(done) return; done = true;
+      modal.classList.remove('show');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      modal.removeEventListener('click', onBackdrop);
+      resolve(result);
+    }
+    function onOk(){ finish(true); }
+    function onCancel(){ finish(false); }
+    function onBackdrop(e){ if(e.target===modal) finish(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('click', onBackdrop);
+  });
 }
 
 /* =================== NAV =================== */
@@ -2104,10 +2162,10 @@ const APP_ICON_VARIANTS = {
   v8: { label:'Тахометр', desc:'Стрелка на красной зоне оборотов', svg:`
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
       <rect width="100" height="100" rx="22" fill="#0d0f14"/>
-      <path d="M18 68 A32 32 0 0 1 82 68" fill="none" stroke="#262b38" stroke-width="10" stroke-linecap="round"/>
-      <path d="M58 37.5 A32 32 0 0 1 82 68" fill="none" stroke="#e8483c" stroke-width="10" stroke-linecap="round"/>
-      <line x1="50" y1="68" x2="73" y2="42" stroke="#f2a93b" stroke-width="6" stroke-linecap="round"/>
-      <circle cx="50" cy="68" r="8" fill="#f2a93b"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="#262b38" stroke-width="11"/>
+      <path d="M50 12 A38 38 0 0 1 82.9 31" fill="none" stroke="#e8483c" stroke-width="11" stroke-linecap="round"/>
+      <line x1="50" y1="50" x2="73.5" y2="31" stroke="#f2a93b" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="10" fill="#f2a93b"/>
     </svg>` },
   v9: { label:'Гоночный шлем', desc:'Силуэт шлема с тёмным визором', svg:`
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -2301,7 +2359,7 @@ async function startBookedRental(contractId){
   showToast('Аренда начата');
 }
 async function deleteCar(id){
-  if(!confirm('Удалить машину? Связанные договоры останутся в истории.')) return;
+  if(!await confirmDelete('Удалить машину? Связанные договоры останутся в истории.')) return;
   DB.cars = DB.cars.filter(c=>c.id!==id);
   await persist('cars'); closeSheet(); render(); showCenterConfirm('Машина удалена');
 }
@@ -2345,14 +2403,39 @@ function renderClients(){
     </div>` : ''}
     <div class="chips">${filters.map(([k,l])=>`<div class="chip ${clientFilter===k?'active':''}" onclick="clientFilter='${k}';render()">${l} <span class="chip-count">${counts[k]}</span></div>`).join('')}</div>
     <div class="section-title">Клиенты <span class="count">${list.length}</span></div>
-    ${list.length ? list.map(clientCard).join('') : emptyState('Пока нет клиентов','Нажмите «+», чтобы добавить клиента')}
+    ${list.length
+      ? (DB.settings.windowsMode ? `<div class="summary-row2">${list.map(clientCard).join('')}</div>` : list.map(clientCard).join(''))
+      : emptyState('Пока нет клиентов','Нажмите «+», чтобы добавить клиента')}
   `;
 }
 function clientCard(c){
   const rentals = DB.contracts.filter(ct=>ct.clientId===c.id).length;
   const initials = c.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-  const { debt } = clientDebt(c.id);
+  const { debt, paymentsSum } = clientDebt(c.id);
   const { avg, count } = computeClientRating(c.id);
+  if(DB.settings.windowsMode){
+    const totalSpent = DB.contracts.filter(ct=>ct.clientId===c.id && ct.status!=='cancelled').reduce((s,ct)=>s+(ct.total||0),0);
+    return `
+    <div class="summary-card2" style="cursor:pointer;" onclick="openClientDetail('${c.id}')">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;position:relative;z-index:1;">
+        <div class="ic">${initials}</div>
+        <div style="min-width:0;">
+          <div style="font-weight:700;font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;">${esc(c.name)}</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(c.phone)||'—'}</div>
+        </div>
+      </div>
+      ${(c.blacklisted || clientHasActiveRental(c.id) || clientHasBooking(c.id)) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;position:relative;z-index:1;">
+        ${c.blacklisted ? `<span class="badge unpaid">🚫 ЧС</span>` : ''}
+        ${clientHasActiveRental(c.id) ? `<span class="badge rented">В аренде</span>` : ''}
+        ${clientHasBooking(c.id) ? `<span class="badge booked">Бронь</span>` : ''}
+      </div>` : ''}
+      <div style="position:relative;z-index:1;">
+        <div class="detail-row" style="padding:3px 0;font-size:12px;"><span class="k">Сумма</span><span class="v">${money(totalSpent)}</span></div>
+        <div class="detail-row" style="padding:3px 0;font-size:12px;"><span class="k">Долг</span><span class="v" style="color:${debt>0?'var(--danger)':'var(--text)'};">${money(Math.max(0,debt))}</span></div>
+        <div class="detail-row" style="padding:3px 0;font-size:12px;"><span class="k">Оплата</span><span class="v" style="color:var(--accent-2);">${money(paymentsSum)}</span></div>
+      </div>
+    </div>`;
+  }
   return `
   <div class="card" style="cursor:pointer;" onclick="openClientDetail('${c.id}')">
     <div class="card-avatar">${initials}</div>
@@ -2693,6 +2776,7 @@ function dayWord(n){
   if(n10>=2 && n10<=4) return 'дня';
   return 'дней';
 }
+const PURPOSE_LABELS = { rental:'За аренду', fine:'За штрафы', violation:'За нарушения', oldDebt:'За старый долг' };
 function openClientPaymentForm(clientId){
   const c = DB.clients.find(x=>x.id===clientId); if(!c) return;
   const { debt } = clientDebt(clientId);
@@ -2706,7 +2790,6 @@ function openClientPaymentForm(clientId){
     .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-oldDebtPaidAmount(ct.id)),0);
   const amounts = { rental: unpaidRental, fine: unpaidFines, violation: unpaidViolations, oldDebt: unpaidOldDebt };
   const defaultPurpose = Object.keys(amounts).reduce((best,k)=> amounts[k]>amounts[best] ? k : best, 'rental');
-  const PURPOSE_LABELS = { rental:'За аренду', fine:'За штрафы', violation:'За нарушения', oldDebt:'За старый долг' };
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">Платёж · ${esc(c.name)}</div>
@@ -2854,13 +2937,14 @@ async function saveClientViolation(clientId){
   showCenterConfirm('Нарушение добавлено');
 }
 async function deleteViolationEntry(id){
-  if(!confirm('Удалить запись?')) return;
+  if(!await confirmDelete('Удалить запись?')) return;
   const entry = DB.clientLedger.find(l=>l.id===id) || DB.contracts.find(c=>c.id===id);
   const clientId = entry?.clientId;
   DB.clientLedger = DB.clientLedger.filter(l=>l.id!==id && l.violationId!==id);
   DB.contracts = DB.contracts.filter(c=>!(c.id===id && c.type==='violation'));
   await persist('clientLedger'); await persist('contracts');
   if(clientId) openClientDetail(clientId); else render();
+  showCenterConfirm('Запись удалена');
 }
 function openViolationDetail(ct){
   const cl = DB.clients.find(c=>c.id===ct.clientId);
@@ -2888,16 +2972,17 @@ function openViolationDetail(ct){
   `);
 }
 async function deleteLedgerEntry(id){
-  if(!confirm('Удалить запись?')) return;
+  if(!await confirmDelete('Удалить запись?')) return;
   const entry = DB.clientLedger.find(l=>l.id===id);
   const clientId = entry?.clientId;
   DB.clientLedger = DB.clientLedger.filter(l=>l.id!==id && l.fineId!==id);
   DB.contracts = DB.contracts.filter(c=>!(c.id===id && c.type==='fine'));
   await persist('clientLedger'); await persist('contracts');
   if(clientId) openClientDetail(clientId); else render();
+  showCenterConfirm('Запись удалена');
 }
 async function deleteClient(id){
-  if(!confirm('Удалить клиента? Связанные договоры останутся в истории.')) return;
+  if(!await confirmDelete('Удалить клиента? Связанные договоры останутся в истории.')) return;
   DB.clients = DB.clients.filter(c=>c.id!==id);
   await persist('clients'); closeSheet(); render(); showCenterConfirm('Клиент удалён');
 }
@@ -3468,7 +3553,7 @@ async function settleFine(contractId){
   let amount = parseFloat(document.getElementById('f_settle_amount').value);
   if(isNaN(amount) || amount<=0){ showToast('Укажите сумму погашения'); return; }
   if(amount>remaining) amount = remaining;
-  DB.clientLedger.push({ id: uid(), clientId: ct.clientId, type:'payment', amount, date: nowDT(), note: 'Погашение штрафа', fineId: contractId });
+  DB.clientLedger.push({ id: uid(), clientId: ct.clientId, type:'payment', amount, date: nowDT(), note: 'Погашение штрафа', fineId: contractId, purpose:'fine' });
   await persist('clientLedger');
   showToast(amount>=remaining ? 'Штраф погашен полностью' : `Внесено ${money(amount)}, остаток уменьшен`);
   openFineContractDetail(ct);
@@ -3530,19 +3615,20 @@ async function settleOldDebt(contractId){
   let amount = parseFloat(document.getElementById('f_settle_amount').value);
   if(isNaN(amount) || amount<=0){ showToast('Укажите сумму погашения'); return; }
   if(amount>remaining) amount = remaining;
-  DB.clientLedger.push({ id: uid(), clientId: ct.clientId, type:'payment', amount, date: nowDT(), note: 'Погашение старого долга', oldDebtId: contractId });
+  DB.clientLedger.push({ id: uid(), clientId: ct.clientId, type:'payment', amount, date: nowDT(), note: 'Погашение старого долга', oldDebtId: contractId, purpose:'oldDebt' });
   await persist('clientLedger');
   showToast(amount>=remaining ? 'Долг погашен полностью' : `Внесено ${money(amount)}, остаток уменьшен`);
   openOldDebtContractDetail(ct);
 }
 async function deleteOldDebtEntry(id){
-  if(!confirm('Удалить запись?')) return;
+  if(!await confirmDelete('Удалить запись?')) return;
   const entry = DB.clientLedger.find(l=>l.id===id);
   const clientId = entry?.clientId;
   DB.clientLedger = DB.clientLedger.filter(l=>l.id!==id && l.oldDebtId!==id);
   DB.contracts = DB.contracts.filter(c=>!(c.id===id && c.type==='oldDebt'));
   await persist('clientLedger'); await persist('contracts');
   if(clientId) openClientDetail(clientId); else render();
+  showCenterConfirm('Запись удалена');
 }
 function openOilContractDetail(ct, car){
   const log = DB.oilChanges.find(l=>l.id===ct.id);
@@ -3567,7 +3653,7 @@ function openOilContractDetail(ct, car){
   `);
 }
 async function deleteContract(id){
-  if(!confirm('Удалить договор?')) return;
+  if(!await confirmDelete('Удалить договор?')) return;
   DB.contracts = DB.contracts.filter(c=>c.id!==id);
   await persist('contracts'); closeSheet(); render(); showCenterConfirm('Договор удалён');
 }
@@ -3836,7 +3922,7 @@ function oilHistoryHtml(carId){
   }).join('');
 }
 async function deleteOilLogEntry(id){
-  if(!confirm('Удалить запись?')) return;
+  if(!await confirmDelete('Удалить запись?')) return;
   const entry = DB.oilChanges.find(l=>l.id===id);
   const carId = entry?.carId;
   DB.oilChanges = DB.oilChanges.filter(l=>l.id!==id);
@@ -4038,11 +4124,11 @@ async function saveQuickRepair(carId, existingId){
   openCarRepairHistory(carId);
 }
 async function deleteQuickRepair(id, carId){
-  if(!confirm('Удалить запись о ремонте?')) return;
+  if(!await confirmDelete('Удалить запись о ремонте?')) return;
   DB.contracts = DB.contracts.filter(c=>c.id!==id);
   await persist('contracts');
-  showToast('Запись удалена');
   openCarRepairHistory(carId);
+  showCenterConfirm('Запись удалена');
 }
 function openCarReportDetail(carId){
   const car = DB.cars.find(c=>c.id===carId);
@@ -4217,6 +4303,7 @@ function openSettings(){
       ${settingsMenuItem('🔔','Сигналы и тарификация', 'Оповещения об окончании аренды', `openAlarmSettings()`)}
       ${settingsMenuItem('🎨','Цветовая тема', 'Акцентный цвет приложения', `openThemeSettings()`)}
       ${settingsMenuItem('🏁','Иконка приложения', DB.settings.appIcon && APP_ICON_VARIANTS[DB.settings.appIcon] ? APP_ICON_VARIANTS[DB.settings.appIcon].label : 'Текущая (по умолчанию)', `openAppIconSettings()`)}
+      ${settingsMenuItem('📄','Формат документов', DOC_FORMAT_LABELS[DB.settings.docFormat] || DOC_FORMAT_LABELS.image, `openDocFormatSettings()`)}
       ${settingsMenuItem('⚙️','Общие настройки', 'Валюта, статистика, очистка данных', `openGeneralSettings()`)}
     </div>
   `);
@@ -4595,11 +4682,11 @@ function importBackup(evt){
   evt.target.value = '';
 }
 async function wipeAll(){
-  if(!confirm('Все машины, клиенты и договоры будут удалены безвозвратно. Продолжить?')) return;
-  if(!confirm('Точно удалить всё? Это действие необратимо.')) return;
+  if(!await confirmDelete('Все машины, клиенты и договоры будут удалены безвозвратно. Продолжить?')) return;
+  if(!await confirmDelete('Точно удалить всё? Это действие необратимо.')) return;
   DB.cars = []; DB.clients = []; DB.contracts = []; DB.clientLedger = []; DB.oilChanges = [];
   await persist('cars'); await persist('clients'); await persist('contracts'); await persist('clientLedger'); await persist('oilChanges');
-  closeSheet(); render(); showToast('Все данные удалены');
+  closeSheet(); render(); showCenterConfirm('Все данные удалены');
 }
 
 /* =================== CONTRACT AS IMAGE =================== */
@@ -4661,6 +4748,69 @@ function drawContractCanvas(ct){
   return canvas;
 }
 function canvasToBlob(canvas){ return new Promise(res => canvas.toBlob(res, 'image/png')); }
+/* ---------- document send format (картинка / PDF / текст) ---------- */
+const DOC_FORMAT_LABELS = { image:'Картинка', pdf:'PDF', text:'Текст' };
+async function canvasToPdfBlob(canvas){
+  const jsPDFCtor = window.jspdf && window.jspdf.jsPDF;
+  if(!jsPDFCtor) return null;
+  const w = canvas.width, h = canvas.height;
+  const doc = new jsPDFCtor({ orientation: w>=h ? 'landscape':'portrait', unit:'px', format:[w,h] });
+  doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, w, h);
+  return doc.output('blob');
+}
+async function docBlobForCanvas(canvas){
+  if(DB.settings.docFormat==='pdf'){
+    const blob = await canvasToPdfBlob(canvas);
+    if(blob) return { blob, ext:'pdf' };
+  }
+  return { blob: await canvasToBlob(canvas), ext:'png' };
+}
+/**
+ * Sends a client-facing document (contract / report / payment history) respecting
+ * the user's chosen document format: image, pdf, or plain text.
+ * opts: { phone, canvasFn, textFn, filenameBase, caption }
+ */
+async function sendClientDocument(opts){
+  const { phone, canvasFn, textFn, filenameBase, caption } = opts;
+  if(DB.settings.docFormat==='text'){
+    if(!textFn) return { ok:false, reason:'no_text' };
+    return await sendWhatsApp(phone, textFn());
+  }
+  const canvas = canvasFn();
+  const { blob, ext } = await docBlobForCanvas(canvas);
+  if(!blob) return { ok:false, reason:'render_failed' };
+  return await sendWhatsAppFile(phone, blob, `${filenameBase}.${ext}`, caption);
+}
+function openDocFormatSettings(){
+  const cur = DB.settings.docFormat || 'image';
+  const opts = [
+    ['image','🖼️','Картинка','Договор, отчёт и история платежей отправляются клиенту красивой картинкой (PNG)'],
+    ['pdf','📄','PDF','Те же документы отправляются файлом PDF — удобно сохранять и распечатывать'],
+    ['text','💬','Текст','Клиенту приходит обычное текстовое сообщение с ключевыми данными, без картинки/файла'],
+  ];
+  openSheet(`
+    ${subHead('Формат документов')}
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;">
+        В каком виде отправлять клиенту договор, отчёт по клиенту и историю платежей в WhatsApp.
+      </div>
+      ${opts.map(([key,icon,label,desc])=>`
+        <div class="settings-item" style="cursor:pointer;align-items:flex-start;" onclick="setDocFormat('${key}')">
+          <div style="display:flex;align-items:flex-start;gap:12px;min-width:0;">
+            <div style="font-size:19px;width:26px;text-align:center;flex-shrink:0;margin-top:1px;">${icon}</div>
+            <div style="min-width:0;"><div class="st">${label}</div><div class="sd">${desc}</div></div>
+          </div>
+          ${cur===key ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="18" height="18" style="color:var(--accent);flex-shrink:0;margin-top:3px;"><path d="M20 6 9 17l-5-5"/></svg>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `);
+}
+async function setDocFormat(key){
+  DB.settings.docFormat = key;
+  await persist('settings');
+  openDocFormatSettings();
+}
 
 function drawCarsStatusCanvas(){
   const order = { free:0, rented:1, booked:2, service:3 };
@@ -4793,11 +4943,14 @@ async function sendContractImageWhatsApp(id){
   const ga = DB.settings.greenApi;
   if(!ga || !ga.enabled){ showToast('Сначала подключите WhatsApp в настройках'); return; }
   showToast('Отправка...');
-  const canvas = drawContractCanvas(ct);
-  const blob = await canvasToBlob(canvas);
-  if(!blob) return;
-  const r = await sendWhatsAppFile(cl.phone, blob, `dogovor-xcar-${id.slice(0,6)}.png`, 'Ваш договор аренды XCAR');
-  showToast(r.ok ? 'Договор отправлен клиенту картинкой' : 'Не удалось отправить — проверьте подключение WhatsApp');
+  const r = await sendClientDocument({
+    phone: cl.phone,
+    canvasFn: () => drawContractCanvas(ct),
+    textFn: () => buildContractMessage(ct),
+    filenameBase: `dogovor-xcar-${id.slice(0,6)}`,
+    caption: 'Ваш договор аренды XCAR',
+  });
+  showToast(r.ok ? 'Договор отправлен клиенту' : 'Не удалось отправить — проверьте подключение WhatsApp');
 }
 
 /* =================== DEBT & CLIENT REPORT =================== */
@@ -4898,19 +5051,38 @@ async function shareClientReport(clientId){
   URL.revokeObjectURL(url);
   showToast('Отчёт сохранён');
 }
+function buildClientReportMessage(client){
+  const rentals = DB.contracts.filter(ct=>ct.clientId===client.id).sort((a,b)=> new Date(b.start)-new Date(a.start));
+  const totalSpent = rentals.reduce((s,ct)=> s + (ct.status!=='cancelled'?ct.total:0), 0);
+  const unpaidSum = rentals.reduce((s,ct)=> s + (ct.status!=='cancelled' && !ct.paid ? ct.total : 0), 0);
+  const brand = DB.settings.companyName || 'XCAR';
+  let msg = `Здравствуйте, ${client.name}! 📋\n\nВаш отчёт по аренде — ${brand}\n🚗 Всего аренд: ${rentals.length}\n💰 Всего потрачено: ${money(totalSpent)}`;
+  if(unpaidSum>0) msg += `\n⚠️ Не оплачено: ${money(unpaidSum)}`;
+  return msg;
+}
 async function sendClientReportWhatsApp(clientId){
   const client = DB.clients.find(c=>c.id===clientId); if(!client) return;
   if(!client.phone){ showToast('У клиента не указан телефон'); return; }
   if(!DB.settings.greenApi?.enabled){ showToast('Сначала подключите WhatsApp в настройках'); return; }
   showToast('Отправка...');
-  const canvas = drawClientReportCanvas(client);
-  const blob = await canvasToBlob(canvas);
-  if(!blob) return;
-  const r = await sendWhatsAppFile(client.phone, blob, `otchet-xcar-${clientId.slice(0,6)}.png`, 'Ваш отчёт по аренде — XCAR');
+  const r = await sendClientDocument({
+    phone: client.phone,
+    canvasFn: () => drawClientReportCanvas(client),
+    textFn: () => buildClientReportMessage(client),
+    filenameBase: `otchet-xcar-${clientId.slice(0,6)}`,
+    caption: 'Ваш отчёт по аренде — XCAR',
+  });
   showToast(r.ok ? 'Отчёт отправлен клиенту' : 'Не удалось отправить — проверьте подключение WhatsApp');
 }
 
 /* ---------- payment history document (sent automatically on payment) ---------- */
+function paymentPurposeLabel(p){
+  if(p.purpose && PURPOSE_LABELS[p.purpose]) return PURPOSE_LABELS[p.purpose];
+  if(p.fineId) return PURPOSE_LABELS.fine;
+  if(p.violationId) return PURPOSE_LABELS.violation;
+  if(p.oldDebtId) return PURPOSE_LABELS.oldDebt;
+  return PURPOSE_LABELS.rental;
+}
 function drawPaymentHistoryCanvas(clientId){
   const cl = DB.clients.find(c=>c.id===clientId);
   const brand = DB.settings.companyName || 'XCAR';
@@ -4919,12 +5091,12 @@ function drawPaymentHistoryCanvas(clientId){
   let running = totalCharged;
   const rows = payments.map((p,i)=>{
     running = Math.max(0, running - (p.amount||0));
-    return { n:i+1, date:p.date, amount:p.amount, balance:running };
+    return { n:i+1, date:p.date, purpose:paymentPurposeLabel(p), amount:p.amount, balance:running };
   });
 
   const W = 860, margin = 48;
-  const colW = [70, 260, 220, W-margin*2-70-260-220];
-  const colX = [margin, margin+colW[0], margin+colW[0]+colW[1], margin+colW[0]+colW[1]+colW[2]];
+  const colW = [50, 130, 180, 170, W-margin*2-50-130-180-170];
+  const colX = [margin, margin+colW[0], margin+colW[0]+colW[1], margin+colW[0]+colW[1]+colW[2], margin+colW[0]+colW[1]+colW[2]+colW[3]];
   const rowH = 44;
   const tableTop = 296;
   const dataRows = Math.max(1, rows.length);
@@ -4958,8 +5130,8 @@ function drawPaymentHistoryCanvas(clientId){
     ctx.fillStyle='#14161c';
     y += 30;
   }
-  infoRow('Продавец:', brand, 'Тел:', DB.settings.companyPhone || '—');
-  infoRow('Покупатель:', cl ? cl.name : '—', 'Тел:', cl?.phone || '—');
+  infoRow('Компания:', brand, 'Тел:', DB.settings.companyPhone || '—');
+  infoRow('Клиент:', cl ? cl.name : '—', 'Тел:', cl?.phone || '—');
   y += 6;
   infoRow('Начислено всего:', money(totalCharged));
   ctx.font='700 15px Arial, sans-serif'; ctx.textAlign='left'; ctx.fillStyle='#14161c';
@@ -4968,16 +5140,16 @@ function drawPaymentHistoryCanvas(clientId){
   ctx.fillText(money(running), W-margin, y);
   ctx.textAlign='left'; ctx.fillStyle='#14161c';
 
-  const tableW = colX[3]+colW[3]-colX[0];
+  const tableW = colX[4]+colW[4]-colX[0];
   function cellBorders(rowY){
     ctx.strokeStyle='#14161c'; ctx.lineWidth=1.2;
     ctx.strokeRect(colX[0], rowY, tableW, rowH);
-    for(let i=1;i<4;i++){ ctx.beginPath(); ctx.moveTo(colX[i], rowY); ctx.lineTo(colX[i], rowY+rowH); ctx.stroke(); }
+    for(let i=1;i<5;i++){ ctx.beginPath(); ctx.moveTo(colX[i], rowY); ctx.lineTo(colX[i], rowY+rowH); ctx.stroke(); }
   }
   let tY = tableTop;
   ctx.fillStyle='#f2f3f6'; ctx.fillRect(colX[0], tY, tableW, rowH);
   ctx.fillStyle='#14161c'; ctx.font='700 14px Arial, sans-serif'; ctx.textAlign='center';
-  ['№','Дата','Сумма','Остаток долга'].forEach((h,i)=> ctx.fillText(h, colX[i]+colW[i]/2, tY+rowH/2+5));
+  ['№','Дата','Зачисление','Сумма','Остаток долга'].forEach((h,i)=> ctx.fillText(h, colX[i]+colW[i]/2, tY+rowH/2+5));
   cellBorders(tY);
   tY += rowH;
 
@@ -4990,9 +5162,12 @@ function drawPaymentHistoryCanvas(clientId){
       ctx.font='400 14px Arial, sans-serif'; ctx.fillStyle='#14161c';
       ctx.fillText(String(r.n), colX[0]+colW[0]/2, tY+rowH/2+5);
       ctx.fillText(fmtDate(r.date), colX[1]+colW[1]/2, tY+rowH/2+5);
-      ctx.fillText(money(r.amount), colX[2]+colW[2]/2, tY+rowH/2+5);
+      ctx.font='400 13px Arial, sans-serif';
+      ctx.fillText(r.purpose, colX[2]+colW[2]/2, tY+rowH/2+5);
+      ctx.font='400 14px Arial, sans-serif';
+      ctx.fillText(money(r.amount), colX[3]+colW[3]/2, tY+rowH/2+5);
       ctx.font='700 14px Arial, sans-serif'; ctx.fillStyle = r.balance>0 ? '#c0392b' : '#1e824c';
-      ctx.fillText(money(r.balance), colX[3]+colW[3]/2, tY+rowH/2+5);
+      ctx.fillText(money(r.balance), colX[4]+colW[4]/2, tY+rowH/2+5);
       cellBorders(tY);
       tY += rowH;
     });
@@ -5002,16 +5177,33 @@ function drawPaymentHistoryCanvas(clientId){
 
   return canvas;
 }
+function buildPaymentHistoryMessage(clientId){
+  const cl = DB.clients.find(c=>c.id===clientId);
+  const brand = DB.settings.companyName || 'XCAR';
+  const totalCharged = DB.contracts.filter(ct=>ct.clientId===clientId && ct.status!=='cancelled').reduce((s,ct)=>s+(ct.total||0),0);
+  const payments = DB.clientLedger.filter(l=>l.clientId===clientId && l.type==='payment').slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
+  let running = totalCharged;
+  const lines = payments.map(p=>{
+    running = Math.max(0, running - (p.amount||0));
+    return `• ${fmtDate(p.date)} — ${paymentPurposeLabel(p)}: ${money(p.amount)} (остаток: ${money(running)})`;
+  });
+  let msg = `История платежей — ${brand}\n\nКлиент: ${cl?cl.name:'—'}\nНачислено всего: ${money(totalCharged)}\nОстаток долга на сегодня: ${money(running)}`;
+  if(lines.length) msg += `\n\n${lines.join('\n')}`;
+  return msg;
+}
 async function sendPaymentHistoryDocument(clientId){
   if(!DB.settings.greenApi?.enabled) return;
   if(DB.settings.autoNotify && DB.settings.autoNotify.payment===false) return;
   const cl = DB.clients.find(c=>c.id===clientId);
   if(!cl || !cl.phone) return;
   try{
-    const canvas = drawPaymentHistoryCanvas(clientId);
-    const blob = await canvasToBlob(canvas);
-    if(!blob) return;
-    await sendWhatsAppFile(cl.phone, blob, `istoriya-platezhey-${clientId.slice(0,6)}.png`, 'История платежей');
+    await sendClientDocument({
+      phone: cl.phone,
+      canvasFn: () => drawPaymentHistoryCanvas(clientId),
+      textFn: () => buildPaymentHistoryMessage(clientId),
+      filenameBase: `istoriya-platezhey-${clientId.slice(0,6)}`,
+      caption: 'История платежей',
+    });
   }catch(e){}
 }
 
@@ -5663,11 +5855,11 @@ async function saveTemplate(id){
   openSettings();
 }
 async function deleteTemplate(id){
-  if(!confirm('Удалить этот шаблон?')) return;
+  if(!await confirmDelete('Удалить этот шаблон?')) return;
   DB.settings.templates = (DB.settings.templates||[]).filter(t=>t.id!==id);
   await persist('settings');
-  showToast('Шаблон удалён');
   openSettings();
+  showCenterConfirm('Шаблон удалён');
 }
 
 /* =================== EMAIL AUTO-BACKUP =================== */
