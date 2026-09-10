@@ -501,23 +501,22 @@ body.win-mode .cc-finish-btn svg{width:14px;height:14px;}
 .wcc-name{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text);letter-spacing:0.1px;line-height:1.25;}
 .wcc-amount{font-family:var(--font-display);font-weight:800;font-size:17px;color:var(--text);white-space:nowrap;flex-shrink:0;text-align:right;line-height:1.2;}
 .wcc-amount-unit{display:block;font-family:var(--font-body);font-weight:600;font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.3px;margin-top:2px;}
-.wcc-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;position:relative;z-index:1;}
-.wcc-divider{height:1px;background:var(--border);margin:12px 0;opacity:0.7;position:relative;z-index:1;}
-.wcc-plate{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text);letter-spacing:0.3px;position:relative;z-index:1;}
-.wcc-plate svg{width:15px;height:15px;color:var(--accent);flex-shrink:0;}
-.wcc-timer{margin-top:10px;position:relative;z-index:1;}
-.wcc-actions{display:flex;gap:8px;margin-top:12px;position:relative;z-index:1;}
+.wcc-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;position:relative;z-index:1;}
+.wcc-plate{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:0.2px;position:relative;z-index:1;}
+.wcc-plate svg{width:13px;height:13px;color:var(--accent);flex-shrink:0;}
+.wcc-actions{display:flex;gap:6px;position:relative;z-index:1;}
 .wcc-action-btn{
-  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 8px;border:none;border-radius:11px;
-  background:var(--surface-3);color:var(--text);font-family:var(--font-body);font-weight:700;font-size:11.5px;cursor:pointer;
+  flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 8px;border:none;border-radius:9px;
+  background:var(--surface-3);color:var(--text);font-family:var(--font-body);font-weight:700;font-size:10.5px;cursor:pointer;
   transition:background .15s ease,transform .1s ease;
 }
 .wcc-action-btn:active{transform:scale(0.97);}
-.wcc-action-btn svg{width:14px;height:14px;flex-shrink:0;}
+.wcc-action-btn svg{width:12px;height:12px;flex-shrink:0;}
 .wcc-action-btn.tpl{background:rgba(242,169,59,0.14);color:var(--accent);}
 .wcc-action-btn.debt{background:rgba(232,96,76,0.14);color:var(--danger);}
 body.win-mode .win-car-card:hover .wcc-action-btn.tpl{background:rgba(242,169,59,0.22);}
 body.win-mode .win-car-card:hover .wcc-action-btn.debt{background:rgba(232,96,76,0.22);}
+body.win-mode .card.win-car-card{padding:14px 16px 13px;gap:8px;}
 
 .mini-icon-btn{
   margin-top:8px;width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);
@@ -1985,13 +1984,11 @@ function carCard(c){
           <div class="wcc-amount">${money(c.rate)}<span class="wcc-amount-unit">в сутки</span></div>
         </div>
       </div>
-      <div class="wcc-badges"><span class="badge ${badgeCls}">${badgeText}</span></div>
-      <div class="wcc-divider"></div>
-      <div class="wcc-plate">
-        ${plateIcon}
-        <span>${esc(c.plate)}${c.year?' · '+c.year:''}</span>
+      <div class="wcc-meta">
+        <span class="badge ${badgeCls}">${badgeText}</span>
+        <span class="wcc-plate">${plateIcon}${esc(c.plate)}</span>
+        ${ac ? `<span class="timer-pill ${tl.overdue?'overdue':''}">${timerSvg()}${tl.text}</span>` : ''}
       </div>
-      ${ac ? `<div class="wcc-timer"><span class="timer-pill ${tl.overdue?'overdue':''}">${timerSvg()}${tl.text}</span></div>` : ''}
       ${ac ? `<div class="wcc-actions">
         <button class="wcc-action-btn tpl" title="Отправить шаблон клиенту" onclick="event.stopPropagation();openTemplatePicker('${c.id}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>
