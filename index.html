@@ -351,6 +351,18 @@ main.tab-anim{opacity:0;transform:translateY(10px);}
 .car-icon-opt span{font-size:10px;color:var(--text-dim);text-align:center;line-height:1.2;}
 .car-icon-opt.active span{color:var(--text);font-weight:700;}
 .car-icon-preview{width:56px;height:38px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;padding:5px;flex-shrink:0;}
+
+.app-icon-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;}
+.app-icon-opt{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:8px 4px;border-radius:14px;border:2px solid transparent;transition:border-color .15s ease,background .15s ease;}
+.app-icon-opt.active{border-color:var(--accent);background:rgba(242,169,59,0.08);}
+.app-icon-tile{width:62px;height:62px;border-radius:16px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+.app-icon-tile svg{width:100%;height:100%;display:block;}
+.app-icon-tile.plain svg{width:60%;height:60%;}
+.app-icon-opt span{font-size:10.5px;color:var(--text-dim);text-align:center;line-height:1.25;}
+.app-icon-opt.active span{color:var(--text);font-weight:700;}
+
+.brand-mark.mark-full,.sidebar-mark.mark-full,.splash-mark.mark-full{background:none;box-shadow:none;}
+.brand-mark.mark-full svg,.sidebar-mark.mark-full svg,.splash-mark.mark-full svg{width:100%;height:100%;border-radius:inherit;}
 .car-icon-colors{display:flex;gap:8px;flex-wrap:wrap;}
 .car-color-dot{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;}
 .car-color-dot.active{border-color:var(--text);box-shadow:0 0 0 2px var(--bg);}
@@ -849,7 +861,7 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 <div class="splash" id="splash">
   <div class="splash-glow"></div>
   <div class="splash-inner">
-    <div class="splash-mark">
+    <div class="splash-mark" id="splashMark">
       <svg viewBox="0 0 24 24" fill="none" stroke="#241a06" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 1 0 4 0h4a2 2 0 1 0 4 0h1a1 1 0 0 0 1-1v-3a2 2 0 0 0-.4-1.2l-2.1-2.8a2 2 0 0 0-1.6-.8H6a1 1 0 0 0-1 .8L4.2 12A2 2 0 0 0 4 12.8V16a1 1 0 0 0 1 1Z"/><path d="M4 12h16"/></svg>
     </div>
     <div class="splash-title" id="splashCompanyName">XCAR</div>
@@ -865,7 +877,7 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 
   <header class="top">
     <div class="brand">
-      <div class="brand-mark">
+      <div class="brand-mark" id="brandMark">
         <svg viewBox="0 0 24 24" fill="none" stroke="#241a06" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 1 0 4 0h4a2 2 0 1 0 4 0h1a1 1 0 0 0 1-1v-3a2 2 0 0 0-.4-1.2l-2.1-2.8a2 2 0 0 0-1.6-.8H6a1 1 0 0 0-1 .8L4.2 12A2 2 0 0 0 4 12.8V16a1 1 0 0 0 1 1Z"/><path d="M4 12h16"/></svg>
       </div>
       <div>
@@ -903,7 +915,7 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 
   <nav class="bottom"><div class="nav-inner">
     <div class="sidebar-brand">
-      <div class="sidebar-mark">
+      <div class="sidebar-mark" id="sidebarMark">
         <svg viewBox="0 0 24 24" fill="none" stroke="#241a06" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 1 0 4 0h4a2 2 0 1 0 4 0h1a1 1 0 0 0 1-1v-3a2 2 0 0 0-.4-1.2l-2.1-2.8a2 2 0 0 0-1.6-.8H6a1 1 0 0 0-1 .8L4.2 12A2 2 0 0 0 4 12.8V16a1 1 0 0 0 1 1Z"/><path d="M4 12h16"/></svg>
       </div>
       <div>
@@ -1188,6 +1200,7 @@ async function loadAll(){
     if(!DB.settings.autoNotify) DB.settings.autoNotify = { rental:true, payment:true, debt:true, complete:true };
     if(!DB.settings.themeColor) DB.settings.themeColor = 'amber';
     if(!DB.settings.colorMode) DB.settings.colorMode = 'light';
+    if(DB.settings.appIcon===undefined) DB.settings.appIcon = null;
     if(!DB.settings.companyName) DB.settings.companyName = 'XCAR';
     if(DB.settings.windowsMode===undefined) DB.settings.windowsMode = false;
     if(!DB.settings.readNotifKeys) DB.settings.readNotifKeys = [];
@@ -2021,6 +2034,174 @@ function hexToRgbCss(hex){
   const v = hex.replace('#','');
   const r = parseInt(v.substring(0,2),16), g = parseInt(v.substring(2,4),16), b = parseInt(v.substring(4,6),16);
   return `rgb(${r}, ${g}, ${b})`;
+}
+
+/* =================== APP ICON VARIANTS (settings picker) =================== */
+const APP_ICON_VARIANTS = {
+  v1: { label:'Speed X', desc:'Скрещённые скоростные полосы «X»', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ai_g1bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22242e"/><stop offset="1" stop-color="#0a0b0f"/></linearGradient>
+        <linearGradient id="ai_g1bar" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff9a3c"/><stop offset="1" stop-color="#f2a93b"/></linearGradient>
+      </defs>
+      <rect width="100" height="100" rx="22" fill="url(#ai_g1bg)"/>
+      <polygon points="18,24 32,24 82,74 68,74" fill="url(#ai_g1bar)"/>
+      <polygon points="68,24 82,24 32,74 18,74" fill="#ffffff"/>
+    </svg>` },
+  v2: { label:'Ключ-клинок', desc:'Силуэт автомобильного ключа', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#111319"/>
+      <circle cx="36" cy="50" r="20" fill="none" stroke="#f2a93b" stroke-width="9"/>
+      <rect x="52" y="45" width="34" height="10" rx="3" fill="#f2a93b"/>
+      <rect x="66" y="55" width="8" height="12" rx="2" fill="#f2a93b"/>
+      <rect x="78" y="55" width="8" height="16" rx="2" fill="#f2a93b"/>
+    </svg>` },
+  v3: { label:'GT-силуэт', desc:'Приземистый гоночный силуэт машины', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="ai_g3bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a2230"/><stop offset="1" stop-color="#0a0d13"/></linearGradient></defs>
+      <rect width="100" height="100" rx="22" fill="url(#ai_g3bg)"/>
+      <g transform="translate(11,24) scale(1.2)">
+        <path d="M6,30 L6,24 L14,24 L19,15 L24,9 L38,9 L43,15 L46,20 L52,20 L56,24 L56,30 Z" fill="#f2a93b"/>
+        <polygon points="35,9 41,9 48,24 42,24" fill="#0a0d13"/>
+        <polygon points="43,9 49,9 56,24 50,24" fill="#0a0d13"/>
+        <circle cx="16" cy="32" r="6.4" fill="#0a0d13"/><circle cx="16" cy="32" r="2.6" fill="#dfe3ea"/>
+        <circle cx="46" cy="32" r="6.4" fill="#0a0d13"/><circle cx="46" cy="32" r="2.6" fill="#dfe3ea"/>
+      </g>
+    </svg>` },
+  v4: { label:'Значок XC', desc:'Гоночный жетон-монограмма', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><radialGradient id="ai_g4disc" cx="0.35" cy="0.3" r="0.9"><stop offset="0" stop-color="#ffc873"/><stop offset="1" stop-color="#e88e1f"/></radialGradient></defs>
+      <rect width="100" height="100" rx="22" fill="#111319"/>
+      <circle cx="50" cy="50" r="36" fill="url(#ai_g4disc)"/>
+      <circle cx="50" cy="50" r="36" fill="none" stroke="#111319" stroke-width="3"/>
+      <text x="50" y="63" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="38" text-anchor="middle" fill="#14161c">X</text>
+    </svg>` },
+  v5: { label:'Руль-звезда', desc:'Спортивный руль в форме звезды', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#0d0f14"/>
+      <circle cx="50" cy="50" r="32" fill="none" stroke="#f2a93b" stroke-width="8"/>
+      <line x1="50" y1="50" x2="50" y2="21" stroke="#f2a93b" stroke-width="8" stroke-linecap="round"/>
+      <line x1="50" y1="50" x2="25" y2="66" stroke="#f2a93b" stroke-width="8" stroke-linecap="round"/>
+      <line x1="50" y1="50" x2="75" y2="66" stroke="#f2a93b" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="11" fill="#f2a93b"/>
+    </svg>` },
+  v6: { label:'Двойная стрела', desc:'Две стрелы разгона', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="ai_g6bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1c2130"/><stop offset="1" stop-color="#090a0e"/></linearGradient></defs>
+      <rect width="100" height="100" rx="22" fill="url(#ai_g6bg)"/>
+      <polygon points="20,20 40,20 68,50 40,80 20,80 48,50" fill="#3ec9a7"/>
+      <polygon points="46,30 62,30 82,50 62,70 46,70 66,50" fill="#f2a93b"/>
+    </svg>` },
+  v7: { label:'Клетчатый флаг', desc:'Финишный флаг на флагштоке', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="ai_chk7" width="11" height="11" patternUnits="userSpaceOnUse" patternTransform="rotate(-10)">
+        <rect width="11" height="11" fill="#0d0f14"/><rect width="5.5" height="5.5" fill="#f2f3f5"/><rect x="5.5" y="5.5" width="5.5" height="5.5" fill="#f2f3f5"/>
+      </pattern></defs>
+      <rect width="100" height="100" rx="22" fill="#111319"/>
+      <rect x="45" y="16" width="6" height="68" rx="3" fill="#f2a93b"/>
+      <path d="M51 20 L83 20 L74 34 L83 48 L51 48 Z" fill="url(#ai_chk7)"/>
+    </svg>` },
+  v8: { label:'Тахометр', desc:'Стрелка на красной зоне оборотов', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#0d0f14"/>
+      <path d="M18 68 A32 32 0 0 1 82 68" fill="none" stroke="#262b38" stroke-width="10" stroke-linecap="round"/>
+      <path d="M58 37.5 A32 32 0 0 1 82 68" fill="none" stroke="#e8483c" stroke-width="10" stroke-linecap="round"/>
+      <line x1="50" y1="68" x2="73" y2="42" stroke="#f2a93b" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="50" cy="68" r="8" fill="#f2a93b"/>
+    </svg>` },
+  v9: { label:'Гоночный шлем', desc:'Силуэт шлема с тёмным визором', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#111319"/>
+      <circle cx="50" cy="53" r="31" fill="#f2a93b"/>
+      <rect x="9" y="47" width="82" height="15" rx="3.5" fill="#0d0f14" transform="rotate(-7 50 53)"/>
+      <circle cx="75" cy="32" r="3.5" fill="#0d0f14"/>
+    </svg>` },
+  v10: { label:'Спойлер GT', desc:'Задний антикрыльный спойлер', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#0d0f14"/>
+      <rect x="16" y="28" width="68" height="11" rx="5.5" fill="#f2a93b"/>
+      <rect x="29" y="43" width="9" height="28" fill="#f2a93b"/>
+      <rect x="62" y="43" width="9" height="28" fill="#f2a93b"/>
+      <rect x="16" y="71" width="68" height="11" rx="5.5" fill="#f2a93b"/>
+    </svg>` },
+  v11: { label:'Номер пилота', desc:'Жетон гонщика с номером', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#0d0f14"/>
+      <rect x="0" y="41" width="28" height="18" fill="#f2a93b"/>
+      <rect x="72" y="41" width="28" height="18" fill="#f2a93b"/>
+      <circle cx="50" cy="50" r="33" fill="#f2a93b"/>
+      <circle cx="50" cy="50" r="33" fill="none" stroke="#0d0f14" stroke-width="4"/>
+      <text x="50" y="64" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="38" text-anchor="middle" fill="#0d0f14">7</text>
+    </svg>` },
+  v12: { label:'След колеса', desc:'Колесо с дымным следом от разгона', svg:`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#111319"/>
+      <path d="M14 38 Q28 31 42 38" stroke="#3ec9a7" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.9"/>
+      <path d="M11 51 Q27 43 44 51" stroke="#3ec9a7" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.6"/>
+      <path d="M9 64 Q25 56 44 64" stroke="#3ec9a7" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.32"/>
+      <circle cx="67" cy="52" r="25" fill="#111319" stroke="#f2a93b" stroke-width="7"/>
+      <circle cx="67" cy="52" r="8" fill="#f2a93b"/>
+      <rect x="64" y="24" width="6" height="10" fill="#f2a93b"/>
+      <rect x="64" y="70" width="6" height="10" fill="#f2a93b"/>
+      <rect x="38" y="49" width="10" height="6" fill="#f2a93b"/>
+      <rect x="88" y="49" width="10" height="6" fill="#f2a93b"/>
+    </svg>` },
+};
+const DEFAULT_MARK_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="#241a06" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 1 0 4 0h4a2 2 0 1 0 4 0h1a1 1 0 0 0 1-1v-3a2 2 0 0 0-.4-1.2l-2.1-2.8a2 2 0 0 0-1.6-.8H6a1 1 0 0 0-1 .8L4.2 12A2 2 0 0 0 4 12.8V16a1 1 0 0 0 1 1Z"/><path d="M4 12h16"/></svg>`;
+function appIconSvg(key){
+  const def = APP_ICON_VARIANTS[key];
+  return def ? def.svg : DEFAULT_MARK_SVG;
+}
+function appIconDataUri(key){
+  const svg = appIconSvg(key).trim();
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+function applyAppIcon(){
+  const key = DB.settings.appIcon;
+  const custom = !!(key && APP_ICON_VARIANTS[key]);
+  const svg = custom ? appIconSvg(key) : DEFAULT_MARK_SVG;
+  ['splashMark','brandMark','sidebarMark'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = svg;
+    el.classList.toggle('mark-full', custom);
+  });
+  try{
+    const uri = custom ? appIconDataUri(key) : 'icon-192.png';
+    const favicon = document.querySelector('link[rel="icon"]');
+    const touchIcon = document.querySelector('link[rel="apple-touch-icon"]');
+    if(favicon) favicon.setAttribute('href', uri);
+    if(touchIcon) touchIcon.setAttribute('href', uri);
+  }catch(e){}
+}
+function openAppIconSettings(){
+  const cur = DB.settings.appIcon || '';
+  openSheet(`
+    ${subHead('Иконка приложения')}
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;">
+        Выберите иконку — она сразу поменяется в приложении (шапка, боковое меню, заставка) и во вкладке браузера. Значок на главном экране телефона (после установки приложения) обновится только при переустановке.
+      </div>
+      <div class="app-icon-grid">
+        <div class="app-icon-opt ${!cur?'active':''}" data-appicon="" onclick="selectAppIcon('')">
+          <div class="app-icon-tile plain" style="background:conic-gradient(from 220deg, var(--accent), #ffcf7a, var(--accent));">${DEFAULT_MARK_SVG}</div>
+          <span>Текущая (по умолчанию)</span>
+        </div>
+        ${Object.keys(APP_ICON_VARIANTS).map(k=>`
+          <div class="app-icon-opt ${cur===k?'active':''}" data-appicon="${k}" onclick="selectAppIcon('${k}')">
+            <div class="app-icon-tile">${appIconSvg(k)}</div>
+            <span>${APP_ICON_VARIANTS[k].label}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `);
+}
+async function selectAppIcon(key){
+  DB.settings.appIcon = key || null;
+  await persist('settings');
+  applyAppIcon();
+  openAppIconSettings();
 }
 async function saveCar(id){
   const make = document.getElementById('f_make').value.trim();
@@ -4035,6 +4216,7 @@ function openSettings(){
       ${settingsMenuItem('💾','Резервное копирование', 'Экспорт JSON / Excel, импорт', `openBackupSettings()`)}
       ${settingsMenuItem('🔔','Сигналы и тарификация', 'Оповещения об окончании аренды', `openAlarmSettings()`)}
       ${settingsMenuItem('🎨','Цветовая тема', 'Акцентный цвет приложения', `openThemeSettings()`)}
+      ${settingsMenuItem('🏁','Иконка приложения', DB.settings.appIcon && APP_ICON_VARIANTS[DB.settings.appIcon] ? APP_ICON_VARIANTS[DB.settings.appIcon].label : 'Текущая (по умолчанию)', `openAppIconSettings()`)}
       ${settingsMenuItem('⚙️','Общие настройки', 'Валюта, статистика, очистка данных', `openGeneralSettings()`)}
     </div>
   `);
@@ -5575,6 +5757,7 @@ try{
   applyColorMode(DB.settings.colorMode);
   applyWindowsMode(DB.settings.windowsMode);
   applyCompanyName();
+  applyAppIcon();
   render();
   checkOneHourReminders();
   checkEmailBackup();
