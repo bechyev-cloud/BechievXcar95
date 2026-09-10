@@ -116,7 +116,7 @@ input, textarea{user-select:text;-webkit-user-select:text;-moz-user-select:text;
   #headerAddBtn{display:flex !important;}
   main{padding:6px 30px 60px;display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:14px;align-content:start;min-width:0;width:100%;}
   main > .search-bar, main > .chips, main > .section-title, main > .dash-top, main > .empty,
-  main > .dash-filter-row, main > .summary-row2{grid-column:1 / -1;}
+  main > .dash-filter-row, main > .dash-filter-inline, main > .summary-row2{grid-column:1 / -1;}
   main > .card{margin-bottom:0;}
   nav.bottom .nav-inner{max-width:1180px;padding:10px 20px calc(10px + env(safe-area-inset-bottom));}
   .dash-top{flex-direction:row;align-items:stretch;}
@@ -143,7 +143,7 @@ body.win-mode main{
 }
 body.win-mode main > .search-bar, body.win-mode main > .chips, body.win-mode main > .section-title,
 body.win-mode main > .dash-top, body.win-mode main > .empty,
-body.win-mode main > .dash-filter-row, body.win-mode main > .summary-row2{grid-column:1 / -1;}
+body.win-mode main > .dash-filter-row, body.win-mode main > .dash-filter-inline, body.win-mode main > .summary-row2{grid-column:1 / -1;}
 body.win-mode main > .card{margin-bottom:0;}
 body.win-mode main{grid-template-columns:repeat(auto-fill, minmax(310px, 1fr));}
 body.win-mode .card{
@@ -343,6 +343,18 @@ main.tab-anim{opacity:0;transform:translateY(10px);}
 }
 .gauge-period-row button.active{background:var(--accent);color:#241a06;}
 
+.car-icon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;}
+.car-icon-opt{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:7px 4px;border-radius:12px;border:2px solid transparent;transition:border-color .15s ease,background .15s ease;}
+.car-icon-opt.active{border-color:var(--accent);background:rgba(242,169,59,0.08);}
+.car-icon-tile{width:44px;height:30px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px;}
+.car-icon-tile-none{color:var(--text-faint);font-weight:700;font-size:16px;}
+.car-icon-opt span{font-size:10px;color:var(--text-dim);text-align:center;line-height:1.2;}
+.car-icon-opt.active span{color:var(--text);font-weight:700;}
+.car-icon-preview{width:56px;height:38px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;padding:5px;flex-shrink:0;}
+.car-icon-colors{display:flex;gap:8px;flex-wrap:wrap;}
+.car-color-dot{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;}
+.car-color-dot.active{border-color:var(--text);box-shadow:0 0 0 2px var(--bg);}
+
 .quick-stats{display:block;padding:16px 14px;}
 .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
 .stat-mini{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
@@ -524,6 +536,12 @@ body.win-mode .win-car-card:hover .wcc-action-btn.debt{background:rgba(232,96,76
 }
 .chip.active .chip-count{background:rgba(36,26,6,0.25);}
 
+.dash-filter-inline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.dash-filter-inline .period-seg{flex:1;margin:0;gap:3px;}
+.dash-filter-inline .period-seg button{padding:8px 12px;}
+.dash-filter-inline .chips{flex:0 0 auto;margin-bottom:0;min-width:0;}
+.dash-filter-inline .fin-tab-seg{margin:0;flex:0 0 auto;}
+.dash-filter-inline .cat-seg{margin:0;flex:0 0 auto;}
 .period-seg{
   display:flex;background:var(--surface-2);border:1px solid var(--border);border-radius:100px;
   padding:3px;gap:2px;margin:10px 0 2px;
@@ -533,6 +551,26 @@ body.win-mode .win-car-card:hover .wcc-action-btn.debt{background:rgba(232,96,76
   color:var(--text-dim);cursor:pointer;transition:background .15s,color .15s;font-family:var(--font-body);
 }
 .period-seg button.active{background:var(--accent);color:#241a06;box-shadow:0 2px 8px rgba(242,169,59,0.35);}
+.fin-tab-seg{
+  display:flex;background:var(--surface-2);border:1px solid var(--border);border-radius:100px;
+  padding:3px;gap:2px;margin:10px 0 2px;flex-shrink:0;
+}
+.fin-tab-seg button{
+  border:none;background:none;padding:8px 15px;border-radius:100px;font-size:12px;font-weight:700;
+  white-space:nowrap;color:var(--text-dim);cursor:pointer;transition:background .15s,color .15s;font-family:var(--font-body);
+}
+.fin-tab-seg button.active{background:var(--accent);color:#241a06;box-shadow:0 2px 8px rgba(242,169,59,0.35);cursor:default;}
+.fin-tab-seg button:not(.active):hover{color:var(--text);}
+.cat-seg{
+  display:flex;background:var(--surface-2);border:1px solid var(--border);border-radius:100px;
+  padding:3px;gap:2px;margin:10px 0 2px;flex-shrink:0;
+}
+.cat-seg button{
+  border:none;background:none;padding:8px 15px;border-radius:100px;font-size:12px;font-weight:700;
+  white-space:nowrap;color:var(--text-dim);cursor:pointer;transition:background .15s,color .15s;font-family:var(--font-body);
+}
+.cat-seg button.active{background:var(--accent);color:#241a06;box-shadow:0 2px 8px rgba(242,169,59,0.35);cursor:default;}
+.cat-seg button:not(.active):hover{color:var(--text);}
 .period-custom{
   display:flex;align-items:center;gap:8px;margin:10px 0 4px;background:var(--surface);
   border:1px solid var(--border);border-radius:12px;padding:10px 12px;
@@ -933,8 +971,8 @@ let gaugePeriod = 'month';
 let reportCategory = 'income';
 let reportsDateFilter = { mode:'all', from:null, to:null };
 function reportsDateRange(){
+  if(reportsDateFilter.mode==='week') return periodRange('week');
   if(reportsDateFilter.mode==='month') return periodRange('month');
-  if(reportsDateFilter.mode==='year') return periodRange('year');
   if(reportsDateFilter.mode==='custom'){
     const f = reportsDateFilter.from||todayISO(), t = reportsDateFilter.to||todayISO();
     return f<=t ? [f,t] : [t,f];
@@ -943,7 +981,7 @@ function reportsDateRange(){
 }
 function openReportsDateFilter(){
   const filter = reportsDateFilter;
-  const modes = [['all','Всё время'],['month','Этот месяц'],['year','Этот год'],['custom','Свой период']];
+  const modes = [['all','Всё время'],['week','Эта неделя'],['month','Этот месяц'],['custom','Свой период']];
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">📅 Период отчёта</div>
@@ -973,6 +1011,11 @@ async function setReportsDateFilterMode(mode){
 }
 function setReportsDateFilterCustom(field, value){
   reportsDateFilter[field] = value;
+  render();
+}
+function setReportsPeriodInline(mode){
+  reportsDateFilter.mode = mode;
+  if(mode==='custom' && !reportsDateFilter.from){ reportsDateFilter.from=todayISO(); reportsDateFilter.to=todayISO(); }
   render();
 }
 let searchQ = { cars:'', clients:'', contracts:'' };
@@ -1068,6 +1111,7 @@ async function toggleWindowsMode(){
   DB.settings.windowsMode = on;
   await persist('settings');
   applyWindowsMode(on);
+  updateHeaderIcons();
   showToast(on ? 'Режим для Windows включён' : 'Режим для Windows выключен');
 }
 function applyCompanyName(){
@@ -1195,6 +1239,13 @@ function showCenterConfirm(msg){
 }
 
 /* =================== NAV =================== */
+function updateHeaderIcons(){
+  const tab = currentTab;
+  document.getElementById('dashCustomizeBtn').style.display = (tab==='dashboard') ? 'flex' : 'none';
+  document.getElementById('carsShareBtn').style.display = (tab==='cars') ? 'flex' : 'none';
+  document.getElementById('searchToggleBtn').style.display = (tab==='cars'||tab==='clients'||tab==='contracts') ? 'flex' : 'none';
+  document.getElementById('reportsCalendarBtn').style.display = (tab==='reports' && !DB.settings.windowsMode) ? 'flex' : 'none';
+}
 function switchTab(tab){
   const changed = currentTab !== tab;
   currentTab = tab;
@@ -1202,10 +1253,7 @@ function switchTab(tab){
   document.getElementById('headerSub').textContent = {
     dashboard:'Панель учёта', cars:'Автопарк', clients:'База клиентов', contracts:'Договоры аренды', reports:'Финансовые отчёты'
   }[tab];
-  document.getElementById('dashCustomizeBtn').style.display = (tab==='dashboard') ? 'flex' : 'none';
-  document.getElementById('carsShareBtn').style.display = (tab==='cars') ? 'flex' : 'none';
-  document.getElementById('searchToggleBtn').style.display = (tab==='cars'||tab==='clients'||tab==='contracts') ? 'flex' : 'none';
-  document.getElementById('reportsCalendarBtn').style.display = (tab==='reports') ? 'flex' : 'none';
+  updateHeaderIcons();
   const main = document.getElementById('main');
   if(changed && main){
     main.classList.add('tab-anim');
@@ -1248,7 +1296,7 @@ function openQuickMenu(){
       ${settingsMenuItem('🔧','Добавить расход','Ремонт, замена масла, штраф или нарушение', `closeSheet();openQuickExpensePicker()`)}
       ${settingsMenuItem('👤','Новый контакт','Добавить клиента в базу', `closeSheet();openClientForm()`)}
       ${settingsMenuItem('🚗','Новая машина','Добавить машину в автопарк', `closeSheet();openCarForm()`)}
-      ${settingsMenuItem('📊','Отчёты','Финансовая статистика', `closeSheet();switchTab('reports')`)}
+      ${DB.settings.finStatsSwipe ? '' : settingsMenuItem('📊','Отчёты','Финансовая статистика', `closeSheet();switchTab('reports')`)}
       ${settingsMenuItem('📋','Все операции','Аренды, расходы, платежи, штрафы, нарушения', `closeSheet();openAllOperations()`)}
     </div>
   `);
@@ -1573,17 +1621,25 @@ const DASHBOARD_CARD_IDS_ALL = ['income','clientDebt','overdueDebt','monthAgedDe
 const DASHBOARD_CARD_IDS_DEFAULT = ['income','clientDebt','overdueDebt','monthAgedDebt','finesUnpaid','finesPaid','repairExpense'];
 let dashboardFilter = { mode:'all', from:null, to:null };
 function dashboardPeriodRange(filter){
+  if(filter.mode==='week') return periodRange('week');
   if(filter.mode==='month') return periodRange('month');
-  if(filter.mode==='year') return periodRange('year');
   if(filter.mode==='custom'){ const f=filter.from||todayISO(), t=filter.to||todayISO(); return f<=t?[f,t]:[t,f]; }
   return [null,null]; // 'all'
 }
 function dashboardFilterHtml(){
   const filter = dashboardFilter;
-  const modes = [['all','Все'],['month','Месяц'],['year','Год'],['custom','Своё']];
+  const modes = [['all','Все'],['week','Неделя'],['month','Месяц'],['custom','Своё']];
+  const showFinTabs = DB.settings.windowsMode && DB.settings.finStatsSwipe;
   return `
-    <div class="period-seg">
-      ${modes.map(([m,label])=>`<button class="${filter.mode===m?'active':''}" onclick="setDashboardFilterMode('${m}')">${label}</button>`).join('')}
+    <div class="dash-filter-inline">
+      <div class="period-seg">
+        ${modes.map(([m,label])=>`<button class="${filter.mode===m?'active':''}" onclick="setDashboardFilterMode('${m}')">${label}</button>`).join('')}
+      </div>
+      ${showFinTabs ? `
+      <div class="fin-tab-seg">
+        <button class="active" disabled>📊 Дашборд</button>
+        <button onclick="switchTab('reports')">📈 Отчёты</button>
+      </div>` : ''}
     </div>
     ${filter.mode==='custom' ? `
     <div class="period-custom">
@@ -1666,6 +1722,13 @@ function openDashboardCustomize(){
         </div>
         <label class="switch"><input type="checkbox" id="f_showgauge" ${showGauge?'checked':''} onchange="toggleRevenueGauge()"><span class="slider"></span></label>
       </div>
+      <div class="settings-item">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+          <div style="font-size:19px;width:26px;text-align:center;flex-shrink:0;">📈</div>
+          <div><div class="st">Финансовая статистика</div><div class="sd">В Windows-режиме рядом с фильтром периода появится кнопка «Отчёты». Кнопка «Отчёты» скрывается из меню +</div></div>
+        </div>
+        <label class="switch"><input type="checkbox" id="f_finstats" ${DB.settings.finStatsSwipe?'checked':''} onchange="toggleFinStatsSwipe()"><span class="slider"></span></label>
+      </div>
       <div style="font-size:12.5px;color:var(--text-dim);margin:14px 0 10px;">Стрелками измените порядок, крестиком уберите карточку с главного экрана</div>
       ${order.length ? order.map((id,i)=>{
         const d = defs[id];
@@ -1705,6 +1768,13 @@ async function toggleRevenueGauge(){
   DB.settings.showRevenueGauge = on;
   await persist('settings');
   render();
+}
+async function toggleFinStatsSwipe(){
+  const on = document.getElementById('f_finstats').checked;
+  DB.settings.finStatsSwipe = on;
+  await persist('settings');
+  if(currentTab==='reports') switchTab('dashboard');
+  else render();
 }
 async function moveDashboardCard(id, dir){
   const order = dashboardCardOrder();
@@ -1786,12 +1856,30 @@ function renderCars(){
     ${list.length ? list.map(carCard).join('') : emptyState('Пока нет машин','Нажмите «+», чтобы добавить первую машину в автопарк')}
   `;
 }
+const CAR_ICONS = {
+  priora:   { label:'Лада Приора', body:'M6,30 L6,24 L14,24 L19,15 L24,9 L38,9 L43,15 L46,20 L52,20 L56,24 L56,30 Z', wheels:[[16,32],[46,32]] },
+  camry55:  { label:'Camry 55', body:'M6,30 L6,25 L13,25 L18,16 L23,10 L26,9 L41,9 L45,12 L49,18 L52,23 L57,25 L57,30 Z', wheels:[[16,32],[48,32]] },
+  camry70:  { label:'Camry 70', body:'M4,30 L4,25 L12,25 L19,15 L27,9 L38,9 L48,16 L54,24 L58,25 L58,30 Z', wheels:[[15,32],[49,32]] },
+  focus:    { label:'Ford Focus', body:'M6,30 L6,24 L14,24 L20,14 L25,9 L36,9 L41,14 L44,24 L50,24 L50,30 Z', wheels:[[16,32],[40,32]] },
+  mercedes: { label:'Mercedes', body:'M2,30 L2,23 L8,23 L15,23 L20,14 L26,9 L40,9 L44,14 L47,20 L54,20 L58,23 L58,30 Z', wheels:[[14,32],[48,32]] },
+  bmw:      { label:'BMW', body:'M6,30 L6,24 L14,24 L20,15 L27,10 L39,10 L45,15 L50,22 L53,20 L57,24 L57,30 Z', wheels:[[16,32],[47,32]] },
+};
+const CAR_ICON_COLORS = ['#f2a93b','#4a90e2','#e85c5c','#3ec97a','#8e7cff','#26c6da','#9aa0ad','#ec6bab'];
+function carIconSvg(key, color){
+  const def = CAR_ICONS[key]; if(!def) return '';
+  const col = color || CAR_ICON_COLORS[0];
+  return `<svg viewBox="0 0 64 40" width="100%" height="100%" style="display:block;"><path d="${def.body}" fill="${col}"/>${def.wheels.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5" fill="rgba(0,0,0,0.34)"/>`).join('')}</svg>`;
+}
 function carCard(c){
   const badgeCls = {free:'free',rented:'rented',booked:'booked',service:'service'}[c.status];
   const badgeText = {free:'Свободна',rented:'В аренде',booked:'Забронирована',service:'Ремонт'}[c.status];
   const ac = c.status==='rented' ? activeContractForCar(c.id) : null;
   const tl = ac ? timeLeftLabel(ac.end) : null;
+  const hasIcon = c.iconKey && CAR_ICONS[c.iconKey];
   if(DB.settings.windowsMode){
+    const plateIcon = hasIcon
+      ? `<span style="display:inline-flex;width:16px;height:16px;flex-shrink:0;">${carIconSvg(c.iconKey, c.iconColor)}</span>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 11h1M16 11h1"/></svg>`;
     return `
     <div class="card win-car-card ${ac ? (tl.overdue?'overdue-glow':'rented-glow') : ''}" onclick="openCarDetail('${c.id}')">
       <div class="wcc-top">
@@ -1801,7 +1889,7 @@ function carCard(c){
       <div class="wcc-badges"><span class="badge ${badgeCls}">${badgeText}</span></div>
       <div class="wcc-divider"></div>
       <div class="wcc-plate">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 11h1M16 11h1"/></svg>
+        ${plateIcon}
         <span>${esc(c.plate)}${c.year?' · '+c.year:''}</span>
       </div>
       ${ac ? `<div class="wcc-timer"><span class="timer-pill ${tl.overdue?'overdue':''}">${timerSvg()}${tl.text}</span></div>` : ''}
@@ -1817,9 +1905,12 @@ function carCard(c){
       </div>` : ''}
     </div>`;
   }
+  const avatarHtml = hasIcon
+    ? `<div class="card-avatar" style="background:${c.iconColor}26;border-color:${c.iconColor}55;padding:6px;">${carIconSvg(c.iconKey, c.iconColor)}</div>`
+    : `<div class="card-avatar">${(c.make||'?').slice(0,2).toUpperCase()}</div>`;
   return `
   <div class="card ${ac ? (tl.overdue?'overdue-glow':'rented-glow') : ''}" onclick="openCarDetail('${c.id}')">
-    <div class="card-avatar">${(c.make||'?').slice(0,2).toUpperCase()}</div>
+    ${avatarHtml}
     <div class="card-body">
       <div class="card-title">${esc(c.make)} ${esc(c.model)}</div>
       <div class="card-sub"><span class="badge ${badgeCls}">${badgeText}</span> ${esc(c.plate)} · ${c.year||''}</div>
@@ -1867,6 +1958,32 @@ function openCarForm(existing){
           <option value="service" ${c.status==='service'?'selected':''}>На сервисе (ремонт)</option>
         </select>
       </div>
+      <div class="field">
+        <label>Иконка автомобиля</label>
+        <div class="car-icon-grid">
+          <div class="car-icon-opt ${!c.iconKey?'active':''}" data-icon="" onclick="selectCarIcon('')">
+            <div class="car-icon-tile car-icon-tile-none">—</div>
+            <span>Без иконки</span>
+          </div>
+          ${Object.keys(CAR_ICONS).map(k=>`
+            <div class="car-icon-opt ${c.iconKey===k?'active':''}" data-icon="${k}" onclick="selectCarIcon('${k}')">
+              <div class="car-icon-tile">${carIconSvg(k, 'var(--text-dim)')}</div>
+              <span>${CAR_ICONS[k].label}</span>
+            </div>
+          `).join('')}
+        </div>
+        <input type="hidden" id="f_car_icon" value="${c.iconKey||''}">
+      </div>
+      <div class="field" id="carIconColorField" style="${c.iconKey?'':'display:none;'}">
+        <label>Цвет иконки</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="car-icon-preview" id="carIconPreview">${c.iconKey?carIconSvg(c.iconKey, c.iconColor||CAR_ICON_COLORS[0]):''}</div>
+          <div class="car-icon-colors">
+            ${CAR_ICON_COLORS.map(col=>`<button type="button" class="car-color-dot ${((c.iconColor||CAR_ICON_COLORS[0])===col)?'active':''}" style="background:${col};" onclick="selectCarIconColor('${col}')"></button>`).join('')}
+          </div>
+        </div>
+        <input type="hidden" id="f_car_icon_color" value="${c.iconColor||CAR_ICON_COLORS[0]}">
+      </div>
       <div class="field"><label>Заметки</label><textarea id="f_notes" placeholder="Особенности, комплектация...">${esc(c.notes)}</textarea></div>
       <div class="btn-row">
         <button class="btn ghost" onclick="closeSheet()">Отмена</button>
@@ -1876,10 +1993,40 @@ function openCarForm(existing){
     </div>
   `);
 }
+function selectCarIcon(key){
+  document.getElementById('f_car_icon').value = key;
+  document.querySelectorAll('.car-icon-opt').forEach(el=>{
+    el.classList.toggle('active', el.dataset.icon===key);
+  });
+  const colorField = document.getElementById('carIconColorField');
+  const preview = document.getElementById('carIconPreview');
+  if(key){
+    colorField.style.display = '';
+    const color = document.getElementById('f_car_icon_color').value || CAR_ICON_COLORS[0];
+    preview.innerHTML = carIconSvg(key, color);
+  } else {
+    colorField.style.display = 'none';
+  }
+}
+function selectCarIconColor(color){
+  document.getElementById('f_car_icon_color').value = color;
+  document.querySelectorAll('.car-color-dot').forEach(el=>{
+    el.classList.toggle('active', hexToRgbCss(color)===el.style.background);
+  });
+  const key = document.getElementById('f_car_icon').value;
+  const preview = document.getElementById('carIconPreview');
+  if(key) preview.innerHTML = carIconSvg(key, color);
+}
+function hexToRgbCss(hex){
+  const v = hex.replace('#','');
+  const r = parseInt(v.substring(0,2),16), g = parseInt(v.substring(2,4),16), b = parseInt(v.substring(4,6),16);
+  return `rgb(${r}, ${g}, ${b})`;
+}
 async function saveCar(id){
   const make = document.getElementById('f_make').value.trim();
   const model = document.getElementById('f_model').value.trim();
   if(!make || !model){ showToast('Укажите марку и модель'); return; }
+  const iconKey = document.getElementById('f_car_icon').value || null;
   const data = {
     make, model,
     year: parseInt(document.getElementById('f_year').value)||null,
@@ -1888,6 +2035,8 @@ async function saveCar(id){
     rate6h: parseFloat(document.getElementById('f_rate6h').value)||0,
     status: document.getElementById('f_status').value,
     notes: document.getElementById('f_notes').value.trim(),
+    iconKey,
+    iconColor: iconKey ? (document.getElementById('f_car_icon_color').value || CAR_ICON_COLORS[0]) : null,
   };
   if(id){
     const idx = DB.cars.findIndex(c=>c.id===id);
@@ -1905,6 +2054,10 @@ function openCarDetail(id){
   const ac = activeContractForCar(id);
   const bookedCt = (!ac && c.status==='booked') ? DB.contracts.find(ct=>ct.carId===id && ct.status==='booked') : null;
   const tl = ac ? timeLeftLabel(ac.end) : null;
+  const rentClient = ac ? DB.clients.find(x=>x.id===ac.clientId) : null;
+  const rentClientDebt = rentClient ? clientDebt(rentClient.id).debt : 0;
+  const acPaidAmount = ac ? (ac.paidAmount!=null ? ac.paidAmount : (ac.paid ? ac.total : 0)) : 0;
+  const acRemaining = ac ? Math.max(0, (ac.total||0) - acPaidAmount) : 0;
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">${esc(c.make)} ${esc(c.model)}</div>
@@ -1914,6 +2067,11 @@ function openCarDetail(id){
       </div>
     </div>
     <div class="sheet-body">
+      ${ac ? `<div class="detail-block" style="margin-bottom:12px;${rentClient?'cursor:pointer;':''}" ${rentClient?`onclick="closeSheet();openClientDetail('${rentClient.id}')"`:''}>
+        <div class="detail-row"><span class="k">Клиент</span><span class="v">${rentClient?esc(rentClient.name):'Клиент удалён'}</span></div>
+        <div class="detail-row"><span class="k">Долг клиента</span><span class="v" style="${rentClientDebt>0?'color:var(--danger);font-weight:800;':'color:var(--accent-2);'}">${rentClientDebt>0?money(rentClientDebt):'Нет долга'}</span></div>
+        <div class="detail-row"><span class="k">Оплата аренды</span><span class="v">${ac.paid ? `<span class="badge paid">Оплачено</span>` : `<span class="badge unpaid">Остаток ${money(acRemaining)}</span>`}</span></div>
+      </div>` : ''}
       <div class="detail-block">
         <div class="detail-row"><span class="k">Статус</span><span class="v"><span class="badge ${badgeCls}">${badgeText}</span></span></div>
         <div class="detail-row"><span class="k">Госномер</span><span class="v">${esc(c.plate)||'—'}</span></div>
@@ -2135,8 +2293,9 @@ function clientDebt(clientId){
   const ledger = DB.clientLedger.filter(l=>l.clientId===clientId);
   const finesSum = ledger.filter(l=>l.type==='fine').reduce((s,l)=>s+(l.amount||0),0);
   const violationsSum = ledger.filter(l=>l.type==='violation').reduce((s,l)=>s+(l.amount||0),0);
+  const oldDebtSum = ledger.filter(l=>l.type==='oldDebt').reduce((s,l)=>s+(l.amount||0),0);
   const paymentsSum = ledger.filter(l=>l.type==='payment').reduce((s,l)=>s+(l.amount||0),0);
-  return { unpaidSum, finesSum, violationsSum, paymentsSum, debt: unpaidSum + finesSum + violationsSum - paymentsSum, ledger };
+  return { unpaidSum, finesSum, violationsSum, oldDebtSum, paymentsSum, debt: unpaidSum + finesSum + violationsSum + oldDebtSum - paymentsSum, ledger };
 }
 function openClientDetail(id){
   const c = DB.clients.find(x=>x.id===id); if(!c) return;
@@ -2195,6 +2354,7 @@ function openAddDebtMenu(clientId){
     <div class="sheet-body">
       <div class="btn-row">
         <button class="btn danger-ghost" onclick="openClientFineForm('${clientId}')">⚠️ Штраф</button>
+        <button class="btn danger-ghost" onclick="openClientOldDebtForm('${clientId}')">📋 Старый долг</button>
         <button class="btn danger-ghost" onclick="openClientViolationForm('${clientId}')">🚫 Нарушение</button>
       </div>
     </div>
@@ -2361,9 +2521,11 @@ function openClientPaymentForm(clientId){
     .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-finePaidAmount(ct.id)),0);
   const unpaidViolations = DB.contracts.filter(ct=>ct.clientId===clientId && ct.type==='violation')
     .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-violationPaidAmount(ct.id)),0);
-  const amounts = { rental: unpaidRental, fine: unpaidFines, violation: unpaidViolations };
+  const unpaidOldDebt = DB.contracts.filter(ct=>ct.clientId===clientId && ct.type==='oldDebt')
+    .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-oldDebtPaidAmount(ct.id)),0);
+  const amounts = { rental: unpaidRental, fine: unpaidFines, violation: unpaidViolations, oldDebt: unpaidOldDebt };
   const defaultPurpose = Object.keys(amounts).reduce((best,k)=> amounts[k]>amounts[best] ? k : best, 'rental');
-  const PURPOSE_LABELS = { rental:'За аренду', fine:'За штрафы', violation:'За нарушения' };
+  const PURPOSE_LABELS = { rental:'За аренду', fine:'За штрафы', violation:'За нарушения', oldDebt:'За старый долг' };
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">Платёж · ${esc(c.name)}</div>
@@ -2377,7 +2539,7 @@ function openClientPaymentForm(clientId){
           ${Object.keys(PURPOSE_LABELS).map(k=>`<button type="button" class="${defaultPurpose===k?'active':''}" data-purpose="${k}" style="flex:1;" onclick="setPayPurpose('${k}')">${PURPOSE_LABELS[k]}</button>`).join('')}
         </div>
         <input type="hidden" id="f_pay_purpose" value="${defaultPurpose}">
-        <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px;">Долг за аренду: ${money(unpaidRental)} · Штрафы: ${money(unpaidFines)} · Нарушения: ${money(unpaidViolations)}</div>
+        <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px;">Долг за аренду: ${money(unpaidRental)} · Штрафы: ${money(unpaidFines)} · Нарушения: ${money(unpaidViolations)} · Старый долг: ${money(unpaidOldDebt)}</div>
       </div>
       <div class="field"><label>Сумма платежа (${DB.settings.currency})</label><input id="f_pay_amount" type="number" placeholder="0" value="${debt>0?debt:''}"></div>
       <div class="field"><label>Дата платежа</label><input id="f_pay_date" type="datetime-local" value="${nowDT()}"></div>
@@ -2440,6 +2602,39 @@ async function saveClientFine(clientId){
   const clForMsg = DB.clients.find(x=>x.id===clientId);
   notifyClient(clientId, buildDebtMessage(clForMsg, 'fine', amount, note), 'debt');
   showToast('Штраф добавлен к долгу клиента');
+  openClientDetail(clientId);
+}
+function openClientOldDebtForm(clientId){
+  const c = DB.clients.find(x=>x.id===clientId); if(!c) return;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Старый долг · ${esc(c.name)}</div>
+      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px;">Для долга, который числился за клиентом ещё до начала работы в приложении.</div>
+      <div class="field"><label>Сумма долга (${DB.settings.currency})</label><input id="f_olddebt_amount" type="number" placeholder="0"></div>
+      <div class="field"><label>Дата</label><input id="f_olddebt_date" type="datetime-local" value="${nowDT()}"></div>
+      <div class="field"><label>Комментарий (необязательно)</label><textarea id="f_olddebt_note" placeholder="Например: остаток с прошлого учёта"></textarea></div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="closeSheet()">Отмена</button>
+        <button class="btn primary" onclick="saveClientOldDebt('${clientId}')">Сохранить</button>
+      </div>
+    </div>
+  `);
+}
+async function saveClientOldDebt(clientId){
+  const amount = parseFloat(document.getElementById('f_olddebt_amount').value)||0;
+  if(amount<=0){ showToast('Укажите сумму долга'); return; }
+  const date = document.getElementById('f_olddebt_date').value || nowDT();
+  const note = document.getElementById('f_olddebt_note').value.trim();
+  const id = uid();
+  DB.clientLedger.push({ id, clientId, type:'oldDebt', amount, date, note });
+  DB.contracts.push({ id, carId:null, clientId, start:date, end:date, rentalType:null, rate:0, total:amount, status:'done', paid:true, notes:note, type:'oldDebt', notifiedOneHour:false });
+  await persist('clientLedger'); await persist('contracts');
+  const clForMsg = DB.clients.find(x=>x.id===clientId);
+  notifyClient(clientId, buildDebtMessage(clForMsg, 'oldDebt', amount, note), 'debt');
+  showToast('Старый долг добавлен клиенту');
   openClientDetail(clientId);
 }
 function openClientViolationForm(clientId){
@@ -2544,12 +2739,13 @@ let contractFilter = 'all';
 function renderContracts(){
   const statusOrder = { active:0, service:0, booked:1, done:2, cancelled:2 };
   const isDebt = ct => (!ct.type||ct.type==='rental') && !ct.paid && ct.status!=='cancelled';
-  const filters = [['all','Все'],['active','Активные'],['debt','Долги'],['fines','Штрафы'],['oil','Замена масла'],['violations','Нарушения']];
-  const counts = { all: DB.contracts.length, active:0, debt:0, fines:0, oil:0, violations:0 };
+  const filters = [['all','Все'],['active','Активные'],['debt','Долги'],['fines','Штрафы'],['oldDebt','Старые долги'],['oil','Замена масла'],['violations','Нарушения']];
+  const counts = { all: DB.contracts.length, active:0, debt:0, fines:0, oldDebt:0, oil:0, violations:0 };
   DB.contracts.forEach(ct=>{
     if(ct.status==='active' || ct.status==='service') counts.active++;
     if(isDebt(ct)) counts.debt++;
     if(ct.type==='fine') counts.fines++;
+    if(ct.type==='oldDebt') counts.oldDebt++;
     if(ct.type==='oil') counts.oil++;
     if(ct.type==='violation') counts.violations++;
   });
@@ -2557,6 +2753,7 @@ function renderContracts(){
     if(contractFilter==='active' && !(ct.status==='active'||ct.status==='service')) return false;
     if(contractFilter==='debt' && !isDebt(ct)) return false;
     if(contractFilter==='fines' && ct.type!=='fine') return false;
+    if(contractFilter==='oldDebt' && ct.type!=='oldDebt') return false;
     if(contractFilter==='oil' && ct.type!=='oil') return false;
     if(contractFilter==='violations' && ct.type!=='violation') return false;
     const q = searchQ.contracts.toLowerCase();
@@ -2620,6 +2817,28 @@ function contractCard(ct){
         </div>
         <div class="card-sub">${ct.notes?esc(ct.notes):'Штраф'} · ${fmtDateTime(ct.start)}</div>
         ${paid>0 && !isPaid ? `<div class="card-sub" style="margin-top:2px;">Штраф: ${money(ct.total)} · Оплачено: ${money(paid)}</div>` : ''}
+      </div>
+      <div class="card-right">
+        <div class="card-amount" style="color:var(--danger);">${isPaid?money(ct.total):money(remaining)}</div>
+        ${!isPaid && paid>0 ? `<div class="card-sub" style="justify-content:flex-end;">остаток</div>` : ''}
+      </div>
+    </div>`;
+  }
+  if(ct.type==='oldDebt'){
+    const paid = oldDebtPaidAmount(ct.id);
+    const remaining = Math.max(0, ct.total - paid);
+    const isPaid = remaining<=0;
+    return `
+    <div class="card" onclick="openContractDetail('${ct.id}')" style="align-items:flex-start;">
+      <div class="card-avatar">📋</div>
+      <div class="card-body">
+        <div class="card-title">${cl?esc(cl.name):'Клиент удалён'}</div>
+        <div class="card-sub">
+          <span class="badge cancelled">Старый долг</span>
+          <span class="badge ${isPaid?'paid':'unpaid'}">${isPaid?'Погашен':'Не погашен'}</span>
+        </div>
+        <div class="card-sub">${ct.notes?esc(ct.notes):'Старый долг'} · ${fmtDateTime(ct.start)}</div>
+        ${paid>0 && !isPaid ? `<div class="card-sub" style="margin-top:2px;">Долг: ${money(ct.total)} · Оплачено: ${money(paid)}</div>` : ''}
       </div>
       <div class="card-right">
         <div class="card-amount" style="color:var(--danger);">${isPaid?money(ct.total):money(remaining)}</div>
@@ -2935,6 +3154,7 @@ function openContractDetail(id){
   const car = DB.cars.find(c=>c.id===ct.carId);
   if(ct.type==='repair'){ openRepairDetail(ct, car); return; }
   if(ct.type==='fine'){ openFineContractDetail(ct); return; }
+  if(ct.type==='oldDebt'){ openOldDebtContractDetail(ct); return; }
   if(ct.type==='oil'){ openOilContractDetail(ct, car); return; }
   if(ct.type==='violation'){ openViolationDetail(ct); return; }
   const cl = DB.clients.find(c=>c.id===ct.clientId);
@@ -3007,6 +3227,9 @@ function violationPaidAmount(violationId){
 function finePaidAmount(fineId){
   return DB.clientLedger.filter(l=>l.type==='payment' && l.fineId===fineId).reduce((s,l)=>s+(l.amount||0),0);
 }
+function oldDebtPaidAmount(oldDebtId){
+  return DB.clientLedger.filter(l=>l.type==='payment' && l.oldDebtId===oldDebtId).reduce((s,l)=>s+(l.amount||0),0);
+}
 function openFineContractDetail(ct){
   const cl = DB.clients.find(c=>c.id===ct.clientId);
   const paid = finePaidAmount(ct.id);
@@ -3068,6 +3291,77 @@ async function settleFine(contractId){
   await persist('clientLedger');
   showToast(amount>=remaining ? 'Штраф погашен полностью' : `Внесено ${money(amount)}, остаток уменьшен`);
   openFineContractDetail(ct);
+}
+function openOldDebtContractDetail(ct){
+  const cl = DB.clients.find(c=>c.id===ct.clientId);
+  const paid = oldDebtPaidAmount(ct.id);
+  const remaining = Math.max(0, ct.total - paid);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">📋 Старый долг</div>
+      <div class="sheet-head-actions">
+        ${iconBtn('trash', `deleteOldDebtEntry('${ct.id}')`, 'Удалить')}
+        ${iconBtn('close', 'closeSheet()', 'Закрыть')}
+      </div>
+    </div>
+    <div class="sheet-body">
+      <div class="detail-block">
+        <div class="detail-row"><span class="k">Клиент</span><span class="v">${cl?esc(cl.name):'Удалён'}</span></div>
+        <div class="detail-row"><span class="k">Дата</span><span class="v">${fmtDateTime(ct.start)}</span></div>
+        <div class="detail-row"><span class="k">Сумма долга</span><span class="v" style="color:var(--danger);">${money(ct.total)}</span></div>
+        ${paid>0 ? `<div class="detail-row"><span class="k">Погашено</span><span class="v" style="color:var(--accent-2);">${money(paid)}</span></div>` : ''}
+        <div class="detail-row"><span class="k">Остаток</span><span class="v" style="${remaining>0?'color:var(--danger);font-weight:800;':'color:var(--accent-2);'}">${remaining>0?money(remaining):'Погашен полностью'}</span></div>
+        ${ct.notes ? `<div class="detail-row"><span class="k">Комментарий</span><span class="v">${esc(ct.notes)}</span></div>`:''}
+      </div>
+      <div class="btn-row">
+        ${remaining>0 ? `<button class="btn good" onclick="openSettleOldDebtForm('${ct.id}')">💰 Погасить долг</button>` : `<button class="btn ghost" disabled style="opacity:.5;">✓ Долг погашен</button>`}
+      </div>
+      <div class="btn-row" style="margin-top:10px;">
+        ${cl ? `<button class="btn primary" onclick="closeSheet();openClientDetail('${cl.id}')">Открыть клиента</button>` : `<button class="btn primary" onclick="closeSheet()">Готово</button>`}
+      </div>
+    </div>
+  `);
+}
+function openSettleOldDebtForm(contractId){
+  const ct = DB.contracts.find(c=>c.id===contractId); if(!ct) return;
+  const paid = oldDebtPaidAmount(ct.id);
+  const remaining = Math.max(0, ct.total - paid);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Погасить старый долг</div>
+      <div class="sheet-head-actions">${iconBtn('close', `openOldDebtContractDetail(${JSON.stringify(ct).replace(/"/g,'&quot;')})`, 'Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">Остаток долга: <b style="color:var(--danger);">${money(remaining)}</b></div>
+      <div class="field"><label>Сумма погашения (${DB.settings.currency})</label><input id="f_settle_amount" type="number" value="${remaining}" max="${remaining}" placeholder="0"></div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="openOldDebtContractDetail(${JSON.stringify(ct).replace(/"/g,'&quot;')})">Отмена</button>
+        <button class="btn primary" onclick="settleOldDebt('${contractId}')">Погасить</button>
+      </div>
+    </div>
+  `);
+}
+async function settleOldDebt(contractId){
+  const ct = DB.contracts.find(c=>c.id===contractId); if(!ct) return;
+  if(!ct.clientId){ showToast('У этого долга нет привязанного клиента'); return; }
+  const paidSoFar = oldDebtPaidAmount(contractId);
+  const remaining = Math.max(0, ct.total - paidSoFar);
+  let amount = parseFloat(document.getElementById('f_settle_amount').value);
+  if(isNaN(amount) || amount<=0){ showToast('Укажите сумму погашения'); return; }
+  if(amount>remaining) amount = remaining;
+  DB.clientLedger.push({ id: uid(), clientId: ct.clientId, type:'payment', amount, date: nowDT(), note: 'Погашение старого долга', oldDebtId: contractId });
+  await persist('clientLedger');
+  showToast(amount>=remaining ? 'Долг погашен полностью' : `Внесено ${money(amount)}, остаток уменьшен`);
+  openOldDebtContractDetail(ct);
+}
+async function deleteOldDebtEntry(id){
+  if(!confirm('Удалить запись?')) return;
+  const entry = DB.clientLedger.find(l=>l.id===id);
+  const clientId = entry?.clientId;
+  DB.clientLedger = DB.clientLedger.filter(l=>l.id!==id && l.oldDebtId!==id);
+  DB.contracts = DB.contracts.filter(c=>!(c.id===id && c.type==='oldDebt'));
+  await persist('clientLedger'); await persist('contracts');
+  if(clientId) openClientDetail(clientId); else render();
 }
 function openOilContractDetail(ct, car){
   const log = DB.oilChanges.find(l=>l.id===ct.id);
@@ -3167,20 +3461,59 @@ async function rateClientAndClose(contractId, rating){
 
 /* =================== REPORTS =================== */
 function renderReports(){
-  const filterLabel = {all:null, month:'Этот месяц', year:'Этот год', custom:`${fmtDate(reportsDateRange()[0])} — ${fmtDate(reportsDateRange()[1])}`}[reportsDateFilter.mode];
+  const filterLabel = {all:null, week:'Эта неделя', month:'Этот месяц', custom:`${fmtDate(reportsDateRange()[0])} — ${fmtDate(reportsDateRange()[1])}`}[reportsDateFilter.mode];
+  const winMode = !!DB.settings.windowsMode;
+  const showFinTabs = winMode && DB.settings.finStatsSwipe;
+  const periodModes = [['all','Все'],['week','Неделя'],['month','Месяц'],['custom','Своё']];
   return `
-    ${filterLabel ? `<div style="display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:9px 13px;margin-bottom:10px;font-size:12.5px;color:var(--text-dim);cursor:pointer;" onclick="openReportsDateFilter()">📅 <b style="color:var(--text);">${filterLabel}</b> <span style="margin-left:auto;color:var(--accent);font-weight:600;">Изменить</span></div>` : ''}
-    <div class="chips">
-      <div class="chip ${reportCategory==='income'?'active':''}" onclick="reportCategory='income';render()">💰 Доход</div>
-      <div class="chip ${reportCategory==='fines'?'active':''}" onclick="reportCategory='fines';render()">⚠️ Штрафы</div>
-      <div class="chip ${reportCategory==='repair'?'active':''}" onclick="reportCategory='repair';render()">🔧 Ремонт</div>
-      <div class="chip ${reportCategory==='oil'?'active':''}" onclick="reportCategory='oil';render()">🛢 Замена масла</div>
+    ${(filterLabel && !winMode) ? `<div style="display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:9px 13px;margin-bottom:10px;font-size:12.5px;color:var(--text-dim);cursor:pointer;" onclick="openReportsDateFilter()">📅 <b style="color:var(--text);">${filterLabel}</b> <span style="margin-left:auto;color:var(--accent);font-weight:600;">Изменить</span></div>` : ''}
+    <div class="dash-filter-inline">
+      ${winMode ? `
+      <div class="period-seg">
+        ${periodModes.map(([m,label])=>`<button class="${reportsDateFilter.mode===m?'active':''}" onclick="setReportsPeriodInline('${m}')">${label}</button>`).join('')}
+      </div>` : ''}
+      ${showFinTabs ? `
+      <div class="fin-tab-seg">
+        <button onclick="switchTab('dashboard')">📊 Дашборд</button>
+        <button class="active" disabled>📈 Отчёты</button>
+      </div>` : ''}
+      ${winMode ? `
+      <div class="cat-seg">
+        <button class="${reportCategory==='income'?'active':''}" onclick="reportCategory='income';render()">💰 Доход</button>
+        <button class="${reportCategory==='fines'?'active':''}" onclick="reportCategory='fines';render()">⚠️ Штрафы</button>
+        <button class="${reportCategory==='repair'?'active':''}" onclick="reportCategory='repair';render()">🔧 Ремонт</button>
+        <button class="${reportCategory==='oil'?'active':''}" onclick="reportCategory='oil';render()">🛢 Замена масла</button>
+      </div>` : `
+      <div class="chips">
+        <div class="chip ${reportCategory==='income'?'active':''}" onclick="reportCategory='income';render()">💰 Доход</div>
+        <div class="chip ${reportCategory==='fines'?'active':''}" onclick="reportCategory='fines';render()">⚠️ Штрафы</div>
+        <div class="chip ${reportCategory==='repair'?'active':''}" onclick="reportCategory='repair';render()">🔧 Ремонт</div>
+        <div class="chip ${reportCategory==='oil'?'active':''}" onclick="reportCategory='oil';render()">🛢 Замена масла</div>
+      </div>`}
     </div>
+    ${(winMode && reportsDateFilter.mode==='custom') ? `
+    <div class="period-custom">
+      <input type="date" value="${reportsDateFilter.from||todayISO()}" onchange="setReportsDateFilterCustom('from',this.value)">
+      <span>—</span>
+      <input type="date" value="${reportsDateFilter.to||todayISO()}" onchange="setReportsDateFilterCustom('to',this.value)">
+    </div>` : ''}
     ${reportCategory==='income' ? renderIncomeReport()
       : reportCategory==='fines' ? renderFinesReport()
       : reportCategory==='repair' ? renderRepairReport()
       : renderOilReport()}
   `;
+}
+function reportCardGrid(items, emptyText){
+  if(!items.length) return `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">${emptyText}</div>`;
+  return `<div class="summary-row2">
+    ${items.map(it=>`
+      <div class="summary-card2 ${it.cls||''} ${it.iconCls||''}" style="cursor:pointer;" onclick="${it.onclick||''}">
+        <div class="ic">${it.icon}</div>
+        <div class="n">${it.value}</div>
+        <div class="l">${it.label}</div>
+      </div>
+    `).join('')}
+  </div>`;
 }
 function renderIncomeReport(){
   const [s,e] = reportsDateRange();
@@ -3192,14 +3525,20 @@ function renderIncomeReport(){
   }).sort((a,b)=>b.income-a.income);
   return `
     <div class="section-title" style="margin-top:14px;">Доход по машинам <span class="count">${list.length}</span></div>
-    <div class="card" style="display:block;">
+    ${DB.settings.windowsMode ? reportCardGrid(list.map(({car,count,income})=>({
+        icon:'💰', cls:'c-income', iconCls:'icon-teal',
+        value: money(income),
+        label: `${esc(car.make+' '+car.model)} · ${count} ${rentalWord(count)}`,
+        onclick: `openCarReportDetail('${car.id}')`
+      })), 'Нет данных')
+    : `<div class="card" style="display:block;">
       ${list.length ? list.map(({car,count,income})=>`
         <div class="report-row" style="cursor:pointer;" onclick="openCarReportDetail('${car.id}')">
           <span class="rl">${esc(car.make+' '+car.model)} <span style="color:var(--text-faint);">· ${count} ${rentalWord(count)}</span></span>
           <span class="rv" style="color:var(--accent-2);">${money(income)}</span>
         </div>
       `).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Нет данных</div>`}
-    </div>
+    </div>`}
   `;
 }
 function renderFinesReport(){
@@ -3208,7 +3547,17 @@ function renderFinesReport(){
   const fines = DB.clientLedger.filter(l=>l.type==='fine' && inRange(l.date)).sort((a,b)=>new Date(b.date)-new Date(a.date));
   return `
     <div class="section-title" style="margin-top:14px;">Все штрафы <span class="count">${fines.length}</span></div>
-    <div class="card" style="display:block;">
+    ${DB.settings.windowsMode ? reportCardGrid(fines.map(l=>{
+        const cl = DB.clients.find(c=>c.id===l.clientId);
+        const isPaid = cl ? clientDebt(cl.id).debt<=0 : false;
+        return {
+          icon: isPaid ? '✅' : '⚠️', cls: isPaid ? 'c-income' : 'c-warn', iconCls: isPaid ? 'icon-teal' : 'icon-red',
+          value: money(l.amount),
+          label: `${cl?esc(cl.name):'Клиент удалён'} · ${fmtDate(l.date)}`,
+          onclick: cl ? `openClientDetail('${cl.id}')` : ''
+        };
+      }), 'Штрафов пока нет')
+    : `<div class="card" style="display:block;">
       ${fines.length ? fines.map(l=>{
         const cl = DB.clients.find(c=>c.id===l.clientId);
         const isPaid = cl ? clientDebt(cl.id).debt<=0 : false;
@@ -3220,7 +3569,7 @@ function renderFinesReport(){
           <span class="rv" style="color:var(--danger);">${money(l.amount)}</span>
         </div>`;
       }).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Штрафов пока нет</div>`}
-    </div>
+    </div>`}
   `;
 }
 function renderRepairReport(){
@@ -3233,14 +3582,20 @@ function renderRepairReport(){
   }).sort((a,b)=>b.expense-a.expense);
   return `
     <div class="section-title" style="margin-top:14px;">Расход по машинам <span class="count">${list.length}</span></div>
-    <div class="card" style="display:block;">
+    ${DB.settings.windowsMode ? reportCardGrid(list.map(({car,count,expense})=>({
+        icon:'🔧', cls:'c-warn', iconCls:'icon-blue',
+        value: money(expense),
+        label: `${esc(car.make+' '+car.model)} · ${count} ${count===1?'ремонт':(count>=2&&count<=4?'ремонта':'ремонтов')}`,
+        onclick: `openCarRepairHistory('${car.id}')`
+      })), 'Нет данных')
+    : `<div class="card" style="display:block;">
       ${list.length ? list.map(({car,count,expense})=>`
         <div class="report-row" style="cursor:pointer;" onclick="openCarRepairHistory('${car.id}')">
           <span class="rl">${esc(car.make+' '+car.model)} <span style="color:var(--text-faint);">· ${count} ${count===1?'ремонт':(count>=2&&count<=4?'ремонта':'ремонтов')}</span></span>
           <span class="rv" style="color:var(--danger);">${money(expense)}</span>
         </div>
       `).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Нет данных</div>`}
-    </div>
+    </div>`}
   `;
 }
 function renderOilReport(){
@@ -3253,14 +3608,20 @@ function renderOilReport(){
   }).sort((a,b)=>b.expense-a.expense);
   return `
     <div class="section-title" style="margin-top:14px;">Расход на масло по машинам <span class="count">${list.length}</span></div>
-    <div class="card" style="display:block;">
+    ${DB.settings.windowsMode ? reportCardGrid(list.map(({car,count,expense})=>({
+        icon:'🛢', cls:'c-warn', iconCls:'icon-purple',
+        value: money(expense),
+        label: `${esc(car.make+' '+car.model)} · ${count} ${count===1?'замена':(count>=2&&count<=4?'замены':'замен')}`,
+        onclick: `openRecordMileage('${car.id}')`
+      })), 'Нет данных')
+    : `<div class="card" style="display:block;">
       ${list.length ? list.map(({car,count,expense})=>`
         <div class="report-row" style="cursor:pointer;" onclick="openRecordMileage('${car.id}')">
           <span class="rl">${esc(car.make+' '+car.model)} <span style="color:var(--text-faint);">· ${count} ${count===1?'замена':(count>=2&&count<=4?'замены':'замен')}</span></span>
           <span class="rv" style="color:var(--danger);">${money(expense)}</span>
         </div>
       `).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Нет данных</div>`}
-    </div>
+    </div>`}
   `;
 }
 function oilStatus(car){
@@ -4559,12 +4920,12 @@ async function notifyClient(clientId, message, eventKey){
   try{ await sendWhatsApp(cl.phone, message); }catch(e){}
 }
 function buildPaymentMessage(cl, amount, purpose, note){
-  const purposeLabel = purpose==='fine' ? 'оплату штрафа' : purpose==='violation' ? 'оплату нарушения' : 'оплату аренды';
+  const purposeLabel = purpose==='fine' ? 'оплату штрафа' : purpose==='violation' ? 'оплату нарушения' : purpose==='oldDebt' ? 'оплату старого долга' : 'оплату аренды';
   return `Здравствуйте${cl?', '+cl.name:''}! ✅\n\nПлатёж получен.\n💳 Назначение: ${purposeLabel}\n💰 Сумма: ${money(amount)}${note?'\n📝 '+note:''}`;
 }
 function buildDebtMessage(cl, kind, amount, note){
-  const icon = kind==='violation' ? '🚫' : '⚠️';
-  const title = kind==='violation' ? 'зафиксировано нарушение' : 'начислен штраф';
+  const icon = kind==='violation' ? '🚫' : kind==='oldDebt' ? '📋' : '⚠️';
+  const title = kind==='violation' ? 'зафиксировано нарушение' : kind==='oldDebt' ? 'учтён старый долг' : 'начислен штраф';
   return `Здравствуйте${cl?', '+cl.name:''}! ${icon}\n\nВам ${title}.\n💰 Сумма к оплате: ${money(amount)}${note?'\n📝 Причина: '+note:''}`;
 }
 function buildCompleteMessage(ct, markPaid){
