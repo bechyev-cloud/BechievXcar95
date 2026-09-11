@@ -534,6 +534,34 @@ body.win-mode .win-car-card:hover .wcc-action-btn.tpl{background:rgba(242,169,59
 body.win-mode .win-car-card:hover .wcc-action-btn.debt{background:rgba(232,96,76,0.22);}
 body.win-mode .card.win-car-card{padding:14px 16px 13px;gap:8px;}
 
+/* ---------- car view: large tiles (Windows "large icons" style) ---------- */
+.win-car-tile{flex-direction:column;align-items:stretch;padding:0;overflow:hidden;gap:0;}
+.wct-photo{position:relative;width:100%;aspect-ratio:4/3;background:linear-gradient(155deg,var(--surface-2),var(--surface-3));display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wct-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s ease;}
+.win-car-tile.has-photo:hover .wct-photo img{transform:scale(1.06);}
+.wct-photo svg{width:44px;height:44px;color:var(--text-faint);opacity:0.5;}
+.wct-badge{position:absolute;top:10px;left:10px;z-index:1;box-shadow:0 4px 10px -4px rgba(0,0,0,0.35);}
+.wct-timer{position:absolute;top:10px;right:10px;z-index:1;box-shadow:0 4px 10px -4px rgba(0,0,0,0.35);}
+.wct-info{padding:13px 15px 14px;position:relative;z-index:1;}
+.wct-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.wct-name{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--text);letter-spacing:0.1px;line-height:1.25;}
+.wct-amount{font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--text);white-space:nowrap;flex-shrink:0;}
+.wct-sub{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--text-dim);letter-spacing:0.2px;margin-top:4px;}
+.wct-sub svg{width:12px;height:12px;color:var(--accent);flex-shrink:0;}
+
+/* ---------- car view: compact list rows (Windows "details" style) ---------- */
+body.win-mode .cars-list-wrap{grid-column:1 / -1;display:flex;flex-direction:column;gap:8px;}
+.win-car-row{flex-direction:row;align-items:center;padding:9px 14px 9px 9px;gap:12px;}
+.wcr-thumb{width:44px;height:44px;border-radius:11px;overflow:hidden;flex-shrink:0;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;}
+.wcr-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.wcr-thumb svg{width:20px;height:20px;color:var(--text-faint);}
+.wcr-name{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--text);letter-spacing:0.1px;flex-shrink:0;min-width:150px;}
+.wcr-plate{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--text-dim);flex-shrink:0;min-width:110px;}
+.wcr-plate svg{width:12px;height:12px;color:var(--accent);flex-shrink:0;}
+.wcr-mid{display:flex;align-items:center;gap:10px;flex:1;min-width:0;flex-wrap:wrap;}
+.wcr-amount{font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--text);white-space:nowrap;margin-left:auto;flex-shrink:0;}
+.wcr-actions{display:flex;gap:6px;flex-shrink:0;margin-left:6px;}
+
 .mini-icon-btn{
   margin-top:8px;width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);
   color:var(--accent);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
@@ -924,6 +952,9 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
       <button class="icon-btn" id="headerAddBtn" onclick="openQuickMenu()" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       </button>
+      <button class="icon-btn" id="carViewBtn" onclick="openCarViewMenu()" style="display:none;" title="Вид карточек">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></svg>
+      </button>
       <button class="icon-btn" id="notifBtn" onclick="openNotifications()" style="position:relative;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span id="notifBadge" class="notif-badge" style="display:none;">0</span>
@@ -1269,6 +1300,7 @@ async function loadAll(){
     if(!DB.settings.overdueVariant) DB.settings.overdueVariant = 'benevolent';
     if(!DB.settings.companyName) DB.settings.companyName = 'XCAR';
     if(DB.settings.windowsMode===undefined) DB.settings.windowsMode = false;
+    if(!DB.settings.carViewMode) DB.settings.carViewMode = 'default';
     if(!DB.settings.readNotifKeys) DB.settings.readNotifKeys = [];
     if(!DB.settings.dashCardsMigrated1){
       if(DB.settings.dashboardCardOrder){
@@ -1366,6 +1398,7 @@ function updateHeaderIcons(){
   const tab = currentTab;
   document.getElementById('dashCustomizeBtn').style.display = (tab==='dashboard') ? 'flex' : 'none';
   document.getElementById('carsShareBtn').style.display = (tab==='cars') ? 'flex' : 'none';
+  document.getElementById('carViewBtn').style.display = (tab==='cars' && DB.settings.windowsMode) ? 'flex' : 'none';
   document.getElementById('searchToggleBtn').style.display = (tab==='cars'||tab==='clients'||tab==='contracts') ? 'flex' : 'none';
   document.getElementById('reportsCalendarBtn').style.display = (tab==='reports' && !DB.settings.windowsMode) ? 'flex' : 'none';
 }
@@ -1981,8 +2014,41 @@ function renderCars(){
     </div>` : ''}
     <div class="chips">${filters.map(([k,l])=>`<div class="chip ${carFilter===k?'active':''}" onclick="carFilter='${k}';render()">${l} <span class="chip-count">${counts[k]}</span></div>`).join('')}</div>
     <div class="section-title">Автопарк <span class="count">${list.length}</span></div>
-    ${list.length ? list.map(carCard).join('') : emptyState('Пока нет машин','Нажмите «+», чтобы добавить первую машину в автопарк')}
+    ${(() => {
+      if(!list.length) return emptyState('Пока нет машин','Нажмите «+», чтобы добавить первую машину в автопарк');
+      const viewMode = DB.settings.windowsMode ? (DB.settings.carViewMode||'default') : 'default';
+      if(viewMode==='list') return `<div class="cars-list-wrap">${list.map(c=>carCard(c,'list')).join('')}</div>`;
+      return list.map(c=>carCard(c, viewMode)).join('');
+    })()}
   `;
+}
+const CAR_VIEW_MODES = [
+  { id:'default', label:'Текущие', desc:'Стандартный вид карточек с фото и быстрыми действиями' },
+  { id:'tiles', label:'Крупные карточки', desc:'Большие плитки с фото сверху — как в проводнике Windows' },
+  { id:'list', label:'Список', desc:'Компактные строки — удобно, если машин много' },
+];
+function openCarViewMenu(){
+  const current = DB.settings.carViewMode || 'default';
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Вид карточек</div>
+      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      ${CAR_VIEW_MODES.map(v=>`
+        <div class="settings-item" style="cursor:pointer;" onclick="setCarViewMode('${v.id}')">
+          <div><div class="st">${esc(v.label)}</div><div class="sd">${esc(v.desc)}</div></div>
+          ${current===v.id ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;color:var(--accent);flex-shrink:0;"><path d="M20 6 9 17l-5-5"/></svg>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `);
+}
+async function setCarViewMode(mode){
+  DB.settings.carViewMode = mode;
+  await persist('settings');
+  closeSheet();
+  render();
 }
 /* ---------- car photo (replaces the old stylized icon picker) ---------- */
 function resizeImageDataUrl(dataUrl, maxSize){
@@ -2026,14 +2092,55 @@ function renderCarPhotoPreview(dataUrl){
   const holder = document.getElementById('carPhotoRemoveBtnHolder');
   if(holder) holder.innerHTML = dataUrl ? `<button type="button" class="btn danger-ghost" style="padding:9px 14px;" onclick="removeCarPhoto()">Удалить фото</button>` : '';
 }
-function carCard(c){
+function carCard(c, viewMode){
   const badgeCls = {free:'free',rented:'rented',booked:'booked',service:'service'}[c.status];
   const badgeText = {free:'Свободна',rented:'В аренде',booked:'Забронирована',service:'Ремонт'}[c.status];
   const ac = c.status==='rented' ? activeContractForCar(c.id) : null;
   const tl = ac ? timeLeftLabel(ac.end) : null;
   const hasPhoto = !!c.photo;
+  const plateIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 11h1M16 11h1"/></svg>`;
+  const carSilhouette = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h1a2 2 0 1 0 4 0h4a2 2 0 1 0 4 0h1a1 1 0 0 0 1-1v-3a2 2 0 0 0-.4-1.2l-2.1-2.8a2 2 0 0 0-1.6-.8H6a1 1 0 0 0-1 .8L4.2 12A2 2 0 0 0 4 12.8V16a1 1 0 0 0 1 1Z"/><path d="M4 12h16"/></svg>`;
+  if(DB.settings.windowsMode && viewMode==='tiles'){
+    const photoHtml = hasPhoto ? `<img src="${c.photo}" alt="">` : carSilhouette;
+    return `
+    <div class="card win-car-tile ${hasPhoto?'has-photo':''} ${ac ? (tl.overdue?'overdue-glow':'rented-glow') : ''}" onclick="openCarDetail('${c.id}')">
+      <div class="wct-photo">
+        ${photoHtml}
+        <span class="badge ${badgeCls} wct-badge">${badgeText}</span>
+        ${ac ? `<span class="timer-pill ${tl.overdue?'overdue':''} wct-timer">${timerSvg()}${tl.text}</span>` : ''}
+      </div>
+      <div class="wct-info">
+        <div class="wct-top">
+          <div class="wct-name">${esc(c.make)} ${esc(c.model)}</div>
+          <div class="wct-amount">${money(c.rate)}</div>
+        </div>
+        <div class="wct-sub">${plateIcon}${esc(c.plate)}</div>
+      </div>
+    </div>`;
+  }
+  if(DB.settings.windowsMode && viewMode==='list'){
+    const thumbHtml = hasPhoto ? `<img src="${c.photo}" alt="">` : carSilhouette;
+    return `
+    <div class="card win-car-row ${ac ? (tl.overdue?'overdue-glow':'rented-glow') : ''}" onclick="openCarDetail('${c.id}')">
+      <div class="wcr-thumb">${thumbHtml}</div>
+      <div class="wcr-name">${esc(c.make)} ${esc(c.model)}</div>
+      <div class="wcr-mid">
+        <span class="wcr-plate">${plateIcon}${esc(c.plate)}</span>
+        <span class="badge ${badgeCls}">${badgeText}</span>
+        ${ac ? `<span class="timer-pill ${tl.overdue?'overdue':''}">${timerSvg()}${tl.text}</span>` : ''}
+      </div>
+      <div class="wcr-amount">${money(c.rate)}<span style="color:var(--text-faint);font-weight:600;font-size:11px;"> /сутки</span></div>
+      ${ac ? `<div class="wcr-actions">
+        <button class="mini-icon-btn" style="margin-top:0;" title="Отправить шаблон клиенту" onclick="event.stopPropagation();openTemplatePicker('${c.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>
+        </button>
+        <button class="mini-icon-btn" style="margin-top:0;" title="Отправить накопленный долг" onclick="event.stopPropagation();sendDebtToClient('${c.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </button>
+      </div>` : '<div class="wcr-actions"></div>'}
+    </div>`;
+  }
   if(DB.settings.windowsMode){
-    const plateIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 11h1M16 11h1"/></svg>`;
     const thumbHtml = hasPhoto ? `<div class="wcc-thumb"><img src="${c.photo}" alt=""></div>` : '';
     return `
     <div class="card win-car-card ${hasPhoto?'has-photo':''} ${ac ? (tl.overdue?'overdue-glow':'rented-glow') : ''}" onclick="openCarDetail('${c.id}')">
@@ -4516,8 +4623,9 @@ function openSettings(){
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">Настройки</div>
       <div class="sheet-head-actions">
+        <button class="icon-btn" onclick="closeSheet()" title="Назад"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
         ${iconBtn('refresh', 'forceUpdateApp()', 'Обновить приложение')}
-        <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        <button class="icon-btn" onclick="closeSheet()" title="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       </div>
     </div>
     <div class="sheet-body">
