@@ -1334,12 +1334,13 @@ function showCenterConfirm(msg){
   window.__cct = setTimeout(()=>el.classList.remove('show'), 1500);
   feedback(/удал/i.test(msg) ? 'warning' : 'success');
 }
-function confirmDelete(msg){
+function confirmDelete(msg, okLabel){
   return new Promise(resolve=>{
     const modal = document.getElementById('delModal');
     const okBtn = document.getElementById('delOkBtn');
     const cancelBtn = document.getElementById('delCancelBtn');
     document.getElementById('delModalText').textContent = msg;
+    okBtn.textContent = okLabel || 'Удалить';
     modal.classList.add('show');
     feedback('warning');
     let done = false;
@@ -4636,31 +4637,55 @@ function openEmailBackupSettings(){
     </div>
   `);
 }
+const BACKUP_SCOPES = {
+  full:      { label:'Полная копия', desc:'Машины, клиенты, договоры, штрафы и настройки — всё сразу', keys:['cars','clients','contracts','clientLedger','oilChanges','settings'] },
+  settings:  { label:'Настройки',    desc:'Только настройки приложения', keys:['settings'] },
+  clients:   { label:'Контакты',     desc:'Только клиенты, без договоров и машин', keys:['clients'] },
+  contracts: { label:'Договоры',     desc:'Договоры, штрафы и платежи, без клиентов и машин', keys:['contracts','clientLedger'] },
+};
+const BACKUP_KEY_LABELS = { cars:'машины', clients:'клиенты', contracts:'договоры', clientLedger:'штрафы и платежи', oilChanges:'замены масла', settings:'настройки' };
+const ICON_DOWNLOAD = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>';
+const ICON_UPLOAD = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>';
+const ICON_CLIPBOARD_COPY = '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><path d="M9 14l2 2 4-4"/>';
+const ICON_CLIPBOARD_PASTE = '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><path d="M9 14h6M9 18h4"/>';
 function openBackupSettings(){
   openSheet(`
     ${subHead('Резервное копирование')}
     <div class="sheet-body">
-      <div class="settings-item">
-        <div><div class="st">Экспорт данных</div><div class="sd">Скачать все данные в файл .json</div></div>
-        <button class="icon-btn" onclick="exportBackup()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        </button>
+      <div class="section-title" style="margin-top:0;">Экспорт (сохранить копию)</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:8px;">Выберите, что сохранить, и способ: файлом (скачать) или текстом (скопировать и, например, переслать себе в мессенджер).</div>
+      ${Object.keys(BACKUP_SCOPES).map(scopeKey=>{
+        const s = BACKUP_SCOPES[scopeKey];
+        return `<div class="settings-item">
+          <div><div class="st">${s.label}</div><div class="sd">${s.desc}</div></div>
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <button class="icon-btn" title="Скачать файлом" onclick="exportBackupFile('${scopeKey}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICON_DOWNLOAD}</svg></button>
+            <button class="icon-btn" title="Скопировать текстом" onclick="exportBackupText('${scopeKey}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON_CLIPBOARD_COPY}</svg></button>
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="detail-block" style="margin-top:12px;">
+        <div class="detail-row"><span class="k">Последняя полная копия</span><span class="v">${DB.settings.lastBackupAt ? fmtDateTime(DB.settings.lastBackupAt) : 'ещё не делалась'}</span></div>
       </div>
+
+      <div class="section-title" style="margin-top:22px;">Импорт (восстановить из копии)</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:8px;">Восстановится только то, что есть в выбранной копии — остальные данные не затронутся.</div>
       <div class="settings-item">
-        <div><div class="st">Экспорт в Excel</div><div class="sd">Машины, клиенты и договоры — 3 листа .xlsx</div></div>
+        <div><div class="st">Из файла</div><div class="sd">Выбрать .json файл резервной копии</div></div>
+        <button class="icon-btn" title="Выбрать файл" onclick="document.getElementById('importFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICON_UPLOAD}</svg></button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackupFile(event)">
+      <div class="settings-item" style="cursor:pointer;" onclick="openBackupPasteSheet()">
+        <div><div class="st">Вставить текстом</div><div class="sd">Вставить текст копии из буфера обмена</div></div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">${ICON_CLIPBOARD_PASTE}</svg>
+      </div>
+
+      <div class="section-title" style="margin-top:22px;">Экспорт в Excel</div>
+      <div class="settings-item">
+        <div><div class="st">Excel-файл</div><div class="sd">Машины, клиенты и договоры — 3 листа .xlsx</div></div>
         <button class="icon-btn" onclick="exportExcel()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4v16M16 4v16M3 10h18M3 15h18"/></svg>
         </button>
-      </div>
-      <div class="settings-item">
-        <div><div class="st">Импорт данных</div><div class="sd">Восстановить из файла резервной копии</div></div>
-        <button class="icon-btn" onclick="document.getElementById('importFile').click()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        </button>
-      </div>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
-      <div class="detail-block" style="margin-top:16px;">
-        <div class="detail-row"><span class="k">Последняя копия</span><span class="v">${DB.settings.lastBackupAt ? fmtDateTime(DB.settings.lastBackupAt) : 'ещё не делалась'}</span></div>
       </div>
     </div>
   `);
@@ -4812,18 +4837,95 @@ async function changeCurrency(){
   await persist('settings');
   render(); showToast('Валюта изменена');
 }
-function exportBackup(){
-  const payload = { exportedAt: new Date().toISOString(), cars: DB.cars, clients: DB.clients, contracts: DB.contracts, clientLedger: DB.clientLedger, oilChanges: DB.oilChanges, settings: DB.settings };
+function buildBackupPayload(scopeKey){
+  const scope = BACKUP_SCOPES[scopeKey] || BACKUP_SCOPES.full;
+  const payload = { exportedAt: new Date().toISOString(), scope: scopeKey };
+  scope.keys.forEach(k=>{ payload[k] = DB[k]; });
+  return payload;
+}
+function exportBackupFile(scopeKey){
+  const scope = BACKUP_SCOPES[scopeKey] || BACKUP_SCOPES.full;
+  const payload = buildBackupPayload(scopeKey);
   const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `autoprokat-backup-${todayISO()}.json`;
+  a.href = url; a.download = `xcar-backup-${scopeKey}-${todayISO()}.json`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  DB.settings.lastBackupAt = new Date().toISOString();
-  persist('settings');
-  showToast('Полная резервная копия сохранена (машины, клиенты, договоры)');
-  openSettings();
+  if(scopeKey==='full'){ DB.settings.lastBackupAt = new Date().toISOString(); persist('settings'); }
+  showToast(`${scope.label}: копия сохранена в файл`);
+}
+function exportBackupText(scopeKey){
+  const scope = BACKUP_SCOPES[scopeKey] || BACKUP_SCOPES.full;
+  const text = JSON.stringify(buildBackupPayload(scopeKey));
+  if(scopeKey==='full'){ DB.settings.lastBackupAt = new Date().toISOString(); persist('settings'); }
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">${scope.label} · текстом</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:10px;">Скопируйте текст ниже и сохраните его (например, отправьте себе в заметки или в WhatsApp) — позже его можно вставить обратно через «Импорт → Вставить текстом».</div>
+      <textarea id="backupTextArea" readonly style="width:100%;min-height:160px;font-family:monospace;font-size:11px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);resize:vertical;" onclick="this.select()">${esc(text)}</textarea>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn primary" onclick="copyBackupText()">📋 Скопировать</button>
+      </div>
+    </div>
+  `);
+}
+async function copyBackupText(){
+  const ta = document.getElementById('backupTextArea');
+  if(!ta) return;
+  try{
+    await navigator.clipboard.writeText(ta.value);
+    showToast('Скопировано в буфер обмена');
+  }catch(e){
+    try{ ta.select(); document.execCommand('copy'); showToast('Скопировано в буфер обмена'); }
+    catch(e2){ showToast('Не удалось скопировать — выделите текст вручную'); }
+  }
+}
+function openBackupPasteSheet(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Вставить текст копии</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:10px;">Вставьте сюда текст резервной копии (полной, или только настроек / контактов / договоров) — восстановится только то, что в нём есть.</div>
+      <textarea id="pasteTextArea" placeholder="Вставьте текст копии сюда..." style="width:100%;min-height:160px;font-family:monospace;font-size:11px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);resize:vertical;"></textarea>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn ghost" onclick="pasteFromClipboardIntoArea()">📋 Вставить из буфера</button>
+        <button class="btn primary" onclick="importBackupFromTextArea()">Восстановить</button>
+      </div>
+    </div>
+  `);
+}
+async function pasteFromClipboardIntoArea(){
+  try{
+    const text = await navigator.clipboard.readText();
+    const ta = document.getElementById('pasteTextArea');
+    if(ta && text) ta.value = text;
+    else showToast('Буфер обмена пуст');
+  }catch(e){ showToast('Нет доступа к буферу — вставьте вручную (долгое нажатие → Вставить)'); }
+}
+async function importBackupFromTextArea(){
+  const ta = document.getElementById('pasteTextArea');
+  const text = ta ? ta.value.trim() : '';
+  if(!text){ showToast('Вставьте текст копии'); return; }
+  let data;
+  try{ data = JSON.parse(text); }
+  catch(e){ showToast('Не удалось распознать текст — проверьте, что скопирован текст целиком'); return; }
+  await applyImportedPayload(data);
+}
+async function applyImportedPayload(data){
+  const knownKeys = ['cars','clients','contracts','clientLedger','oilChanges','settings'];
+  const presentKeys = knownKeys.filter(k=> data[k]!==undefined);
+  if(!presentKeys.length){ showToast('В копии не найдено известных данных'); return; }
+  const labels = presentKeys.map(k=>BACKUP_KEY_LABELS[k]).join(', ');
+  if(!await confirmDelete(`Будут заменены: ${labels}. Текущие данные этих разделов будут перезаписаны. Продолжить?`, 'Восстановить')) return;
+  for(const k of presentKeys){ DB[k] = data[k]; await persist(k); }
+  closeSheet(); render();
+  showToast('Данные восстановлены: ' + labels);
 }
 function exportExcel(){
   if(typeof XLSX === 'undefined'){ showToast('Не удалось загрузить модуль Excel — проверьте интернет-соединение'); return; }
@@ -4884,29 +4986,61 @@ function exportExcel(){
   XLSX.writeFile(wb, `xcar-export-${todayISO()}.xlsx`);
   showToast('Файл Excel сохранён');
 }
-function importBackup(evt){
+function importBackupFile(evt){
   const file = evt.target.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = async () => {
     try{
       const data = JSON.parse(reader.result);
-      if(!confirm('Импорт заменит текущие данные приложения резервной копией. Продолжить?')) return;
-      DB.cars = data.cars || [];
-      DB.clients = data.clients || [];
-      DB.contracts = data.contracts || [];
-      DB.clientLedger = data.clientLedger || [];
-      DB.oilChanges = data.oilChanges || [];
-      DB.settings = data.settings || DB.settings;
-      await persist('cars'); await persist('clients'); await persist('contracts'); await persist('clientLedger'); await persist('oilChanges'); await persist('settings');
-      closeSheet(); render(); showToast('Данные восстановлены');
+      await applyImportedPayload(data);
     }catch(e){ showToast('Файл повреждён или неверный формат'); }
   };
   reader.readAsText(file);
   evt.target.value = '';
 }
-async function wipeAll(){
-  if(!await confirmDelete('Все машины, клиенты и договоры будут удалены безвозвратно. Продолжить?')) return;
-  if(!await confirmDelete('Точно удалить всё? Это действие необратимо.')) return;
+let wipeCountdownTimer = null;
+function wipeAll(){
+  clearInterval(wipeCountdownTimer);
+  openWipeConfirmStage(1);
+}
+function openWipeConfirmStage(stage){
+  clearInterval(wipeCountdownTimer);
+  const seconds = stage===1 ? 30 : 10;
+  const title = stage===1 ? 'Очистить все данные' : 'Это последний шаг';
+  const desc = stage===1
+    ? 'Все машины, клиенты, договоры, штрафы и платежи будут удалены безвозвратно. Рекомендуем сначала сделать резервную копию в разделе выше.'
+    : 'После нажатия кнопки ниже данные восстановить будет невозможно, если не сохранена резервная копия.';
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">${title}</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Отмена')}</div>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:18px;">${desc}</div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="closeSheet()">Отмена</button>
+        <button class="btn danger" id="wipeConfirmBtn" disabled>Подождите ${seconds} сек…</button>
+      </div>
+    </div>
+  `);
+  let remaining = seconds;
+  const btn = document.getElementById('wipeConfirmBtn');
+  wipeCountdownTimer = setInterval(()=>{
+    remaining--;
+    const liveBtn = document.getElementById('wipeConfirmBtn');
+    if(!liveBtn){ clearInterval(wipeCountdownTimer); return; }
+    if(remaining<=0){
+      clearInterval(wipeCountdownTimer);
+      liveBtn.disabled = false;
+      liveBtn.textContent = stage===1 ? 'Продолжить' : 'Удалить всё безвозвратно';
+      liveBtn.onclick = () => { stage===1 ? openWipeConfirmStage(2) : performWipeAll(); };
+    } else {
+      liveBtn.textContent = `Подождите ${remaining} сек…`;
+    }
+  }, 1000);
+}
+async function performWipeAll(){
+  clearInterval(wipeCountdownTimer);
   DB.cars = []; DB.clients = []; DB.contracts = []; DB.clientLedger = []; DB.oilChanges = [];
   await persist('cars'); await persist('clients'); await persist('contracts'); await persist('clientLedger'); await persist('oilChanges');
   closeSheet(); render(); showCenterConfirm('Все данные удалены');
