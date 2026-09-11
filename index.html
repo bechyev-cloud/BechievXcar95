@@ -3,6 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script>
+/* Apply the saved color theme to <html> synchronously, before first paint, so the page never
+   flashes the CSS default (dark) theme behind the status bar / notch area on some Android devices. */
+(function(){
+  try{
+    var raw = localStorage.getItem('autoprokat_settings');
+    var mode = 'light';
+    if(raw){ var s = JSON.parse(raw); if(s && s.colorMode) mode = s.colorMode; }
+    if(mode==='light') document.documentElement.classList.add('theme-light');
+    document.documentElement.style.colorScheme = mode==='light' ? 'light' : 'dark';
+  }catch(e){
+    document.documentElement.classList.add('theme-light');
+    document.documentElement.style.colorScheme = 'light';
+  }
+})();
+</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -48,7 +64,7 @@
   --radius:14px;
   --radius-sm:9px;
 }
-body.theme-light{
+html.theme-light{
   color-scheme:light;
   --bg:#ffffff;
   --surface:#ffffff;
@@ -73,14 +89,14 @@ body.theme-light{
   --shadow-card:0 1px 0 rgba(255,255,255,1) inset, 0 8px 18px -12px rgba(28,28,30,0.12), 0 1px 4px rgba(28,28,30,0.05);
   --shadow-pop:0 12px 32px -8px rgba(28,28,30,0.18);
 }
-body.theme-light #app{background:var(--bg);}
-body.theme-light .splash{background:var(--bg);}
+html.theme-light #app{background:var(--bg);}
+html.theme-light .splash{background:var(--bg);}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--font-body);height:100%;overscroll-behavior:none;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--font-body);height:100%;overflow:hidden;overscroll-behavior:none;}
 body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
   user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-webkit-touch-callout:none;}
 input, textarea{user-select:text;-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;-webkit-touch-callout:default;}
-#app{max-width:520px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;position:relative;background:
+#app{max-width:520px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;position:relative;background:
   radial-gradient(circle at 50% -10%, #1e2330 0%, var(--bg) 55%);}
 
 /* ---------- splash / welcome screen ---------- */
@@ -1109,22 +1125,38 @@ function daysCeilGrace(ms){
   if(DB.settings.graceHour && wholeDays>=1 && overHours>0 && overHours<=1) return wholeDays;
   return Math.max(1, Math.ceil(days));
 }
-// Доплата за опоздание с возвратом, если включён режим 6-часовых блоков:
-// первый час опоздания — без доплаты (льготный), после него доплата начисляется
-// 6-часовыми блоками по цене "за 6 часов" машины.
+// Доплата за опоздание с возвратом, если включено в настройках. Два варианта начисления
+// (DB.settings.overdueVariant):
+// 'benevolent' ("Благородный", по умолчанию) —
+//   первый час опоздания бесплатно; от 1 до 7 часов — разовый 6-часовой блок (цена "за 6 часов");
+//   от 7-8 часов — целые сутки (цена "за сутки"), по одним суткам за каждые полные 24 часа опоздания.
+// 'full' ("Полная сумма") —
+//   до 6 часов опоздания — бесплатно; больше 6 часов (но меньше суток) — 6-часовой блок;
+//   как только прошли целые сутки — сутки + 6-часовой блок, и ещё по одним суткам за каждые
+//   следующие полные 24 часа опоздания.
 function overdueSurcharge(ct){
   if(!DB.settings.overdue6hBlocks) return 0;
   if(!ct || !ct.end || ct.status!=='active') return 0;
   const now = new Date(), end = new Date(ct.end);
   const overMs = now - end;
-  const graceMs = 3600*1000;
-  if(overMs <= graceMs) return 0;
   const car = DB.cars.find(c=>c.id===ct.carId);
   const rate6h = car?.rate6h || 0;
-  if(!rate6h) return 0;
-  const blockMs = 6*3600*1000;
-  const blocks = Math.ceil((overMs - graceMs)/blockMs);
-  return blocks * rate6h;
+  const dailyRate = car?.rate || 0;
+  const overHoursTotal = overMs/3600000;
+  if(DB.settings.overdueVariant==='full'){
+    if(overHoursTotal <= 6) return 0;
+    const wholeDays = Math.floor(overHoursTotal/24);
+    const remainderHours = overHoursTotal - wholeDays*24;
+    let charge = wholeDays * dailyRate;
+    if(wholeDays>=1 || remainderHours>6) charge += rate6h;
+    return charge;
+  }
+  const graceMs = 3600*1000; // 1 час — бесплатно
+  if(overMs <= graceMs) return 0;
+  const dayThresholdHours = 7; // с 7-8 часов опоздания — целые сутки вместо 6-часового блока
+  if(overHoursTotal < dayThresholdHours) return rate6h || 0;
+  const extraDays = Math.max(1, Math.ceil(overHoursTotal/24));
+  return extraDays * (dailyRate||0);
 }
 const THEME_COLORS = {
   amber:{accent:'#f2a93b', accentDim:'#7a5b25'},
@@ -1226,11 +1258,15 @@ async function loadAll(){
     if(DB.settings.graceHour===undefined) DB.settings.graceHour = false;
     if(DB.settings.overdue6hBlocks===undefined) DB.settings.overdue6hBlocks = false;
     if(!DB.settings.feedback) DB.settings.feedback = { enabled:false, sound:true, vibration:true };
-    if(!DB.settings.autoNotify) DB.settings.autoNotify = { rental:true, payment:true, debt:true, complete:true };
+    if(!DB.settings.autoNotify) DB.settings.autoNotify = { rental:true, payment:true, debt:true, complete:true, reminder:true, extend:true };
+    if(DB.settings.autoNotify.reminder===undefined) DB.settings.autoNotify.reminder = true;
+    if(DB.settings.autoNotify.extend===undefined) DB.settings.autoNotify.extend = true;
     if(!DB.settings.themeColor) DB.settings.themeColor = 'amber';
     if(!DB.settings.colorMode) DB.settings.colorMode = 'light';
     if(DB.settings.appIcon===undefined) DB.settings.appIcon = 'v8';
     if(!DB.settings.docFormat) DB.settings.docFormat = 'image';
+    if(!DB.settings.debtMode) DB.settings.debtMode = 'withFines';
+    if(!DB.settings.overdueVariant) DB.settings.overdueVariant = 'benevolent';
     if(!DB.settings.companyName) DB.settings.companyName = 'XCAR';
     if(DB.settings.windowsMode===undefined) DB.settings.windowsMode = false;
     if(!DB.settings.readNotifKeys) DB.settings.readNotifKeys = [];
@@ -1247,6 +1283,24 @@ async function loadAll(){
         });
       }
       DB.settings.dashCardsMigrated2 = true;
+    }
+    if(!DB.settings.dashCardsMigrated3){
+      if(DB.settings.dashboardCardOrder){
+        if(!DB.settings.dashboardCardOrder.includes('clientDiscounts')) DB.settings.dashboardCardOrder.push('clientDiscounts');
+      }
+      DB.settings.dashCardsMigrated3 = true;
+    }
+    if(!DB.settings.dashCardsMigrated4){
+      if(DB.settings.dashboardCardOrder){
+        if(!DB.settings.dashboardCardOrder.includes('violationsSum')) DB.settings.dashboardCardOrder.push('violationsSum');
+      }
+      DB.settings.dashCardsMigrated4 = true;
+    }
+    if(!DB.settings.dashCardsMigrated5){
+      if(DB.settings.dashboardCardOrder){
+        DB.settings.dashboardCardOrder = DB.settings.dashboardCardOrder.filter(id=>id!=='overdueDebt');
+      }
+      DB.settings.dashCardsMigrated5 = true;
     }
   }catch(e){ console.error('load error', e); }
 }
@@ -1685,8 +1739,8 @@ function renderDashboard(){
     ${renderDashboardCards()}
   `;
 }
-const DASHBOARD_CARD_IDS_ALL = ['income','clientDebt','overdueDebt','monthAgedDebt','finesUnpaid','finesPaid','repairExpense'];
-const DASHBOARD_CARD_IDS_DEFAULT = ['income','clientDebt','overdueDebt','monthAgedDebt','finesUnpaid','finesPaid','repairExpense'];
+const DASHBOARD_CARD_IDS_ALL = ['income','clientDebt','overdueDebt','monthAgedDebt','finesUnpaid','finesPaid','repairExpense','clientDiscounts','violationsSum'];
+const DASHBOARD_CARD_IDS_DEFAULT = ['income','clientDebt','monthAgedDebt','finesUnpaid','finesPaid','repairExpense','clientDiscounts','violationsSum'];
 let dashboardFilter = { mode:'all', from:null, to:null };
 function dashboardPeriodRange(filter){
   if(filter.mode==='week') return periodRange('week');
@@ -1744,6 +1798,9 @@ function dashboardCardDefs(){
   const finesUnpaid = fineContracts.reduce((s2,c)=>s2+Math.max(0,(c.total||0)-finePaidAmount(c.id)),0);
   const finesPaid = fineContracts.reduce((s2,c)=>s2+Math.min(c.total||0, finePaidAmount(c.id)),0);
   const repairExpense = DB.contracts.filter(c=>c.type==='repair' && inRange(c.start)).reduce((s2,c)=>s2+(c.total||0),0);
+  const discountEntries = DB.clientLedger.filter(l=>l.type==='discount' && inRange(l.date));
+  const clientDiscounts = discountEntries.reduce((s2,l)=>s2+(l.amount||0),0);
+  const violationsSum = DB.contracts.filter(c=>c.type==='violation' && inRange(c.start)).reduce((s2,c)=>s2+(c.total||0),0);
   return {
     income: { icon:'💰', label:'Общий доход', value: money(totalIncome), cls:'c-income', iconCls:'icon-teal' },
     clientDebt: { icon:'⚠️', label:'Долг клиентов', value: money(totalClientDebt), cls: totalClientDebt>0?'c-warn':'', iconCls:'icon-orange' },
@@ -1752,6 +1809,8 @@ function dashboardCardDefs(){
     finesUnpaid: { icon:'🔴', label:'Штрафы неоплаченные', value: money(finesUnpaid), cls: finesUnpaid>0?'c-warn':'', iconCls:'icon-red' },
     finesPaid: { icon:'✅', label:'Штрафы оплаченные', value: money(finesPaid), cls:'c-income', iconCls:'icon-teal' },
     repairExpense: { icon:'🔧', label:'Расход на ремонт', value: money(repairExpense), cls:'c-warn', iconCls:'icon-blue' },
+    clientDiscounts: { icon:'🏷️', label:'Скидки клиентам', value: money(clientDiscounts), cls:'', iconCls:'icon-purple', onclick:'openClientDiscountsList()' },
+    violationsSum: { icon:'🚫', label:'Сумма нарушений', value: money(violationsSum), cls: violationsSum>0?'c-warn':'', iconCls:'icon-red' },
   };
 }
 function dashboardCardOrder(){
@@ -1767,7 +1826,7 @@ function renderDashboardCards(){
     ${order.length ? `<div class="summary-row2" style="margin-top:12px;">
       ${order.map(id=>{
         const d = defs[id];
-        return `<div class="summary-card2 ${d.cls} ${d.iconCls||''}"><div class="ic">${d.icon}</div><div class="n">${d.value}</div><div class="l">${d.label}</div></div>`;
+        return `<div class="summary-card2 ${d.cls} ${d.iconCls||''}" ${d.onclick?`style="cursor:pointer;" onclick="${d.onclick}"`:''}><div class="ic">${d.icon}</div><div class="n">${d.value}</div><div class="l">${d.label}</div></div>`;
       }).join('')}
     </div>` : `<div style="color:var(--text-dim);font-size:13px;padding:8px 2px;">Карточки не выбраны — нажмите ⚙ в шапке</div>`}
   `;
@@ -2392,7 +2451,7 @@ function renderClients(){
 function clientCard(c){
   const rentals = DB.contracts.filter(ct=>ct.clientId===c.id).length;
   const initials = c.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-  const { debt, paymentsSum } = clientDebt(c.id);
+  const { debtWithFines, debtWithoutFines, paymentsSum } = clientDebt(c.id);
   const { avg, count } = computeClientRating(c.id);
   if(DB.settings.windowsMode){
     const totalSpent = DB.contracts.filter(ct=>ct.clientId===c.id && ct.status!=='cancelled').reduce((s,ct)=>s+(ct.total||0),0);
@@ -2412,7 +2471,8 @@ function clientCard(c){
       </div>` : ''}
       <div style="position:relative;z-index:1;">
         <div class="detail-row" style="padding:3px 0;font-size:12px;"><span class="k">Сумма</span><span class="v">${money(totalSpent)}</span></div>
-        <div class="detail-row" style="padding:3px 0;font-size:12px;"><span class="k">Долг</span><span class="v" style="color:${debt>0?'var(--danger)':'var(--text)'};">${money(Math.max(0,debt))}</span></div>
+        <div class="detail-row" style="padding:3px 0;font-size:12px;"><span class="k">Долг + штрафы</span><span class="v" style="color:${debtWithFines>0?'var(--danger)':'var(--text)'};">${money(Math.max(0,debtWithFines))}</span></div>
+        <div class="detail-row" style="padding:3px 0;font-size:12px;"><span class="k">Долг без штрафов</span><span class="v" style="color:${debtWithoutFines>0?'var(--danger)':'var(--text)'};">${money(Math.max(0,debtWithoutFines))}</span></div>
         <div class="detail-row" style="padding:3px 0;font-size:12px;"><span class="k">Оплата</span><span class="v" style="color:var(--accent-2);">${money(paymentsSum)}</span></div>
       </div>
     </div>`;
@@ -2424,7 +2484,7 @@ function clientCard(c){
       <div class="card-title">${esc(c.name)}${c.blacklisted ? ` <span class="badge unpaid">🚫 Чёрный список</span>` : ''}</div>
       <div class="card-sub">${esc(c.phone)||'—'} ${c.doc?'· '+esc(c.doc):''}</div>
       ${count ? `<div class="card-sub stars-display" style="margin-top:3px;">${starsStr(Math.round(avg))}</div>` : ''}
-      ${debt>0 ? `<div class="card-sub" style="margin-top:3px;color:var(--danger);font-weight:700;">Долг: ${money(debt)}</div>` : ''}
+      ${(debtWithFines>0||debtWithoutFines>0) ? `<div class="card-sub" style="margin-top:3px;color:var(--danger);font-weight:700;">Долг+штрафы: ${money(Math.max(0,debtWithFines))} · без штрафов: ${money(Math.max(0,debtWithoutFines))}</div>` : ''}
     </div>
     <div class="card-right">
       <div class="card-amount">${rentals}</div>
@@ -2540,7 +2600,11 @@ function clientDebt(clientId){
   const violationsSum = ledger.filter(l=>l.type==='violation').reduce((s,l)=>s+(l.amount||0),0);
   const oldDebtSum = ledger.filter(l=>l.type==='oldDebt').reduce((s,l)=>s+(l.amount||0),0);
   const paymentsSum = ledger.filter(l=>l.type==='payment').reduce((s,l)=>s+(l.amount||0),0);
-  return { unpaidSum, finesSum, violationsSum, oldDebtSum, paymentsSum, debt: unpaidSum + finesSum + violationsSum + oldDebtSum - paymentsSum, ledger };
+  const discountsSum = ledger.filter(l=>l.type==='discount').reduce((s,l)=>s+(l.amount||0),0);
+  const debtWithFines = unpaidSum + finesSum + violationsSum + oldDebtSum - paymentsSum - discountsSum;
+  const debtWithoutFines = unpaidSum + violationsSum + oldDebtSum - paymentsSum - discountsSum;
+  const debt = (DB.settings.debtMode==='withoutFines') ? debtWithoutFines : debtWithFines;
+  return { unpaidSum, finesSum, violationsSum, oldDebtSum, paymentsSum, discountsSum, debtWithFines, debtWithoutFines, debt, ledger };
 }
 function openClientDetail(id){
   const c = DB.clients.find(x=>x.id===id); if(!c) return;
@@ -2550,6 +2614,7 @@ function openClientDetail(id){
   const { avg, count } = computeClientRating(id);
   const unpaidFine = DB.contracts.filter(ct=>ct.clientId===id && ct.type==='fine')
     .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-finePaidAmount(ct.id)),0);
+  const debtLabel = DB.settings.debtMode==='withoutFines' ? 'Долг без штрафов' : 'Долг + штрафы';
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">${esc(c.name)}</div>
@@ -2575,7 +2640,7 @@ function openClientDetail(id){
 
       <div class="summary-row2" style="margin-top:12px;">
         <div class="summary-card2 c-income"><div class="ic">💰</div><div class="n">${money(totalSpent)}</div><div class="l">Оплачено</div></div>
-        <div class="summary-card2 ${debt>0?'c-warn':''}"><div class="ic">📋</div><div class="n">${money(Math.max(0,debt))}</div><div class="l">Долг</div></div>
+        <div class="summary-card2 ${debt>0?'c-warn':''}"><div class="ic">📋</div><div class="n">${money(Math.max(0,debt))}</div><div class="l">${debtLabel}</div></div>
         <div class="summary-card2 ${unpaidFine>0?'c-warn':''}"><div class="ic">⚠️</div><div class="n">${money(unpaidFine)}</div><div class="l">Неоплаченный штраф</div></div>
         <div class="summary-card2" style="cursor:pointer;" onclick="openClientRatingsList('${c.id}')"><div class="ic">⭐</div><div class="n">${count?avg.toFixed(1):'—'}</div><div class="l">Оценка клиента</div></div>
       </div>
@@ -2586,6 +2651,114 @@ function openClientDetail(id){
       <div class="btn-row" style="margin-top:10px;">
         <button class="btn good" onclick="openClientPaymentForm('${c.id}')">💵 Добавить платёж</button>
       </div>
+      ${debt>0 ? `<div class="btn-row" style="margin-top:10px;">
+        <button class="btn ghost" onclick="openClientDiscountForm('${c.id}')">🏷️ Погасить со скидкой</button>
+      </div>` : ''}
+    </div>
+  `);
+}
+function openClientDiscountForm(clientId){
+  const c = DB.clients.find(x=>x.id===clientId); if(!c) return;
+  const { debt } = clientDebt(clientId);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Оплата со скидкой · ${esc(c.name)}</div>
+      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">Текущий долг клиента: <b style="color:var(--danger);">${money(Math.max(0,debt))}</b></div>
+      <div class="field"><label>Сумма к оплате (${DB.settings.currency})</label><input id="f_disc_amount" type="number" placeholder="0" value="${debt>0?debt:''}"></div>
+      <div style="font-size:11.5px;color:var(--text-faint);margin-top:-8px;margin-bottom:4px;">Клиент платит эту сумму и полностью закрывает долг. Если сумма меньше долга — разница спишется как скидка. По умолчанию указан весь долг (оплата без скидки).</div>
+      <div class="field"><label>Дата</label><input id="f_disc_date" type="datetime-local" value="${nowDT()}"></div>
+      <div class="field"><label>Комментарий (необязательно)</label><input id="f_disc_note" placeholder="Например: скидка за постоянство"></div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="closeSheet()">Отмена</button>
+        <button class="btn primary" onclick="saveClientDiscount('${clientId}')">Оплатить полностью</button>
+      </div>
+    </div>
+  `);
+}
+async function saveClientDiscount(clientId){
+  let amount = parseFloat(document.getElementById('f_disc_amount').value)||0;
+  if(amount<=0){ showToast('Укажите сумму к оплате'); return; }
+  const date = document.getElementById('f_disc_date').value || nowDT();
+  const note = document.getElementById('f_disc_note').value.trim();
+  const { debt } = clientDebt(clientId);
+  if(debt>0 && amount>debt) amount = debt;
+  const discountAmount = Math.max(0, debt - amount);
+  let paymentPool = amount;
+  let discountPool = discountAmount;
+  // Close every outstanding fine/violation/old-debt item first, linking payment+discount entries to
+  // each one so its own "оплачено" status (штрафы, нарушения, старый долг) matches the full settlement —
+  // not just the aggregate debt number. Any amount left over (e.g. plain rental debt, which is tracked
+  // by contract.paid rather than linked ledger entries) is recorded as a generic entry below.
+  ['fine','violation','oldDebt'].forEach(type=>{
+    const paidFn = { fine: finePaidAmount, violation: violationPaidAmount, oldDebt: oldDebtPaidAmount }[type];
+    const idField = { fine:'fineId', violation:'violationId', oldDebt:'oldDebtId' }[type];
+    DB.contracts.filter(ct=>ct.clientId===clientId && ct.type===type)
+      .sort((a,b)=>new Date(a.start)-new Date(b.start))
+      .forEach(ct=>{
+        const remaining = Math.max(0, (ct.total||0) - paidFn(ct.id));
+        if(remaining<=0) return;
+        const itemPayment = Math.min(paymentPool, remaining);
+        const itemDiscount = remaining - itemPayment;
+        if(itemPayment>0){
+          const e = { id: uid(), clientId, type:'payment', amount: itemPayment, date, note: note||'Погашение со скидкой' };
+          e[idField] = ct.id;
+          DB.clientLedger.push(e);
+          paymentPool -= itemPayment;
+        }
+        if(itemDiscount>0){
+          const e = { id: uid(), clientId, type:'discount', amount: itemDiscount, date, note };
+          e[idField] = ct.id;
+          DB.clientLedger.push(e);
+          discountPool -= itemDiscount;
+        }
+      });
+  });
+  if(paymentPool>0){
+    DB.clientLedger.push({ id: uid(), clientId, type:'payment', amount: paymentPool, date, note: note||'Оплата со скидкой' });
+  }
+  if(discountPool>0){
+    DB.clientLedger.push({ id: uid(), clientId, type:'discount', amount: discountPool, date, note });
+  }
+  await persist('clientLedger');
+  const clForMsg = DB.clients.find(x=>x.id===clientId);
+  notifyClient(clientId, buildDiscountMessage(clForMsg, amount, discountAmount, note), 'payment');
+  sendPaymentHistoryDocument(clientId);
+  showToast('Клиент в полном расчёте');
+  openClientDetail(clientId);
+}
+function buildDiscountMessage(cl, amount, discountAmount, note){
+  const discLine = discountAmount>0 ? `\n🏷️ Скидка: ${money(discountAmount)}` : '';
+  return `Здравствуйте${cl?', '+cl.name:''}! ✅\n\nОплата принята, вы полностью в расчёте.\n💰 Сумма оплаты: ${money(amount)}${discLine}${note?'\n📝 '+note:''}`;
+}
+function openClientDiscountsList(){
+  const byClient = {};
+  DB.clientLedger.filter(l=>l.type==='discount').forEach(l=>{
+    if(!byClient[l.clientId]) byClient[l.clientId] = { sum:0, count:0, last:l.date };
+    byClient[l.clientId].sum += l.amount||0;
+    byClient[l.clientId].count += 1;
+    if(l.date > byClient[l.clientId].last) byClient[l.clientId].last = l.date;
+  });
+  const rows = Object.keys(byClient).map(clientId=>{
+    const c = DB.clients.find(x=>x.id===clientId);
+    return { clientId, name: c?c.name:'Клиент удалён', ...byClient[clientId] };
+  }).sort((a,b)=> b.sum - a.sum);
+  const total = rows.reduce((s,r)=>s+r.sum,0);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Скидки клиентам</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">Всего скидок: <b style="color:var(--text);">${money(total)}</b></div>
+      ${rows.length ? rows.map(r=>`
+        <div class="report-row" style="cursor:pointer;" onclick="closeSheet();openClientDetail('${r.clientId}')">
+          <span class="rl">${esc(r.name)} · ${r.count} ${r.count===1?'скидка':'скидок'} · ${fmtDateTime(r.last)}</span>
+          <span class="rv" style="color:var(--accent-2);">${money(r.sum)}</span>
+        </div>
+      `).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:8px 2px;">Скидок пока не было</div>`}
     </div>
   `);
 }
@@ -2632,6 +2805,7 @@ function openClientFullHistory(clientId){
   const c = DB.clients.find(x=>x.id===clientId); if(!c) return;
   const contracts = DB.contracts.filter(ct=>ct.clientId===clientId);
   const payments = DB.clientLedger.filter(l=>l.clientId===clientId && l.type==='payment');
+  const discounts = DB.clientLedger.filter(l=>l.clientId===clientId && l.type==='discount');
   const { finesSum, paymentsSum, debt } = clientDebt(clientId);
   const items = [
     ...contracts.map(ct=>({ date: ct.start, html: contractCard(ct) })),
@@ -2641,6 +2815,16 @@ function openClientFullHistory(clientId){
         <div class="card-body">
           <div class="card-title">Платёж${l.purpose ? ' · '+(l.purpose==='fine'?'штрафы':l.purpose==='violation'?'нарушения':'аренда') : ''}</div>
           <div class="card-sub">${l.note?esc(l.note):'Оплата'} · ${fmtDateTime(l.date)}</div>
+        </div>
+        <div class="card-right"><div class="card-amount" style="color:var(--accent-2);">-${money(l.amount)}</div></div>
+      </div>
+    `})),
+    ...discounts.map(l=>({ date: l.date, html: `
+      <div class="card" onclick="openClientDiscountForm('${clientId}')" style="align-items:flex-start;cursor:pointer;">
+        <div class="card-avatar">🏷️</div>
+        <div class="card-body">
+          <div class="card-title">Скидка</div>
+          <div class="card-sub">${l.note?esc(l.note):'Скидка клиенту'} · ${fmtDateTime(l.date)}</div>
         </div>
         <div class="card-right"><div class="card-amount" style="color:var(--accent-2);">-${money(l.amount)}</div></div>
       </div>
@@ -2781,10 +2965,15 @@ function openClientPaymentForm(clientId){
       <div class="field">
         <label>За что платёж</label>
         <div class="gauge-period-row" id="payPurposeRow" style="width:100%;">
-          ${Object.keys(PURPOSE_LABELS).map(k=>`<button type="button" class="${defaultPurpose===k?'active':''}" data-purpose="${k}" style="flex:1;" onclick="setPayPurpose('${k}')">${PURPOSE_LABELS[k]}</button>`).join('')}
+          ${Object.keys(PURPOSE_LABELS).map(k=>`<button type="button" class="${defaultPurpose===k?'active':''}" data-purpose="${k}" style="flex:1;" onclick="setPayPurpose('${k}','${clientId}')">${PURPOSE_LABELS[k]}</button>`).join('')}
         </div>
         <input type="hidden" id="f_pay_purpose" value="${defaultPurpose}">
         <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px;">Долг за аренду: ${money(unpaidRental)} · Штрафы: ${money(unpaidFines)} · Нарушения: ${money(unpaidViolations)} · Старый долг: ${money(unpaidOldDebt)}</div>
+      </div>
+      <div class="field" id="payContractField" style="${['fine','violation','oldDebt'].includes(defaultPurpose)?'':'display:none;'}">
+        <label>Договор (по желанию)</label>
+        <select id="f_pay_contract" onchange="onPayContractSelect('${clientId}')">${payContractOptionsHtml(clientId, defaultPurpose)}</select>
+        <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px;">Можно выбрать конкретный договор, чтобы списать долг именно с него, или оставить «Не выбрано» — тогда долг спишется автоматически.</div>
       </div>
       <div class="field"><label>Сумма платежа (${DB.settings.currency})</label><input id="f_pay_amount" type="number" placeholder="0" value="${debt>0?debt:''}"></div>
       <div class="field"><label>Дата платежа</label><input id="f_pay_date" type="datetime-local" value="${nowDT()}"></div>
@@ -2796,20 +2985,65 @@ function openClientPaymentForm(clientId){
     </div>
   `);
 }
-function setPayPurpose(purpose){
+function purposeContractList(clientId, purpose){
+  const paidFn = { fine: finePaidAmount, violation: violationPaidAmount, oldDebt: oldDebtPaidAmount }[purpose];
+  if(!paidFn) return [];
+  return DB.contracts.filter(ct=>ct.clientId===clientId && ct.type===purpose)
+    .map(ct=>({ ct, paid: paidFn(ct.id), remaining: Math.max(0, (ct.total||0)-paidFn(ct.id)) }))
+    .filter(x=>x.remaining>0)
+    .sort((a,b)=> new Date(b.ct.start)-new Date(a.ct.start));
+}
+function payContractOptionsHtml(clientId, purpose){
+  const list = purposeContractList(clientId, purpose);
+  const noneLabel = list.length ? '— Не выбрано (списать автоматически) —' : '— Нет неоплаченных договоров —';
+  const opts = list.map(x=>`<option value="${x.ct.id}">${fmtDate(x.ct.start)} · остаток ${money(x.remaining)}${x.ct.notes?' · '+esc(x.ct.notes).slice(0,30):''}</option>`).join('');
+  return `<option value="">${noneLabel}</option>${opts}`;
+}
+function setPayPurpose(purpose, clientId){
   document.getElementById('f_pay_purpose').value = purpose;
   document.querySelectorAll('#payPurposeRow button').forEach(btn=>{
     btn.classList.toggle('active', btn.dataset.purpose===purpose);
   });
+  const contractField = document.getElementById('payContractField');
+  if(contractField){
+    if(['fine','violation','oldDebt'].includes(purpose)){
+      contractField.style.display = '';
+      document.getElementById('f_pay_contract').innerHTML = payContractOptionsHtml(clientId, purpose);
+    } else {
+      contractField.style.display = 'none';
+      document.getElementById('f_pay_contract').value = '';
+    }
+  }
+}
+function onPayContractSelect(clientId){
+  const purpose = document.getElementById('f_pay_purpose').value;
+  const contractId = document.getElementById('f_pay_contract').value;
+  if(!contractId) return;
+  const list = purposeContractList(clientId, purpose);
+  const found = list.find(x=>x.ct.id===contractId);
+  if(found) document.getElementById('f_pay_amount').value = found.remaining;
 }
 async function saveClientPayment(clientId){
-  const amount = parseFloat(document.getElementById('f_pay_amount').value)||0;
+  let amount = parseFloat(document.getElementById('f_pay_amount').value)||0;
   if(amount<=0){ showToast('Укажите сумму платежа'); return; }
   const date = document.getElementById('f_pay_date').value || nowDT();
   const purpose = document.getElementById('f_pay_purpose').value || 'rental';
   let note = document.getElementById('f_pay_note').value.trim();
-  if(!note) note = purpose==='fine' ? 'Оплата штрафа' : purpose==='violation' ? 'Оплата нарушения' : 'Оплата аренды';
-  DB.clientLedger.push({ id: uid(), clientId, type:'payment', amount, date, note, purpose });
+  if(!note) note = purpose==='fine' ? 'Оплата штрафа' : purpose==='violation' ? 'Оплата нарушения' : purpose==='oldDebt' ? 'Оплата старого долга' : 'Оплата аренды';
+  const contractField = document.getElementById('payContractField');
+  const selectedContractId = (contractField && contractField.style.display!=='none') ? document.getElementById('f_pay_contract').value : '';
+  const entry = { id: uid(), clientId, type:'payment', amount, date, note, purpose };
+  if(selectedContractId){
+    const list = purposeContractList(clientId, purpose);
+    const found = list.find(x=>x.ct.id===selectedContractId);
+    if(found){
+      if(amount>found.remaining) amount = found.remaining;
+      entry.amount = amount;
+      const idField = { fine:'fineId', violation:'violationId', oldDebt:'oldDebtId' }[purpose];
+      if(idField) entry[idField] = selectedContractId;
+    }
+  }
+  DB.clientLedger.push(entry);
   await persist('clientLedger');
   const clForMsg = DB.clients.find(x=>x.id===clientId);
   notifyClient(clientId, buildPaymentMessage(clForMsg, amount, purpose, note), 'payment');
@@ -2825,6 +3059,13 @@ function openClientFineForm(clientId){
       <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="sheet-body">
+      <div class="field">
+        <label>Машина (необязательно)</label>
+        <select id="f_fine_car">
+          <option value="">— Без машины —</option>
+          ${DB.cars.map(car=>`<option value="${car.id}">${esc(car.make)} ${esc(car.model)} · ${esc(car.plate)}</option>`).join('')}
+        </select>
+      </div>
       <div class="field"><label>Сумма штрафа (${DB.settings.currency})</label><input id="f_fine_amount" type="number" placeholder="0"></div>
       <div class="field"><label>Дата и время штрафа</label><input id="f_fine_date" type="datetime-local" value="${nowDT()}"></div>
       <div class="field"><label>Причина штрафа</label><textarea id="f_fine_note" placeholder="Например: курение в салоне, поздний возврат"></textarea></div>
@@ -2840,9 +3081,10 @@ async function saveClientFine(clientId){
   if(amount<=0){ showToast('Укажите сумму штрафа'); return; }
   const date = document.getElementById('f_fine_date').value || nowDT();
   const note = document.getElementById('f_fine_note').value.trim();
+  const carId = document.getElementById('f_fine_car').value || null;
   const id = uid();
-  DB.clientLedger.push({ id, clientId, type:'fine', amount, date, note });
-  DB.contracts.push({ id, carId:null, clientId, start:date, end:date, rentalType:null, rate:0, total:amount, status:'done', paid:true, notes:note, type:'fine', notifiedOneHour:false });
+  DB.clientLedger.push({ id, clientId, type:'fine', amount, date, note, carId });
+  DB.contracts.push({ id, carId, clientId, start:date, end:date, rentalType:null, rate:0, total:amount, status:'done', paid:true, notes:note, type:'fine', notifiedOneHour:false });
   await persist('clientLedger'); await persist('contracts');
   const clForMsg = DB.clients.find(x=>x.id===clientId);
   notifyClient(clientId, buildDebtMessage(clForMsg, 'fine', amount, note), 'debt');
@@ -3469,21 +3711,25 @@ function openRepairDetail(ct, car){
   `);
 }
 function violationPaidAmount(violationId){
-  return DB.clientLedger.filter(l=>l.type==='payment' && l.violationId===violationId).reduce((s,l)=>s+(l.amount||0),0);
+  return DB.clientLedger.filter(l=>(l.type==='payment'||l.type==='discount') && l.violationId===violationId).reduce((s,l)=>s+(l.amount||0),0);
 }
 function finePaidAmount(fineId){
-  return DB.clientLedger.filter(l=>l.type==='payment' && l.fineId===fineId).reduce((s,l)=>s+(l.amount||0),0);
+  return DB.clientLedger.filter(l=>(l.type==='payment'||l.type==='discount') && l.fineId===fineId).reduce((s,l)=>s+(l.amount||0),0);
 }
 function oldDebtPaidAmount(oldDebtId){
-  return DB.clientLedger.filter(l=>l.type==='payment' && l.oldDebtId===oldDebtId).reduce((s,l)=>s+(l.amount||0),0);
+  return DB.clientLedger.filter(l=>(l.type==='payment'||l.type==='discount') && l.oldDebtId===oldDebtId).reduce((s,l)=>s+(l.amount||0),0);
 }
 function openFineContractDetail(ct){
   const cl = DB.clients.find(c=>c.id===ct.clientId);
+  const car = ct.carId ? DB.cars.find(c=>c.id===ct.carId) : null;
   const paid = finePaidAmount(ct.id);
   const remaining = Math.max(0, ct.total - paid);
+  const fineIconHtml = car && car.photo
+    ? `<span style="width:30px;height:30px;border-radius:9px;overflow:hidden;flex-shrink:0;display:inline-flex;"><img src="${car.photo}" style="width:100%;height:100%;object-fit:cover;display:block;"></span>`
+    : `<span>⚠️</span>`;
   openSheet(`
     <div class="sheet-handle"></div>
-    <div class="sheet-head"><div class="sheet-title">⚠️ Штраф</div>
+    <div class="sheet-head"><div class="sheet-title" style="display:flex;align-items:center;gap:9px;">${fineIconHtml}<span>Штраф</span></div>
       <div class="sheet-head-actions">
         ${iconBtn('trash', `deleteLedgerEntry('${ct.id}')`, 'Удалить штраф')}
         ${iconBtn('close', 'closeSheet()', 'Закрыть')}
@@ -3492,6 +3738,7 @@ function openFineContractDetail(ct){
     <div class="sheet-body">
       <div class="detail-block">
         <div class="detail-row"><span class="k">Клиент</span><span class="v">${cl?esc(cl.name):'Удалён'}</span></div>
+        ${car ? `<div class="detail-row" style="cursor:pointer;" onclick="closeSheet();openCarDetail('${car.id}')"><span class="k">Машина</span><span class="v">${esc(car.make)} ${esc(car.model)} · ${esc(car.plate)}</span></div>` : ''}
         <div class="detail-row"><span class="k">Дата</span><span class="v">${fmtDateTime(ct.start)}</span></div>
         <div class="detail-row"><span class="k">Сумма штрафа</span><span class="v" style="color:var(--danger);">${money(ct.total)}</span></div>
         ${paid>0 ? `<div class="detail-row"><span class="k">Погашено</span><span class="v" style="color:var(--accent-2);">${money(paid)}</span></div>` : ''}
@@ -4285,6 +4532,7 @@ function openSettings(){
       ${settingsMenuItem('🎨','Цветовая тема', 'Акцентный цвет приложения', `openThemeSettings()`)}
       ${settingsMenuItem('🏁','Иконка приложения', DB.settings.appIcon && APP_ICON_VARIANTS[DB.settings.appIcon] ? APP_ICON_VARIANTS[DB.settings.appIcon].label : 'Текущая (по умолчанию)', `openAppIconSettings()`)}
       ${settingsMenuItem('📄','Формат документов', DOC_FORMAT_LABELS[DB.settings.docFormat] || DOC_FORMAT_LABELS.image, `openDocFormatSettings()`)}
+      ${settingsMenuItem('💳','Долг', 'Учёт долга, штрафы, начисления за опоздание', `openDebtHub()`)}
       ${settingsMenuItem('⚙️','Общие настройки', 'Валюта, статистика, очистка данных', `openGeneralSettings()`)}
     </div>
   `);
@@ -4328,6 +4576,14 @@ function openGreenApiSettings(){
       <div class="settings-item">
         <div><div class="st">Завершение аренды</div><div class="sd">Итоговая сумма и статус оплаты</div></div>
         <label class="switch"><input type="checkbox" id="f_an_complete" ${DB.settings.autoNotify?.complete!==false?'checked':''}><span class="slider"></span></label>
+      </div>
+      <div class="settings-item">
+        <div><div class="st">Продление аренды</div><div class="sd">Новое время возврата и доплата</div></div>
+        <label class="switch"><input type="checkbox" id="f_an_extend" ${DB.settings.autoNotify?.extend!==false?'checked':''}><span class="slider"></span></label>
+      </div>
+      <div class="settings-item">
+        <div><div class="st">Напоминание о возврате</div><div class="sd">За 1 час до окончания аренды</div></div>
+        <label class="switch"><input type="checkbox" id="f_an_reminder" ${DB.settings.autoNotify?.reminder!==false?'checked':''}><span class="slider"></span></label>
       </div>
       <button class="btn primary" style="margin-top:12px;" onclick="saveAutoNotifySettings()">Сохранить уведомления</button>
     </div>
@@ -4458,20 +4714,6 @@ function openAlarmSettings(){
         <button class="btn ghost" onclick="testFeedback()">▶️ Проверить отклик</button>
       </div>
       <button class="btn primary" style="margin-top:12px;" onclick="saveFeedbackSettings()">Сохранить</button>
-
-      <div class="section-title" style="margin-top:24px;">Тарификация опозданий</div>
-      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:8px;">
-        Если клиент опаздывает с возвратом не больше чем на 1 час, не добавлять за это лишние полные сутки к сумме аренды.
-      </div>
-      <div class="settings-item">
-        <div><div class="st">Льготный час при опоздании</div><div class="sd">До 1 часа опоздания — без доплаты за сутки</div></div>
-        <label class="switch"><input type="checkbox" id="f_grace" ${DB.settings.graceHour?'checked':''}><span class="slider"></span></label>
-      </div>
-      <div class="settings-item">
-        <div><div class="st">Начисление 6-часовыми блоками</div><div class="sd">После льготного часа — доплата 6-часовыми блоками (цена «за 6 часов» машины), а не сразу за сутки</div></div>
-        <label class="switch"><input type="checkbox" id="f_overdue6h" ${DB.settings.overdue6hBlocks?'checked':''}><span class="slider"></span></label>
-      </div>
-      <button class="btn primary" style="margin-top:12px;" onclick="saveGraceHour()">Сохранить</button>
     </div>
   `);
 }
@@ -4520,7 +4762,7 @@ function openThemeSettings(){
   `);
 }
 function applyColorMode(mode){
-  document.body.classList.toggle('theme-light', mode==='light');
+  document.documentElement.classList.toggle('theme-light', mode==='light');
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if(metaTheme) metaTheme.setAttribute('content', mode==='light' ? '#f6f7f9' : '#14161c');
   const metaScheme = document.querySelector('meta[name="color-scheme"]');
@@ -4791,6 +5033,111 @@ async function setDocFormat(key){
   DB.settings.docFormat = key;
   await persist('settings');
   openDocFormatSettings();
+}
+const DEBT_MODE_LABELS = { withFines: 'С учётом штрафов', withoutFines: 'Без штрафов' };
+function debtHubHead(title){
+  return `<div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <button class="icon-btn" onclick="openDebtHub()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="sheet-title" style="flex:1;margin-left:2px;">${title}</div>
+      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>`;
+}
+function openDebtHub(){
+  const finesSum = DB.clientLedger.filter(l=>l.type==='fine').reduce((s,l)=>s+(l.amount||0),0);
+  openSheet(`
+    ${subHead('Долг')}
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;">
+        Настройки, связанные с долгом клиентов: как его считать, штрафы отдельно, и как начисляется доплата за опоздание с возвратом аренды.
+      </div>
+      ${settingsMenuItem('💳','Учёт долга', DEBT_MODE_LABELS[DB.settings.debtMode] || DEBT_MODE_LABELS.withFines, `openDebtModeSettings()`)}
+      ${settingsMenuItem('⚠️','Штрафы', `Всего начислено: ${money(finesSum)} · показываются отдельной строкой на карточке клиента`, `showToast('Штраф добавляется на карточке клиента: «Добавить долг → Штраф»')`)}
+      ${settingsMenuItem('⏱️','Начисления за опоздание', DB.settings.overdue6hBlocks ? `Включено · ${OVERDUE_VARIANT_LABELS[DB.settings.overdueVariant] || OVERDUE_VARIANT_LABELS.benevolent}` : 'Выключено', `openOverdueAccrualSettings()`)}
+    </div>
+  `);
+}
+function openDebtModeSettings(){
+  const cur = DB.settings.debtMode || 'withFines';
+  const opts = [
+    ['withFines','💰','С учётом штрафов','Долг клиента (в дашборде, напоминаниях и т.д.) считается вместе со штрафами'],
+    ['withoutFines','🧾','Без штрафов','Долг клиента считается без штрафов — только аренда, нарушения и старый долг. На карточке клиента при этом всегда показаны оба значения.'],
+  ];
+  openSheet(`
+    ${debtHubHead('Учёт долга')}
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;">
+        Какой долг клиента использовать как основной — в дашборде, списках должников и WhatsApp-напоминаниях. На карточке клиента всегда видны обе суммы: «Долг + штрафы» и «Долг без штрафов».
+      </div>
+      ${opts.map(([key,icon,label,desc])=>`
+        <div class="settings-item" style="cursor:pointer;align-items:flex-start;" onclick="setDebtMode('${key}')">
+          <div style="display:flex;align-items:flex-start;gap:12px;min-width:0;">
+            <div style="font-size:19px;width:26px;text-align:center;flex-shrink:0;margin-top:1px;">${icon}</div>
+            <div style="min-width:0;"><div class="st">${label}</div><div class="sd">${desc}</div></div>
+          </div>
+          ${cur===key ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="18" height="18" style="color:var(--accent);flex-shrink:0;margin-top:3px;"><path d="M20 6 9 17l-5-5"/></svg>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `);
+}
+async function setDebtMode(key){
+  DB.settings.debtMode = key;
+  await persist('settings');
+  openDebtModeSettings();
+  render();
+}
+const OVERDUE_VARIANT_LABELS = { benevolent: 'Благородный', full: 'Полная сумма' };
+function openOverdueAccrualSettings(){
+  const variant = DB.settings.overdueVariant || 'benevolent';
+  const on = !!DB.settings.overdue6hBlocks;
+  const variantOpts = [
+    ['benevolent','🕊️','Благородный','1 час опоздания бесплатно → разовый 6-часовой блок (цена «за 6 часов») → с 7–8 часов целые сутки (цена «за сутки»), по одним суткам за каждые полные 24 часа опоздания.'],
+    ['full','💯','Полная сумма','До 6 часов опоздания — бесплатно. Больше 6 часов — 6-часовой блок. Как только прошли целые сутки — сутки + 6-часовой блок, и ещё по одним суткам за каждые следующие 24 часа опоздания.'],
+  ];
+  openSheet(`
+    ${debtHubHead('Начисления за опоздание')}
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;">
+        Доплата за опоздание с возвратом аренды автоматически добавляется в долг клиента, пока аренда просрочена.
+      </div>
+      <div class="settings-item">
+        <div><div class="st">Льготный час при опоздании</div><div class="sd">До 1 часа опоздания — без доплаты за сутки при расчёте суммы аренды</div></div>
+        <label class="switch"><input type="checkbox" id="f_grace" ${DB.settings.graceHour?'checked':''}><span class="slider"></span></label>
+      </div>
+      <div class="settings-item">
+        <div><div class="st">Доплата за опоздание в долг</div><div class="sd">Включить автоматическое начисление доплаты за опоздание</div></div>
+        <label class="switch"><input type="checkbox" id="f_overdue6h" ${on?'checked':''} onchange="toggleOverdueVariantVisibility()"><span class="slider"></span></label>
+      </div>
+      <button class="btn primary" style="margin-top:12px;" onclick="saveOverdueAccrualSettings()">Сохранить</button>
+
+      <div id="overdueVariantBlock" style="margin-top:22px;${on?'':'opacity:.45;pointer-events:none;'}">
+        <div class="section-title" style="margin-top:0;">Вариант начисления</div>
+        ${variantOpts.map(([key,icon,label,desc])=>`
+          <div class="settings-item" style="cursor:pointer;align-items:flex-start;" onclick="setOverdueVariant('${key}')">
+            <div style="display:flex;align-items:flex-start;gap:12px;min-width:0;">
+              <div style="font-size:19px;width:26px;text-align:center;flex-shrink:0;margin-top:1px;">${icon}</div>
+              <div style="min-width:0;"><div class="st">${label}</div><div class="sd">${desc}</div></div>
+            </div>
+            ${variant===key ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="18" height="18" style="color:var(--accent);flex-shrink:0;margin-top:3px;"><path d="M20 6 9 17l-5-5"/></svg>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `);
+}
+async function setOverdueVariant(key){
+  DB.settings.overdueVariant = key;
+  await persist('settings');
+  openOverdueAccrualSettings();
+  render();
+}
+function toggleOverdueVariantVisibility(){
+  const block = document.getElementById('overdueVariantBlock');
+  if(!block) return;
+  const on = document.getElementById('f_overdue6h').checked;
+  block.style.opacity = on ? '1' : '.45';
+  block.style.pointerEvents = on ? 'auto' : 'none';
 }
 
 function drawCarsStatusCanvas(){
@@ -5240,6 +5587,8 @@ async function saveAutoNotifySettings(){
     payment: document.getElementById('f_an_payment').checked,
     debt: document.getElementById('f_an_debt').checked,
     complete: document.getElementById('f_an_complete').checked,
+    extend: document.getElementById('f_an_extend').checked,
+    reminder: document.getElementById('f_an_reminder').checked,
   };
   await persist('settings');
   showToast('Настройки уведомлений сохранены');
@@ -5297,6 +5646,7 @@ function buildCompleteMessage(ct, markPaid){
 async function checkOneHourReminders(){
   const ga = DB.settings.greenApi;
   if(!ga || !ga.enabled) return;
+  if(DB.settings.autoNotify && DB.settings.autoNotify.reminder===false) return;
   let changed = false;
   for(const ct of DB.contracts){
     if(ct.status!=='active' || ct.notifiedOneHour) continue;
@@ -5441,12 +5791,12 @@ function feedback(kind){
   playFeedbackSound(kind);
   vibrateFeedback(kind);
 }
-async function saveGraceHour(){
+async function saveOverdueAccrualSettings(){
   DB.settings.graceHour = document.getElementById('f_grace').checked;
   DB.settings.overdue6hBlocks = document.getElementById('f_overdue6h').checked;
   await persist('settings');
   render();
-  showToast('Настройки тарификации сохранены');
+  showToast('Настройки начислений за опоздание сохранены');
 }
 async function setThemeColor(name){
   DB.settings.themeColor = name;
@@ -5751,7 +6101,7 @@ async function confirmExtend(id){
   showToast('Аренда продлена');
   const cl = DB.clients.find(c=>c.id===ct.clientId);
   const car = DB.cars.find(c=>c.id===ct.carId);
-  if(cl && cl.phone && DB.settings.greenApi?.enabled){
+  if(cl && cl.phone && DB.settings.greenApi?.enabled && DB.settings.autoNotify?.extend!==false){
     sendWhatsApp(cl.phone, `Здравствуйте, ${cl.name}!\n\nАренда ${car?car.make+' '+car.model:''} продлена.\nНовое время возврата: ${fmtDateTime(ct.end)}.\nК оплате за продление: ${money(sum)}.`);
   }
 }
