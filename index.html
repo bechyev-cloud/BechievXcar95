@@ -425,6 +425,9 @@ main.tab-anim{opacity:0;transform:translateY(10px);}
 .card:active{border-color:var(--accent-dim);background:var(--surface-2);transform:scale(0.99);}
 .card.rented-glow{border-color:rgba(242,169,59,0.35);box-shadow:0 0 0 1px rgba(242,169,59,0.08) inset, 0 6px 18px -10px rgba(242,169,59,0.25);}
 .card.overdue-glow{border-color:rgba(232,96,76,0.5);box-shadow:0 0 0 1px rgba(232,96,76,0.1) inset, 0 6px 18px -10px rgba(232,96,76,0.35);}
+.card.shared-client-card{background:linear-gradient(160deg, rgba(62,201,167,0.13) 0%, rgba(62,201,167,0.04) 100%);border-color:rgba(62,201,167,0.4);box-shadow:0 0 0 1px rgba(62,201,167,0.08) inset, 0 6px 18px -10px rgba(62,201,167,0.3);}
+.card.shared-client-card .card-avatar{background:rgba(62,201,167,0.18);color:var(--accent-2);}
+.shared-client-tag{display:inline-flex;align-items:center;gap:4px;background:rgba(62,201,167,0.16);color:var(--accent-2);font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;letter-spacing:0.2px;}
 .card-avatar{
   width:44px;height:44px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
   background:linear-gradient(155deg, var(--surface-3), var(--surface-2));color:var(--accent);font-family:var(--font-display);font-weight:700;font-size:15px;
@@ -1053,7 +1056,7 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 
 <script>
 /* =================== STORAGE / STATE =================== */
-let DB = { cars: [], clients: [], contracts: [], clientLedger: [], oilChanges: [], settings: { currency: '₽', lastBackupAt: null } };
+let DB = { cars: [], clients: [], contracts: [], clientLedger: [], oilChanges: [], sharedClients: [], settings: { currency: '₽', lastBackupAt: null } };
 let currentTab = 'dashboard';
 let gaugePeriod = 'month';
 let reportCategory = 'income';
@@ -1109,6 +1112,7 @@ function setReportsPeriodInline(mode){
 let searchQ = { cars:'', clients:'', contracts:'' };
 let searchBarOpen = { cars:false, clients:false, contracts:false };
 let carFilter = 'all';
+let pendingClientsSharePayload = null;
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const money = n => (Math.round(n||0)).toLocaleString('ru-RU') + ' ' + DB.settings.currency;
@@ -1271,7 +1275,10 @@ async function loadAll(){
     DB.contracts = safeGet('contracts') || [];
     DB.clientLedger = safeGet('clientLedger') || [];
     DB.oilChanges = safeGet('oilChanges') || [];
+    DB.sharedClients = safeGet('sharedClients') || [];
     DB.settings = safeGet('settings') || { currency:'₽', lastBackupAt:null };
+    if(DB.settings.showSharedClients===undefined) DB.settings.showSharedClients = false;
+    if(DB.settings.sharedClientsDbEnabled===undefined) DB.settings.sharedClientsDbEnabled = true;
     if(!DB.settings.templates){
       DB.settings.templates = [
         { id: uid(), name:'Условия аренды', text:'Здравствуйте, {client}!\n\nУсловия аренды автомобиля {car} ({plate}):\n— возврат с полным баком;\n— бережная эксплуатация, без штрафов на счету арендатора;\n— плановое время возврата: {end};\n— сумма к оплате: {total}.' },
@@ -2092,6 +2099,69 @@ function renderCarPhotoPreview(dataUrl){
   const holder = document.getElementById('carPhotoRemoveBtnHolder');
   if(holder) holder.innerHTML = dataUrl ? `<button type="button" class="btn danger-ghost" style="padding:9px 14px;" onclick="removeCarPhoto()">Удалить фото</button>` : '';
 }
+/* ---------- generic attachment for message templates (photo or PDF) ---------- */
+const TEMPLATE_FILE_MAX_BYTES = 10 * 1024 * 1024; // 10MB — WhatsApp/Green API practical ceiling
+function dataUrlToBlob(dataUrl){
+  const parts = dataUrl.split(',');
+  const mimeMatch = parts[0].match(/data:(.*?);base64/);
+  const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+  const bin = atob(parts[1]);
+  const arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+function approxDataUrlBytes(dataUrl){
+  const idx = dataUrl.indexOf(',');
+  const b64 = idx>=0 ? dataUrl.slice(idx+1) : dataUrl;
+  return Math.round(b64.length * 0.75);
+}
+function handleTemplateFileSelect(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const isImage = file.type.startsWith('image/');
+  const isPdf = file.type==='application/pdf';
+  if(!isImage && !isPdf){ showToast('Выберите фото или PDF-файл'); event.target.value=''; return; }
+  if(file.size > TEMPLATE_FILE_MAX_BYTES){ showToast('Файл слишком большой (макс. 10 МБ)'); event.target.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    let dataUrl = reader.result;
+    if(isImage){
+      const resized = await resizeImageDataUrl(dataUrl, 1600);
+      if(resized) dataUrl = resized;
+    }
+    document.getElementById('f_tpl_file').value = dataUrl;
+    document.getElementById('f_tpl_filename').value = file.name || (isPdf ? 'document.pdf' : 'photo.jpg');
+    document.getElementById('f_tpl_filetype').value = isPdf ? 'application/pdf' : 'image/jpeg';
+    renderTemplateFilePreview(dataUrl, document.getElementById('f_tpl_filename').value, document.getElementById('f_tpl_filetype').value);
+  };
+  reader.readAsDataURL(file);
+}
+function removeTemplateFile(){
+  document.getElementById('f_tpl_file').value = '';
+  document.getElementById('f_tpl_filename').value = '';
+  document.getElementById('f_tpl_filetype').value = '';
+  const fileInput = document.getElementById('f_tpl_file_input');
+  if(fileInput) fileInput.value = '';
+  renderTemplateFilePreview('', '', '');
+}
+const PDF_FILE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`;
+function renderTemplateFilePreview(dataUrl, filename, filetype){
+  const preview = document.getElementById('tplFilePreview');
+  if(preview){
+    if(!dataUrl){
+      preview.innerHTML = `<span style="font-size:12px;color:var(--text-faint);">Файл не прикреплён</span>`;
+    } else if(filetype==='application/pdf'){
+      preview.innerHTML = `<div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:38px;height:38px;border-radius:10px;background:rgba(232,96,76,0.14);color:var(--danger);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${PDF_FILE_ICON.replace('width="24"','width="18"')}</div>
+        <div style="font-size:12.5px;font-weight:600;color:var(--text);word-break:break-all;">${esc(filename)}</div>
+      </div>`;
+    } else {
+      preview.innerHTML = `<img src="${dataUrl}" style="max-width:100%;max-height:140px;border-radius:12px;display:block;object-fit:cover;">`;
+    }
+  }
+  const holder = document.getElementById('tplFileRemoveBtnHolder');
+  if(holder) holder.innerHTML = dataUrl ? `<button type="button" class="btn danger-ghost" style="padding:9px 14px;" onclick="removeTemplateFile()">Удалить файл</button>` : '';
+}
 function carCard(c, viewMode){
   const badgeCls = {free:'free',rented:'rented',booked:'booked',service:'service'}[c.status];
   const badgeText = {free:'Свободна',rented:'В аренде',booked:'Забронирована',service:'Ремонт'}[c.status];
@@ -2534,16 +2604,22 @@ function renderClients(){
     if(clientHasBooking(c.id)) counts.booked++;
     if(c.blacklisted) counts.blacklist++;
   });
+  const q = searchQ.clients.toLowerCase();
   let list = DB.clients.filter(c=>{
     if(clientFilter==='rented' && !clientHasActiveRental(c.id)) return false;
     if(clientFilter==='debt' && !(clientDebt(c.id).debt>0)) return false;
     if(clientFilter==='fines' && !(clientUnpaidFines(c.id)>0)) return false;
     if(clientFilter==='booked' && !clientHasBooking(c.id)) return false;
     if(clientFilter==='blacklist' && !c.blacklisted) return false;
-    const q = searchQ.clients.toLowerCase();
     if(!q) return true;
     return (c.name+' '+c.phone+' '+(c.doc||'')).toLowerCase().includes(q);
   }).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+  const showShared = DB.settings.sharedClientsDbEnabled!==false && DB.settings.showSharedClients && clientFilter==='all' && q;
+  const personalKeys = showShared ? new Set(DB.clients.map(sharedClientDedupeKey)) : null;
+  const sharedMatches = showShared ? (DB.sharedClients||[]).filter(sc=>
+    !personalKeys.has(sharedClientDedupeKey(sc)) &&
+    (sc.name+' '+(sc.doc||'')+' '+(sc.licenseNum||'')).toLowerCase().includes(q)
+  ).sort((a,b)=>a.name.localeCompare(b.name,'ru')) : [];
   return `
     ${(searchBarOpen.clients || searchQ.clients) ? `<div class="search-bar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -2554,7 +2630,57 @@ function renderClients(){
     ${list.length
       ? (DB.settings.windowsMode ? `<div class="summary-row2">${list.map(clientCard).join('')}</div>` : list.map(clientCard).join(''))
       : emptyState('Пока нет клиентов','Нажмите «+», чтобы добавить клиента')}
+    ${sharedMatches.length ? `
+      <div class="section-title" style="margin-top:18px;"><span class="shared-client-tag">🌐 Общая база</span> <span class="count">${sharedMatches.length}</span></div>
+      ${DB.settings.windowsMode ? `<div class="summary-row2">${sharedMatches.map(sharedClientCard).join('')}</div>` : sharedMatches.map(sharedClientCard).join('')}
+    ` : ''}
   `;
+}
+function sharedClientCard(sc){
+  const initials = (sc.name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  const rentals = sc.stats?.rentals?.count || 0;
+  const fines = sc.stats?.fines?.count || 0;
+  const violations = sc.stats?.violations?.count || 0;
+  const ratingCount = sc.stats?.rating?.count || 0;
+  return `
+  <div class="card shared-client-card" style="cursor:pointer;" onclick="openSharedClientDetail('${sc.id}')">
+    <div class="card-avatar">${initials}</div>
+    <div class="card-body">
+      <div class="card-title">${esc(sc.name)}${sc.blacklisted ? ` <span class="badge unpaid">🚫 ЧС</span>` : ''}</div>
+      <div class="card-sub"><span class="shared-client-tag">🌐 Общая база</span> ${sc.doc?'· '+esc(sc.doc):''}</div>
+      ${ratingCount ? `<div class="card-sub stars-display" style="margin-top:3px;">${starsStr(Math.round(sc.stats.rating.avg))}</div>` : ''}
+      <div class="card-sub" style="margin-top:3px;">${sc.phone ? esc(sc.phone) : 'Телефон скрыт'} · ${rentals} аренд${fines?` · ${fines} штраф(ов)`:''}${violations?` · ${violations} нарушен.`:''}</div>
+    </div>
+  </div>`;
+}
+function openSharedClientDetail(id){
+  const sc = (DB.sharedClients||[]).find(s=>s.id===id);
+  if(!sc) return;
+  const historyHtml = (sc.history||[]).length ? sc.history.map(h=>`
+    <div class="detail-row" style="align-items:flex-start;"><span class="k" style="flex-shrink:0;">${fmtDate(h.date)}</span><span class="v" style="text-align:right;">${esc(clientShareHistoryLine(h).split(' · ').slice(1).join(' · '))}</span></div>
+  `).join('') : `<div style="font-size:12px;color:var(--text-faint);">История пуста</div>`;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">${esc(sc.name)}</div>
+      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      <div style="margin-bottom:14px;"><span class="shared-client-tag">🌐 Клиент из общей базы (данные от коллеги, номер телефона скрыт частично)</span></div>
+      ${sc.blacklisted ? `<div style="margin-bottom:10px;"><span class="badge unpaid">🚫 Чёрный список</span></div>` : ''}
+      <div class="detail-block" style="margin-bottom:14px;">
+        ${sc.phone ? `<div class="detail-row"><span class="k">Телефон</span><span class="v">${esc(sc.phone)}</span></div>` : ''}
+        ${sc.doc ? `<div class="detail-row"><span class="k">Паспорт</span><span class="v">${esc(sc.doc)}</span></div>` : ''}
+        ${sc.licenseNum ? `<div class="detail-row"><span class="k">В/У</span><span class="v">${esc(sc.licenseNum)}</span></div>` : ''}
+        ${sc.stats?.rating?.count ? `<div class="detail-row"><span class="k">Рейтинг</span><span class="v">${starsStr(Math.round(sc.stats.rating.avg))} (${sc.stats.rating.avg.toFixed(1)} из 5, ${sc.stats.rating.count} оценок)</span></div>` : ''}
+        <div class="detail-row"><span class="k">Аренд</span><span class="v">${sc.stats?.rentals?.count||0} на ${money(sc.stats?.rentals?.total||0)}</span></div>
+        <div class="detail-row"><span class="k">Штрафов</span><span class="v">${sc.stats?.fines?.count||0} на ${money(sc.stats?.fines?.total||0)}</span></div>
+        <div class="detail-row"><span class="k">Нарушений</span><span class="v">${sc.stats?.violations?.count||0} на ${money(sc.stats?.violations?.total||0)}</span></div>
+      </div>
+      ${sc.notes ? `<div class="section-title" style="margin-top:0;">Заметки</div><div style="font-size:12.5px;color:var(--text-dim);line-height:1.5;white-space:pre-wrap;margin-bottom:14px;">${esc(sc.notes)}</div>` : ''}
+      <div class="section-title" style="margin-top:0;">История</div>
+      ${historyHtml}
+    </div>
+  `);
 }
 function clientCard(c){
   const rentals = DB.contracts.filter(ct=>ct.clientId===c.id).length;
@@ -4636,6 +4762,7 @@ function openSettings(){
       ${settingsMenuItem('💬','WhatsApp-уведомления', DB.settings.greenApi?.enabled?'Подключено':'Green API, договор клиенту, напоминания', `openGreenApiSettings()`)}
       ${settingsMenuItem('✈️','Шаблоны сообщений', (DB.settings.templates||[]).length+' шаблон(ов)', `openTemplatesSettings()`)}
       ${settingsMenuItem('📧','Автобэкап на почту', DB.settings.emailBackup?.enabled?'Включён':'Выключен', `openEmailBackupSettings()`)}
+      ${settingsMenuItem('📇','База клиентов', DB.clients.length+' клиент(ов) · поделиться или обновить', `openClientsDbSettings()`)}
       ${settingsMenuItem('💾','Резервное копирование', 'Экспорт JSON / Excel, импорт', `openBackupSettings()`)}
       ${settingsMenuItem('🔔','Сигналы и тарификация', 'Оповещения об окончании аренды', `openAlarmSettings()`)}
       ${settingsMenuItem('🎨','Цветовая тема', 'Акцентный цвет приложения', `openThemeSettings()`)}
@@ -4746,12 +4873,12 @@ function openEmailBackupSettings(){
   `);
 }
 const BACKUP_SCOPES = {
-  full:      { label:'Полная копия', desc:'Машины, клиенты, договоры, штрафы и настройки — всё сразу', keys:['cars','clients','contracts','clientLedger','oilChanges','settings'] },
+  full:      { label:'Полная копия', desc:'Машины, клиенты, договоры, штрафы и настройки — всё сразу', keys:['cars','clients','contracts','clientLedger','oilChanges','sharedClients','settings'] },
   settings:  { label:'Настройки',    desc:'Только настройки приложения', keys:['settings'] },
   clients:   { label:'Контакты',     desc:'Только клиенты, без договоров и машин', keys:['clients'] },
   contracts: { label:'Договоры',     desc:'Договоры, штрафы и платежи, без клиентов и машин', keys:['contracts','clientLedger'] },
 };
-const BACKUP_KEY_LABELS = { cars:'машины', clients:'клиенты', contracts:'договоры', clientLedger:'штрафы и платежи', oilChanges:'замены масла', settings:'настройки' };
+const BACKUP_KEY_LABELS = { cars:'машины', clients:'клиенты', contracts:'договоры', clientLedger:'штрафы и платежи', oilChanges:'замены масла', sharedClients:'общая база клиентов', settings:'настройки' };
 const ICON_DOWNLOAD = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>';
 const ICON_UPLOAD = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>';
 const ICON_CLIPBOARD_COPY = '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><path d="M9 14l2 2 4-4"/>';
@@ -4797,6 +4924,336 @@ function openBackupSettings(){
       </div>
     </div>
   `);
+}
+const CLIENT_HISTORY_TYPE_LABELS = { fine:'Штраф', violation:'Нарушение', oldDebt:'Старый долг', repair:'Ремонт', rental:'Аренда' };
+/* Redacted client "reputation" record for sharing with other rental businesses:
+   everything about the client and their history EXCEPT the phone number, so a
+   competitor receiving this can't call/poach the clients directly. */
+function maskPhoneLast3(phone){
+  if(!phone) return '';
+  const chars = String(phone).split('');
+  let toMask = 3;
+  for(let i=chars.length-1; i>=0 && toMask>0; i--){
+    if(/[0-9]/.test(chars[i])){ chars[i] = '*'; toMask--; }
+  }
+  return chars.join('');
+}
+function buildClientsSharePayload(){
+  const clients = DB.clients.map(cl=>{
+    const related = DB.contracts.filter(ct=>ct.clientId===cl.id && ct.status!=='cancelled');
+    const countTotal = (type) => {
+      const items = related.filter(ct=> (type==='rental' ? (!ct.type||ct.type==='rental') : ct.type===type));
+      return { count: items.length, total: items.reduce((s,ct)=>s+(ct.total||0),0) };
+    };
+    const history = related.slice()
+      .sort((a,b)=> new Date(b.start||0) - new Date(a.start||0))
+      .map(ct=>{
+        const car = DB.cars.find(c=>c.id===ct.carId);
+        return {
+          type: ct.type || 'rental',
+          date: ct.start || '',
+          car: car ? `${car.make} ${car.model}` : undefined,
+          amount: ct.total || 0,
+          paid: !!ct.paid,
+          status: ct.status,
+          note: ct.notes || '',
+          rating: ct.rating || 0,
+        };
+      });
+    const rating = computeClientRating(cl.id);
+    return {
+      name: cl.name,
+      phone: maskPhoneLast3(cl.phone),
+      doc: cl.doc || '',
+      licenseNum: cl.licenseNum || '',
+      notes: cl.notes || '',
+      blacklisted: !!cl.blacklisted,
+      stats: {
+        rentals: countTotal('rental'),
+        fines: countTotal('fine'),
+        violations: countTotal('violation'),
+        oldDebt: countTotal('oldDebt'),
+        rating: { avg: rating.avg, count: rating.count },
+      },
+      history,
+    };
+  });
+  return { exportedAt: new Date().toISOString(), scope:'clientsShare', companyName: DB.settings.companyName || 'XCAR', clients };
+}
+function summarizeClientsSharePayload(data){
+  const clients = Array.isArray(data?.clients) ? data.clients : [];
+  let historyCount = 0, rentals = 0, fines = 0, violations = 0, oldDebt = 0, blacklisted = 0;
+  clients.forEach(c=>{
+    const h = c.history || [];
+    historyCount += h.length;
+    h.forEach(item=>{
+      if(item.type==='fine') fines++;
+      else if(item.type==='violation') violations++;
+      else if(item.type==='oldDebt') oldDebt++;
+      else rentals++;
+    });
+    if(c.blacklisted) blacklisted++;
+  });
+  return {
+    companyName: data?.companyName || null,
+    exportedAt: data?.exportedAt || null,
+    clientsCount: clients.length,
+    historyCount, rentals, fines, violations, oldDebt, blacklisted,
+  };
+}
+function clientShareHistoryLine(h){
+  const label = CLIENT_HISTORY_TYPE_LABELS[h.type] || 'Аренда';
+  const parts = [fmtDate(h.date), label];
+  if(h.car) parts.push(h.car);
+  parts.push(money(h.amount));
+  parts.push(h.paid ? 'оплачено' : 'не оплачено');
+  if(h.rating) parts.push(starsStr(h.rating));
+  if(h.note) parts.push(h.note);
+  return parts.join(' · ');
+}
+function exportClientsShareFile(){
+  const payload = buildClientsSharePayload();
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `xcar-clients-history-${todayISO()}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Копия сохранена в файл (номера телефонов скрыты частично)');
+}
+function exportClientsShareText(){
+  const text = JSON.stringify(buildClientsSharePayload());
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">База клиентов · текстом</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:10px;">Номера телефонов в этой копии скрыты частично (видны все цифры, кроме последних трёх). Скопируйте текст и перешлите, например, в WhatsApp.</div>
+      <textarea id="backupTextArea" readonly style="width:100%;min-height:160px;font-family:monospace;font-size:11px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);resize:vertical;" onclick="this.select()">${esc(text)}</textarea>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn primary" onclick="copyBackupText()">📋 Скопировать</button>
+      </div>
+    </div>
+  `);
+}
+function openClientsShareImportSheet(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Вставить базу клиентов</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:10px;">Вставьте текст, полученный от друга или коллеги. Клиенты добавятся в отдельную общую базу — номера телефонов скрыты частично (кроме последних трёх цифр), с историей аренд и штрафов в заметках. Ваши текущие клиенты не изменятся.</div>
+      <textarea id="pasteTextArea" placeholder="Вставьте текст сюда..." style="width:100%;min-height:160px;font-family:monospace;font-size:11px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);resize:vertical;"></textarea>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn ghost" onclick="pasteFromClipboardIntoArea()">📋 Вставить из буфера</button>
+        <button class="btn primary" onclick="importClientsShareFromTextArea()">Добавить</button>
+      </div>
+    </div>
+  `);
+}
+async function importClientsShareFromTextArea(){
+  const ta = document.getElementById('pasteTextArea');
+  const text = ta ? ta.value.trim() : '';
+  if(!text){ showToast('Вставьте текст копии'); return; }
+  let data;
+  try{ data = JSON.parse(text); }
+  catch(e){ showToast('Не удалось распознать текст — проверьте, что скопирован текст целиком'); return; }
+  openClientsSharePreview(data, { title:'Предпросмотр перед импортом', confirmLabel:'Импортировать' });
+}
+function importClientsShareFile(evt){
+  const file = evt.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try{
+      const data = JSON.parse(reader.result);
+      openClientsSharePreview(data, { title:'Предпросмотр перед импортом', confirmLabel:'Импортировать' });
+    }catch(e){ showToast('Файл повреждён или неверный формат'); }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+function sharedClientDedupeKey(c){
+  return [(c.name||'').trim().toLowerCase(), (c.doc||'').trim().toLowerCase(), (c.licenseNum||'').trim().toLowerCase()].join('|');
+}
+function copyMyClientsIntoSharedBase(){
+  const payload = buildClientsSharePayload();
+  if(!payload.clients.length){ showToast('Нет клиентов для копирования'); return; }
+  openClientsSharePreview(payload, { title:'Скопировать свою базу', confirmLabel:'Скопировать', isOwnData:true });
+}
+/* Preview shown BEFORE anything is written — who it's from, how many clients and
+   history records it contains — so the user can check before committing. */
+function openClientsSharePreview(data, opts){
+  opts = opts || {};
+  const summary = summarizeClientsSharePayload(data);
+  if(!summary.clientsCount){ showToast('В копии не найдено клиентов'); return; }
+  pendingClientsSharePayload = data;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">${esc(opts.title||'Предпросмотр')}</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      ${summary.companyName ? `
+        <div style="display:flex;align-items:center;gap:11px;background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:16px;">
+          <div style="width:38px;height:38px;border-radius:11px;background:rgba(242,169,59,0.16);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🏢</div>
+          <div style="min-width:0;">
+            <div style="font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(summary.companyName)}</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:1px;">${summary.exportedAt ? 'Экспортировано '+fmtDateTime(summary.exportedAt) : (opts.isOwnData ? 'Ваша компания' : 'Источник копии')}</div>
+          </div>
+        </div>
+      ` : ''}
+      <div class="dr-stats">
+        <div class="dr-stat total">
+          <div class="val" style="color:#eab308;">${summary.clientsCount}</div>
+          <div class="lbl">Клиентов</div>
+        </div>
+        <div class="dr-stat paid">
+          <div class="val" style="color:var(--accent-2);">${summary.historyCount}</div>
+          <div class="lbl">Записей истории</div>
+        </div>
+        <div class="dr-stat unpaid">
+          <div class="val" style="color:var(--danger);">${summary.blacklisted}</div>
+          <div class="lbl">В чёрном списке</div>
+        </div>
+      </div>
+      ${summary.historyCount ? `<div style="font-size:11.5px;color:var(--text-dim);text-align:center;margin-top:10px;">Аренд: ${summary.rentals} · Штрафов: ${summary.fines} · Нарушений: ${summary.violations}${summary.oldDebt?` · Старых долгов: ${summary.oldDebt}`:''}</div>` : ''}
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6;background:var(--surface-2);border-radius:12px;padding:12px 14px;margin:16px 0;">
+        📌 Данные добавятся в отдельную <b>общую базу</b> — номера телефонов скрыты частично (видны все цифры, кроме последних трёх). Ваша личная база клиентов не изменится. Совпадающие клиенты обновятся, а не задвоятся.
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="closeSheet()">Отмена</button>
+        <button class="btn primary" onclick="commitPendingClientsSharePayload()">${esc(opts.confirmLabel||'Добавить')}</button>
+      </div>
+    </div>
+  `);
+}
+async function commitPendingClientsSharePayload(){
+  const data = pendingClientsSharePayload;
+  pendingClientsSharePayload = null;
+  if(!data) return;
+  await commitClientsSharePayload(data);
+}
+async function commitClientsSharePayload(data){
+  const incoming = Array.isArray(data?.clients) ? data.clients : null;
+  if(!incoming || !incoming.length){ showToast('В копии не найдено клиентов'); return; }
+  if(!DB.sharedClients) DB.sharedClients = [];
+  const existingByKey = new Map(DB.sharedClients.map(sc=>[sharedClientDedupeKey(sc), sc]));
+  let added = 0, updated = 0;
+  incoming.forEach(ic=>{
+    const key = sharedClientDedupeKey(ic);
+    const record = {
+      name: ic.name || 'Без имени',
+      phone: ic.phone || '',
+      doc: ic.doc || '',
+      licenseNum: ic.licenseNum || '',
+      notes: ic.notes || '',
+      blacklisted: !!ic.blacklisted,
+      stats: ic.stats || {},
+      history: ic.history || [],
+    };
+    const existing = existingByKey.get(key);
+    if(existing){ Object.assign(existing, record); updated++; }
+    else {
+      const fresh = { id: uid(), ...record };
+      DB.sharedClients.push(fresh);
+      existingByKey.set(key, fresh);
+      added++;
+    }
+  });
+  await persist('sharedClients');
+  closeSheet(); render();
+  showToast(updated ? `Готово — новых: ${added}, обновлено: ${updated}` : `Готово — добавлено: ${added}`);
+}
+function openClientsDbSettings(){
+  const sharedCount = (DB.sharedClients||[]).length;
+  const enabled = DB.settings.sharedClientsDbEnabled !== false;
+  openSheet(`
+    ${subHead('База клиентов')}
+    <div class="sheet-body">
+      <div class="settings-item" style="background:var(--surface-2);border-radius:14px;padding:12px 14px;margin-bottom:16px;">
+        <div><div class="st">🌐 Общая база клиентов</div><div class="sd">${enabled ? 'Функция включена' : 'Функция отключена — все действия ниже скрыты'}</div></div>
+        <label class="switch"><input type="checkbox" id="f_shared_db_enabled" ${enabled?'checked':''} onchange="toggleSharedClientsDbEnabled()"><span class="slider"></span></label>
+      </div>
+
+      ${!enabled ? `
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6;text-align:center;padding:24px 10px;">
+        Включите, чтобы делиться историей клиентов с друзьями или коллегами по прокату и видеть их общую базу при поиске.
+      </div>
+      ` : `
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:16px;">
+        Делитесь историей клиентов с другом или коллегой по прокату — номера телефонов передаются <b>скрытыми частично</b> (кроме последних трёх цифр), чтобы клиентов нельзя было переманить. В копии остаются имя, документы, чёрный список и история аренд, штрафов и нарушений.
+      </div>
+
+      <div class="dr-stats" style="margin-top:0;margin-bottom:22px;">
+        <div class="dr-stat total">
+          <div class="val" style="color:#eab308;">${DB.clients.length}</div>
+          <div class="lbl">Ваша база</div>
+        </div>
+        <div class="dr-stat paid">
+          <div class="val" style="color:var(--accent-2);">${sharedCount}</div>
+          <div class="lbl">🌐 Общая база</div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:0;">📤 Поделиться</div>
+      <div style="font-size:11.5px;color:var(--text-dim);line-height:1.5;margin-bottom:6px;">Отправьте свою базу другу — он увидит имена, документы и историю, номера телефонов будут скрыты частично.</div>
+      <div class="settings-item">
+        <div><div class="st">Стандартный режим</div><div class="sd">Скачать файлом .json</div></div>
+        <button class="icon-btn" title="Скачать файлом" onclick="exportClientsShareFile()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICON_DOWNLOAD}</svg></button>
+      </div>
+      <div class="settings-item">
+        <div><div class="st">Текстовый режим</div><div class="sd">Скопировать текстом — удобно переслать в мессенджере</div></div>
+        <button class="icon-btn" title="Скопировать текстом" onclick="exportClientsShareText()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON_CLIPBOARD_COPY}</svg></button>
+      </div>
+
+      <div class="section-title" style="margin-top:24px;">📥 Получить от друга</div>
+      <div style="font-size:11.5px;color:var(--text-dim);line-height:1.5;margin-bottom:6px;">Перед добавлением покажем предпросмотр: от какой компании копия, сколько клиентов и записей истории в ней.</div>
+      <div class="settings-item">
+        <div><div class="st">Стандартный режим</div><div class="sd">Выбрать .json файл копии</div></div>
+        <button class="icon-btn" title="Выбрать файл" onclick="document.getElementById('importClientsFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICON_UPLOAD}</svg></button>
+      </div>
+      <input type="file" id="importClientsFile" accept=".json" style="display:none" onchange="importClientsShareFile(event)">
+      <div class="settings-item" style="cursor:pointer;" onclick="openClientsShareImportSheet()">
+        <div><div class="st">Текстовый режим</div><div class="sd">Вставить текст копии из буфера обмена</div></div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">${ICON_CLIPBOARD_PASTE}</svg>
+      </div>
+
+      <div class="section-title" style="margin-top:24px;">📋 Своими клиентами</div>
+      <div class="settings-item" style="cursor:pointer;" onclick="copyMyClientsIntoSharedBase()">
+        <div><div class="st">Скопировать в общую базу</div><div class="sd">Добавить своих клиентов в общую базу (номера телефонов скрыты частично) — например, перед тем как поделиться</div></div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </div>
+
+      <div class="section-title" style="margin-top:24px;">🔍 В поиске клиентов</div>
+      <div class="settings-item">
+        <div><div class="st">Показывать общую базу</div><div class="sd">При поиске в разделе «Клиенты» подсвечивать зеленоватым найденных из общей базы (номер телефона скрыт частично) — чтобы узнавать таких клиентов. Если клиент уже есть в вашей личной базе — дубль из общей не покажется.</div></div>
+        <label class="switch"><input type="checkbox" id="f_show_shared" ${DB.settings.showSharedClients?'checked':''} onchange="toggleShowSharedClients()"><span class="slider"></span></label>
+      </div>
+      ${sharedCount ? `<button class="btn danger-ghost" style="margin-top:10px;" onclick="clearSharedClients()">Очистить общую базу (${sharedCount})</button>` : ''}
+      `}
+    </div>
+  `);
+}
+async function toggleSharedClientsDbEnabled(){
+  DB.settings.sharedClientsDbEnabled = document.getElementById('f_shared_db_enabled').checked;
+  await persist('settings');
+  openClientsDbSettings();
+  render();
+  showToast(DB.settings.sharedClientsDbEnabled ? 'Общая база клиентов включена' : 'Общая база клиентов отключена');
+}
+async function toggleShowSharedClients(){
+  DB.settings.showSharedClients = document.getElementById('f_show_shared').checked;
+  await persist('settings');
+  showToast(DB.settings.showSharedClients ? 'Общая база включена в поиск' : 'Общая база скрыта из поиска');
+}
+async function clearSharedClients(){
+  if(!await confirmDelete('Удалить всю общую базу клиентов (импортированную от других)? Ваша личная база клиентов не пострадает.', 'Очистить')) return;
+  DB.sharedClients = [];
+  await persist('sharedClients');
+  openClientsDbSettings();
+  showCenterConfirm('Общая база очищена');
 }
 function openAlarmSettings(){
   openSheet(`
@@ -5026,7 +5483,7 @@ async function importBackupFromTextArea(){
   await applyImportedPayload(data);
 }
 async function applyImportedPayload(data){
-  const knownKeys = ['cars','clients','contracts','clientLedger','oilChanges','settings'];
+  const knownKeys = ['cars','clients','contracts','clientLedger','oilChanges','sharedClients','settings'];
   const presentKeys = knownKeys.filter(k=> data[k]!==undefined);
   if(!presentKeys.length){ showToast('В копии не найдено известных данных'); return; }
   const labels = presentKeys.map(k=>BACKUP_KEY_LABELS[k]).join(', ');
@@ -5149,8 +5606,8 @@ function openWipeConfirmStage(stage){
 }
 async function performWipeAll(){
   clearInterval(wipeCountdownTimer);
-  DB.cars = []; DB.clients = []; DB.contracts = []; DB.clientLedger = []; DB.oilChanges = [];
-  await persist('cars'); await persist('clients'); await persist('contracts'); await persist('clientLedger'); await persist('oilChanges');
+  DB.cars = []; DB.clients = []; DB.contracts = []; DB.clientLedger = []; DB.oilChanges = []; DB.sharedClients = [];
+  await persist('cars'); await persist('clients'); await persist('contracts'); await persist('clientLedger'); await persist('oilChanges'); await persist('sharedClients');
   closeSheet(); render(); showCenterConfirm('Все данные удалены');
 }
 
@@ -6377,7 +6834,7 @@ function openTemplatePicker(carId){
       ${templates.length ? templates.map(t=>`
         <div class="card" onclick="sendTemplateToClient('${carId}','${t.id}')" style="cursor:pointer;">
           <div class="card-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="18" height="18"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg></div>
-          <div class="card-body"><div class="card-title">${esc(t.name)}</div><div class="card-sub">${esc((t.text||'').slice(0,60))}${(t.text||'').length>60?'…':''}</div></div>
+          <div class="card-body"><div class="card-title">${esc(t.name)} ${t.file ? '📎' : ''}</div><div class="card-sub">${esc((t.text||'').slice(0,60))}${(t.text||'').length>60?'…':''}</div></div>
         </div>
       `).join('') : `<div class="empty"><div class="t">Нет шаблонов</div><div class="d">Добавьте их в Настройках → Шаблоны сообщений</div></div>`}
     </div>
@@ -6391,7 +6848,14 @@ async function sendTemplateToClient(carId, templateId){
   if(!cl || !cl.phone) return;
   if(!DB.settings.greenApi?.enabled){ showToast('Сначала подключите WhatsApp в настройках'); return; }
   showToast('Отправка...');
-  const r = await sendWhatsApp(cl.phone, applyTemplate(t.text, ac));
+  const text = applyTemplate(t.text, ac);
+  let r;
+  if(t.file){
+    const blob = dataUrlToBlob(t.file);
+    r = await sendWhatsAppFile(cl.phone, blob, t.fileName || (t.fileType==='application/pdf'?'document.pdf':'photo.jpg'), text);
+  } else {
+    r = await sendWhatsApp(cl.phone, text);
+  }
   showToast(r.ok ? `Шаблон отправлен: ${cl.name}` : 'Не удалось отправить сообщение');
   closeSheet();
 }
@@ -6408,23 +6872,42 @@ function openTemplateForm(existingId){
       <div style="font-size:11.5px;color:var(--text-faint);line-height:1.6;margin-bottom:10px;">
         Доступные подстановки: <b>{client}</b> — имя клиента, <b>{car}</b> — машина, <b>{plate}</b> — номер, <b>{start}</b> / <b>{end}</b> — даты, <b>{total}</b> — сумма.
       </div>
+      <div class="field">
+        <label>Файл (фото или PDF)</label>
+        <div style="font-size:11.5px;color:var(--text-faint);line-height:1.5;margin-bottom:8px;">
+          Прикрепите скан или фото условий аренды — при отправке шаблона клиенту в WhatsApp уйдёт этот файл с текстом сообщения в подписи.
+        </div>
+        <input type="hidden" id="f_tpl_file" value="${escapeAttr(t.file||'')}">
+        <input type="hidden" id="f_tpl_filename" value="${escapeAttr(t.fileName||'')}">
+        <input type="hidden" id="f_tpl_filetype" value="${escapeAttr(t.fileType||'')}">
+        <div id="tplFilePreview" style="margin-bottom:8px;"></div>
+        <div class="btn-row">
+          <button type="button" class="btn ghost" onclick="document.getElementById('f_tpl_file_input').click()">${t.file?'Заменить файл':'Прикрепить файл'}</button>
+          <div id="tplFileRemoveBtnHolder"></div>
+        </div>
+        <input type="file" id="f_tpl_file_input" accept="image/*,application/pdf" style="display:none;" onchange="handleTemplateFileSelect(event)">
+      </div>
       <div class="btn-row">
         ${existingId ? `<button class="btn danger-ghost" onclick="deleteTemplate('${existingId}')">Удалить</button>` : ''}
         <button class="btn primary" onclick="saveTemplate('${existingId||''}')">Сохранить</button>
       </div>
     </div>
   `);
+  renderTemplateFilePreview(t.file||'', t.fileName||'', t.fileType||'');
 }
 async function saveTemplate(id){
   const name = document.getElementById('f_tpl_name').value.trim();
   const text = document.getElementById('f_tpl_text').value.trim();
   if(!name || !text){ showToast('Заполните название и текст'); return; }
+  const file = document.getElementById('f_tpl_file').value || '';
+  const fileName = document.getElementById('f_tpl_filename').value || '';
+  const fileType = document.getElementById('f_tpl_filetype').value || '';
   if(!DB.settings.templates) DB.settings.templates = [];
   if(id){
     const idx = DB.settings.templates.findIndex(t=>t.id===id);
-    if(idx>=0) DB.settings.templates[idx] = { id, name, text };
+    if(idx>=0) DB.settings.templates[idx] = { id, name, text, file, fileName, fileType };
   } else {
-    DB.settings.templates.push({ id: uid(), name, text });
+    DB.settings.templates.push({ id: uid(), name, text, file, fileName, fileType });
   }
   await persist('settings');
   showToast('Шаблон сохранён');
