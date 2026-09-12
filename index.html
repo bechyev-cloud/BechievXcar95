@@ -1056,7 +1056,7 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 
 <script>
 /* =================== STORAGE / STATE =================== */
-let DB = { cars: [], clients: [], contracts: [], clientLedger: [], oilChanges: [], sharedClients: [], settings: { currency: '₽', lastBackupAt: null } };
+let DB = { cars: [], clients: [], contracts: [], clientLedger: [], oilChanges: [], sharedClients: [], sharedClientSources: [], settings: { currency: '₽', lastBackupAt: null } };
 let currentTab = 'dashboard';
 let gaugePeriod = 'month';
 let reportCategory = 'income';
@@ -1113,6 +1113,7 @@ let searchQ = { cars:'', clients:'', contracts:'' };
 let searchBarOpen = { cars:false, clients:false, contracts:false };
 let carFilter = 'all';
 let pendingClientsSharePayload = null;
+let pendingClientsShareSourceOpts = null;
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const money = n => (Math.round(n||0)).toLocaleString('ru-RU') + ' ' + DB.settings.currency;
@@ -1276,6 +1277,7 @@ async function loadAll(){
     DB.clientLedger = safeGet('clientLedger') || [];
     DB.oilChanges = safeGet('oilChanges') || [];
     DB.sharedClients = safeGet('sharedClients') || [];
+    DB.sharedClientSources = safeGet('sharedClientSources') || [];
     DB.settings = safeGet('settings') || { currency:'₽', lastBackupAt:null };
     if(DB.settings.showSharedClients===undefined) DB.settings.showSharedClients = false;
     if(DB.settings.sharedClientsDbEnabled===undefined) DB.settings.sharedClientsDbEnabled = true;
@@ -2616,7 +2618,9 @@ function renderClients(){
   }).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
   const showShared = DB.settings.sharedClientsDbEnabled!==false && DB.settings.showSharedClients && clientFilter==='all' && q;
   const personalKeys = showShared ? new Set(DB.clients.map(sharedClientDedupeKey)) : null;
+  const activeSourceIds = showShared ? enabledSharedSourceIds() : null;
   const sharedMatches = showShared ? (DB.sharedClients||[]).filter(sc=>
+    (!sc.sourceId || activeSourceIds.has(sc.sourceId)) &&
     !personalKeys.has(sharedClientDedupeKey(sc)) &&
     (sc.name+' '+(sc.doc||'')+' '+(sc.licenseNum||'')).toLowerCase().includes(q)
   ).sort((a,b)=>a.name.localeCompare(b.name,'ru')) : [];
@@ -2668,6 +2672,7 @@ function openSharedClientDetail(id){
       <div style="margin-bottom:14px;"><span class="shared-client-tag">🌐 Клиент из общей базы (данные от коллеги, номер телефона скрыт частично)</span></div>
       ${sc.blacklisted ? `<div style="margin-bottom:10px;"><span class="badge unpaid">🚫 Чёрный список</span></div>` : ''}
       <div class="detail-block" style="margin-bottom:14px;">
+        ${(()=>{ const src = (DB.sharedClientSources||[]).find(s=>s.id===sc.sourceId); return src ? `<div class="detail-row"><span class="k">Источник</span><span class="v">${esc(src.name)}</span></div>` : ''; })()}
         ${sc.phone ? `<div class="detail-row"><span class="k">Телефон</span><span class="v">${esc(sc.phone)}</span></div>` : ''}
         ${sc.doc ? `<div class="detail-row"><span class="k">Паспорт</span><span class="v">${esc(sc.doc)}</span></div>` : ''}
         ${sc.licenseNum ? `<div class="detail-row"><span class="k">В/У</span><span class="v">${esc(sc.licenseNum)}</span></div>` : ''}
@@ -4873,12 +4878,12 @@ function openEmailBackupSettings(){
   `);
 }
 const BACKUP_SCOPES = {
-  full:      { label:'Полная копия', desc:'Машины, клиенты, договоры, штрафы и настройки — всё сразу', keys:['cars','clients','contracts','clientLedger','oilChanges','sharedClients','settings'] },
+  full:      { label:'Полная копия', desc:'Машины, клиенты, договоры, штрафы и настройки — всё сразу', keys:['cars','clients','contracts','clientLedger','oilChanges','sharedClients','sharedClientSources','settings'] },
   settings:  { label:'Настройки',    desc:'Только настройки приложения', keys:['settings'] },
   clients:   { label:'Контакты',     desc:'Только клиенты, без договоров и машин', keys:['clients'] },
   contracts: { label:'Договоры',     desc:'Договоры, штрафы и платежи, без клиентов и машин', keys:['contracts','clientLedger'] },
 };
-const BACKUP_KEY_LABELS = { cars:'машины', clients:'клиенты', contracts:'договоры', clientLedger:'штрафы и платежи', oilChanges:'замены масла', sharedClients:'общая база клиентов', settings:'настройки' };
+const BACKUP_KEY_LABELS = { cars:'машины', clients:'клиенты', contracts:'договоры', clientLedger:'штрафы и платежи', oilChanges:'замены масла', sharedClients:'общая база клиентов', sharedClientSources:'источники общей базы', settings:'настройки' };
 const ICON_DOWNLOAD = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>';
 const ICON_UPLOAD = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>';
 const ICON_CLIPBOARD_COPY = '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><path d="M9 14l2 2 4-4"/>';
@@ -5060,7 +5065,7 @@ async function importClientsShareFromTextArea(){
   let data;
   try{ data = JSON.parse(text); }
   catch(e){ showToast('Не удалось распознать текст — проверьте, что скопирован текст целиком'); return; }
-  openClientsSharePreview(data, { title:'Предпросмотр перед импортом', confirmLabel:'Импортировать' });
+  openClientsSharePreview(data, { title:'Предпросмотр перед импортом', confirmLabel:'Импортировать', sourceOpts:{ method:'text' } });
 }
 function importClientsShareFile(evt){
   const file = evt.target.files[0]; if(!file) return;
@@ -5068,7 +5073,7 @@ function importClientsShareFile(evt){
   reader.onload = async () => {
     try{
       const data = JSON.parse(reader.result);
-      openClientsSharePreview(data, { title:'Предпросмотр перед импортом', confirmLabel:'Импортировать' });
+      openClientsSharePreview(data, { title:'Предпросмотр перед импортом', confirmLabel:'Импортировать', sourceOpts:{ method:'file', fileName: file.name } });
     }catch(e){ showToast('Файл повреждён или неверный формат'); }
   };
   reader.readAsText(file);
@@ -5080,7 +5085,7 @@ function sharedClientDedupeKey(c){
 function copyMyClientsIntoSharedBase(){
   const payload = buildClientsSharePayload();
   if(!payload.clients.length){ showToast('Нет клиентов для копирования'); return; }
-  openClientsSharePreview(payload, { title:'Скопировать свою базу', confirmLabel:'Скопировать', isOwnData:true });
+  openClientsSharePreview(payload, { title:'Скопировать свою базу', confirmLabel:'Скопировать', isOwnData:true, sourceOpts:{ method:'own' } });
 }
 /* Preview shown BEFORE anything is written — who it's from, how many clients and
    history records it contains — so the user can check before committing. */
@@ -5089,6 +5094,7 @@ function openClientsSharePreview(data, opts){
   const summary = summarizeClientsSharePayload(data);
   if(!summary.clientsCount){ showToast('В копии не найдено клиентов'); return; }
   pendingClientsSharePayload = data;
+  pendingClientsShareSourceOpts = opts.sourceOpts || {};
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">${esc(opts.title||'Предпросмотр')}</div>
@@ -5131,14 +5137,74 @@ function openClientsSharePreview(data, opts){
 }
 async function commitPendingClientsSharePayload(){
   const data = pendingClientsSharePayload;
+  const sourceOpts = pendingClientsShareSourceOpts;
   pendingClientsSharePayload = null;
+  pendingClientsShareSourceOpts = null;
   if(!data) return;
-  await commitClientsSharePayload(data);
+  await commitClientsSharePayload(data, sourceOpts);
 }
-async function commitClientsSharePayload(data){
+function resolveSharedClientSource(data, sourceOpts){
+  sourceOpts = sourceOpts || {};
+  if(!DB.sharedClientSources) DB.sharedClientSources = [];
+  const isOwn = sourceOpts.method === 'own';
+  const key = isOwn ? 'own' : ('name:' + (data.companyName || 'Без названия').trim().toLowerCase());
+  const now = new Date().toISOString();
+  let src = DB.sharedClientSources.find(s=>s.key===key);
+  if(!src){
+    src = {
+      id: uid(), key,
+      name: isOwn ? 'Мои клиенты (копия)' : (data.companyName || 'Без названия'),
+      method: sourceOpts.method || 'file',
+      fileName: sourceOpts.fileName || null,
+      enabled: true,
+      firstImportedAt: now,
+      importedAt: now,
+      exportedAt: data.exportedAt || null,
+    };
+    DB.sharedClientSources.push(src);
+  } else {
+    src.importedAt = now;
+    if(data.exportedAt) src.exportedAt = data.exportedAt;
+    if(sourceOpts.method) src.method = sourceOpts.method;
+    if(sourceOpts.fileName) src.fileName = sourceOpts.fileName;
+    if(!isOwn && data.companyName) src.name = data.companyName;
+  }
+  return src;
+}
+function sharedSourceStats(sourceId){
+  const clients = (DB.sharedClients||[]).filter(sc=>sc.sourceId===sourceId);
+  let rentals = 0, fines = 0, violations = 0;
+  clients.forEach(sc=>{
+    rentals += sc.stats?.rentals?.count || 0;
+    fines += sc.stats?.fines?.count || 0;
+    violations += sc.stats?.violations?.count || 0;
+  });
+  return { clients: clients.length, rentals, fines, violations };
+}
+function computePersonalClientsStats(){
+  const rentals = DB.contracts.filter(ct=>ct.status!=='cancelled' && (!ct.type||ct.type==='rental')).length;
+  const fines = DB.contracts.filter(ct=>ct.status!=='cancelled' && ct.type==='fine').length;
+  const violations = DB.contracts.filter(ct=>ct.status!=='cancelled' && ct.type==='violation').length;
+  return { clients: DB.clients.length, rentals, fines, violations };
+}
+function computeAllSharedClientsStats(){
+  const list = DB.sharedClients || [];
+  let rentals = 0, fines = 0, violations = 0;
+  list.forEach(sc=>{
+    rentals += sc.stats?.rentals?.count || 0;
+    fines += sc.stats?.fines?.count || 0;
+    violations += sc.stats?.violations?.count || 0;
+  });
+  return { clients: list.length, rentals, fines, violations };
+}
+function enabledSharedSourceIds(){
+  return new Set((DB.sharedClientSources||[]).filter(s=>s.enabled!==false).map(s=>s.id));
+}
+async function commitClientsSharePayload(data, sourceOpts){
   const incoming = Array.isArray(data?.clients) ? data.clients : null;
   if(!incoming || !incoming.length){ showToast('В копии не найдено клиентов'); return; }
   if(!DB.sharedClients) DB.sharedClients = [];
+  const src = resolveSharedClientSource(data, sourceOpts);
   const existingByKey = new Map(DB.sharedClients.map(sc=>[sharedClientDedupeKey(sc), sc]));
   let added = 0, updated = 0;
   incoming.forEach(ic=>{
@@ -5152,6 +5218,7 @@ async function commitClientsSharePayload(data){
       blacklisted: !!ic.blacklisted,
       stats: ic.stats || {},
       history: ic.history || [],
+      sourceId: src.id,
     };
     const existing = existingByKey.get(key);
     if(existing){ Object.assign(existing, record); updated++; }
@@ -5163,12 +5230,43 @@ async function commitClientsSharePayload(data){
     }
   });
   await persist('sharedClients');
+  await persist('sharedClientSources');
   closeSheet(); render();
   showToast(updated ? `Готово — новых: ${added}, обновлено: ${updated}` : `Готово — добавлено: ${added}`);
+}
+function sharedSourceMethodLine(src){
+  if(src.method==='own') return '📋 Скопировано из своей базы';
+  if(src.method==='text') return '✍️ Добавлено текстом';
+  return `📄 ${esc(src.fileName || 'файл .json')}`;
+}
+function sharedSourceCard(src){
+  const stats = sharedSourceStats(src.id);
+  const on = src.enabled !== false;
+  return `
+  <div class="card" style="display:block;padding:14px 16px;margin-bottom:10px;${on?'':'opacity:.5;'}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+      <div style="min-width:0;">
+        <div style="font-weight:700;font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${src.method==='own'?'📋':'🏢'} ${esc(src.name)}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${sharedSourceMethodLine(src)}</div>
+        <div style="font-size:11px;color:var(--text-faint);margin-top:1px;">Обновлено ${fmtDateTime(src.importedAt)}</div>
+      </div>
+      <label class="switch" style="flex-shrink:0;"><input type="checkbox" ${on?'checked':''} onchange="toggleSharedSource('${src.id}')"><span class="slider"></span></label>
+    </div>
+    <div class="dr-stats" style="margin-top:12px;margin-bottom:0;">
+      <div class="dr-stat total"><div class="val" style="font-size:16px;color:#eab308;">${stats.clients}</div><div class="lbl">Клиентов</div></div>
+      <div class="dr-stat paid"><div class="val" style="font-size:16px;color:var(--accent-2);">${stats.rentals}</div><div class="lbl">Аренд</div></div>
+      <div class="dr-stat unpaid"><div class="val" style="font-size:16px;color:var(--danger);">${stats.fines}</div><div class="lbl">Штрафов</div></div>
+    </div>
+    ${stats.violations ? `<div style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:6px;">Нарушений: ${stats.violations}</div>` : ''}
+    <button class="btn danger-ghost" style="margin-top:10px;width:100%;font-size:11.5px;padding:7px;" onclick="removeSharedSource('${src.id}')">Удалить эту базу</button>
+  </div>`;
 }
 function openClientsDbSettings(){
   const sharedCount = (DB.sharedClients||[]).length;
   const enabled = DB.settings.sharedClientsDbEnabled !== false;
+  const sources = (DB.sharedClientSources||[]).slice().sort((a,b)=> new Date(b.importedAt||0) - new Date(a.importedAt||0));
+  const personal = computePersonalClientsStats();
+  const shared = computeAllSharedClientsStats();
   openSheet(`
     ${subHead('База клиентов')}
     <div class="sheet-body">
@@ -5186,18 +5284,25 @@ function openClientsDbSettings(){
         Делитесь историей клиентов с другом или коллегой по прокату — номера телефонов передаются <b>скрытыми частично</b> (кроме последних трёх цифр), чтобы клиентов нельзя было переманить. В копии остаются имя, документы, чёрный список и история аренд, штрафов и нарушений.
       </div>
 
-      <div class="dr-stats" style="margin-top:0;margin-bottom:22px;">
-        <div class="dr-stat total">
-          <div class="val" style="color:#eab308;">${DB.clients.length}</div>
-          <div class="lbl">Ваша база</div>
-        </div>
-        <div class="dr-stat paid">
-          <div class="val" style="color:var(--accent-2);">${sharedCount}</div>
-          <div class="lbl">🌐 Общая база</div>
+      <div class="card" style="display:block;padding:14px 16px;margin-bottom:22px;">
+        <div style="display:grid;grid-template-columns:1fr 74px 74px;gap:7px 8px;align-items:center;">
+          <div></div>
+          <div style="font-size:10.5px;color:var(--text-dim);font-weight:700;text-align:center;">Ваша база</div>
+          <div style="font-size:10.5px;color:var(--accent-2);font-weight:700;text-align:center;">🌐 Общая</div>
+          <div style="font-size:12.5px;color:var(--text);">Клиентов</div><div style="text-align:center;font-weight:700;font-size:13px;">${personal.clients}</div><div style="text-align:center;font-weight:700;font-size:13px;color:var(--accent-2);">${shared.clients}</div>
+          <div style="font-size:12.5px;color:var(--text);">Договоров</div><div style="text-align:center;font-weight:700;font-size:13px;">${personal.rentals}</div><div style="text-align:center;font-weight:700;font-size:13px;color:var(--accent-2);">${shared.rentals}</div>
+          <div style="font-size:12.5px;color:var(--text);">Штрафов</div><div style="text-align:center;font-weight:700;font-size:13px;">${personal.fines}</div><div style="text-align:center;font-weight:700;font-size:13px;color:var(--accent-2);">${shared.fines}</div>
+          <div style="font-size:12.5px;color:var(--text);">Нарушений</div><div style="text-align:center;font-weight:700;font-size:13px;">${personal.violations}</div><div style="text-align:center;font-weight:700;font-size:13px;color:var(--accent-2);">${shared.violations}</div>
         </div>
       </div>
 
-      <div class="section-title" style="margin-top:0;">📤 Поделиться</div>
+      ${sources.length ? `
+      <div class="section-title" style="margin-top:0;">📚 Импортированные базы <span class="count">${sources.length}</span></div>
+      <div style="font-size:11.5px;color:var(--text-dim);line-height:1.5;margin-bottom:10px;">Каждая — отдельная копия от друга или коллеги (или ваша собственная). Можно временно отключить любую из них, не удаляя.</div>
+      ${sources.map(sharedSourceCard).join('')}
+      ` : ''}
+
+      <div class="section-title" style="margin-top:24px;">📤 Поделиться</div>
       <div style="font-size:11.5px;color:var(--text-dim);line-height:1.5;margin-bottom:6px;">Отправьте свою базу другу — он увидит имена, документы и историю, номера телефонов будут скрыты частично.</div>
       <div class="settings-item">
         <div><div class="st">Стандартный режим</div><div class="sd">Скачать файлом .json</div></div>
@@ -5248,10 +5353,33 @@ async function toggleShowSharedClients(){
   await persist('settings');
   showToast(DB.settings.showSharedClients ? 'Общая база включена в поиск' : 'Общая база скрыта из поиска');
 }
+async function toggleSharedSource(id){
+  const src = (DB.sharedClientSources||[]).find(s=>s.id===id);
+  if(!src) return;
+  src.enabled = (src.enabled === false);
+  await persist('sharedClientSources');
+  openClientsDbSettings();
+  render();
+  showToast(src.enabled ? `«${src.name}» включена` : `«${src.name}» отключена`);
+}
+async function removeSharedSource(id){
+  const src = (DB.sharedClientSources||[]).find(s=>s.id===id);
+  if(!src) return;
+  if(!await confirmDelete(`Удалить базу «${src.name}» вместе со всеми её клиентами из общей базы? Ваша личная база не пострадает.`, 'Удалить')) return;
+  DB.sharedClients = (DB.sharedClients||[]).filter(sc=>sc.sourceId!==id);
+  DB.sharedClientSources = (DB.sharedClientSources||[]).filter(s=>s.id!==id);
+  await persist('sharedClients');
+  await persist('sharedClientSources');
+  openClientsDbSettings();
+  render();
+  showToast('База удалена');
+}
 async function clearSharedClients(){
   if(!await confirmDelete('Удалить всю общую базу клиентов (импортированную от других)? Ваша личная база клиентов не пострадает.', 'Очистить')) return;
   DB.sharedClients = [];
+  DB.sharedClientSources = [];
   await persist('sharedClients');
+  await persist('sharedClientSources');
   openClientsDbSettings();
   showCenterConfirm('Общая база очищена');
 }
@@ -5483,7 +5611,7 @@ async function importBackupFromTextArea(){
   await applyImportedPayload(data);
 }
 async function applyImportedPayload(data){
-  const knownKeys = ['cars','clients','contracts','clientLedger','oilChanges','sharedClients','settings'];
+  const knownKeys = ['cars','clients','contracts','clientLedger','oilChanges','sharedClients','sharedClientSources','settings'];
   const presentKeys = knownKeys.filter(k=> data[k]!==undefined);
   if(!presentKeys.length){ showToast('В копии не найдено известных данных'); return; }
   const labels = presentKeys.map(k=>BACKUP_KEY_LABELS[k]).join(', ');
@@ -5606,8 +5734,8 @@ function openWipeConfirmStage(stage){
 }
 async function performWipeAll(){
   clearInterval(wipeCountdownTimer);
-  DB.cars = []; DB.clients = []; DB.contracts = []; DB.clientLedger = []; DB.oilChanges = []; DB.sharedClients = [];
-  await persist('cars'); await persist('clients'); await persist('contracts'); await persist('clientLedger'); await persist('oilChanges'); await persist('sharedClients');
+  DB.cars = []; DB.clients = []; DB.contracts = []; DB.clientLedger = []; DB.oilChanges = []; DB.sharedClients = []; DB.sharedClientSources = [];
+  await persist('cars'); await persist('clients'); await persist('contracts'); await persist('clientLedger'); await persist('oilChanges'); await persist('sharedClients'); await persist('sharedClientSources');
   closeSheet(); render(); showCenterConfirm('Все данные удалены');
 }
 
