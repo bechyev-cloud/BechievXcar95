@@ -712,6 +712,23 @@ body.win-mode .cars-list-wrap{grid-column:1 / -1;display:flex;flex-direction:col
 .dr-stat .val{font-family:var(--font-display);font-weight:800;font-size:15px;}
 .dr-stat .lbl{font-size:10.5px;color:var(--text-dim);margin-top:3px;}
 
+.ssc-card{background:var(--surface-2);border-radius:20px;padding:16px;margin-bottom:12px;transition:opacity .15s ease;}
+.ssc-avatar{width:44px;height:44px;border-radius:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:19px;}
+.ssc-actions{display:flex;gap:6px;margin-top:14px;}
+.ssc-action{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex:1;padding:2px;border-radius:12px;transition:transform .1s ease,filter .15s ease;}
+.ssc-action:active{transform:scale(0.95);}
+.ssc-action-ic{width:38px;height:38px;border-radius:12px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:15px;}
+.ssc-action span{font-size:9.5px;color:var(--text-dim);font-weight:600;text-align:center;line-height:1.15;}
+.ssc-action.danger .ssc-action-ic{background:rgba(232,96,76,0.13);}
+.ssc-action.danger span{color:var(--danger);}
+.ssc-action.accent .ssc-action-ic{background:rgba(242,169,59,0.16);}
+
+.flat-tile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;}
+.flat-tile{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px 6px;border-radius:18px;background:var(--surface-2);transition:transform .1s ease;}
+.flat-tile:active{transform:scale(0.96);}
+.flat-tile-ic{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.flat-tile span{font-size:11px;font-weight:700;color:var(--text);text-align:center;}
+
 /* ---------- bottom nav ---------- */
 nav.bottom{
   position:fixed;left:0;right:0;bottom:0;z-index:30;
@@ -1324,6 +1341,7 @@ async function loadAll(){
     if(DB.settings.appIcon===undefined) DB.settings.appIcon = 'v8';
     if(!DB.settings.docFormat) DB.settings.docFormat = 'image';
     if(!DB.settings.debtMode) DB.settings.debtMode = 'withFines';
+    if(!DB.settings.paymentAutoOrder) DB.settings.paymentAutoOrder = ['violation','oldDebt','rental','fine'];
     if(!DB.settings.overdueVariant) DB.settings.overdueVariant = 'benevolent';
     if(!DB.settings.companyName) DB.settings.companyName = 'XCAR';
     if(DB.settings.windowsMode===undefined) DB.settings.windowsMode = false;
@@ -3268,18 +3286,25 @@ function dayWord(n){
   if(n10>=2 && n10<=4) return 'дня';
   return 'дней';
 }
-const PURPOSE_LABELS = { rental:'За аренду', fine:'За штрафы', violation:'За нарушения', oldDebt:'За старый долг' };
+const PURPOSE_LABELS = { rental:'За аренду', fine:'За штрафы', violation:'За нарушения', oldDebt:'За старый долг', auto:'🧮 Общий платёж' };
+const PAY_PURPOSE_ORDER = ['auto','rental','fine','violation','oldDebt'];
+const PAYMENT_ORDER_LABELS = { violation:'Нарушения', oldDebt:'Старый долг', rental:'Аренда', fine:'Штрафы' };
+const PAYMENT_ORDER_ICONS = { violation:'🚫', oldDebt:'📋', rental:'🏠', fine:'⚠️' };
+function paymentAutoOrder(){
+  const o = DB.settings.paymentAutoOrder;
+  return (Array.isArray(o) && o.length===4) ? o : ['violation','oldDebt','rental','fine'];
+}
+function paymentOrderSummary(){
+  return paymentAutoOrder().map(k=>PAYMENT_ORDER_LABELS[k]||k).join(' → ');
+}
+function clientUnpaidByCategory(clientId){
+  const sum = (purpose) => purposeContractList(clientId, purpose).reduce((s,x)=>s+x.remaining,0);
+  return { rental: sum('rental'), fine: sum('fine'), violation: sum('violation'), oldDebt: sum('oldDebt') };
+}
 function openClientPaymentForm(clientId){
   const c = DB.clients.find(x=>x.id===clientId); if(!c) return;
   const { debt } = clientDebt(clientId);
-  const unpaidRental = DB.contracts.filter(ct=>ct.clientId===clientId && (!ct.type||ct.type==='rental') && ct.status!=='cancelled' && !ct.paid)
-    .reduce((s,ct)=>s+(ct.total||0),0);
-  const unpaidFines = DB.contracts.filter(ct=>ct.clientId===clientId && ct.type==='fine')
-    .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-finePaidAmount(ct.id)),0);
-  const unpaidViolations = DB.contracts.filter(ct=>ct.clientId===clientId && ct.type==='violation')
-    .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-violationPaidAmount(ct.id)),0);
-  const unpaidOldDebt = DB.contracts.filter(ct=>ct.clientId===clientId && ct.type==='oldDebt')
-    .reduce((s,ct)=>s+Math.max(0,(ct.total||0)-oldDebtPaidAmount(ct.id)),0);
+  const { rental: unpaidRental, fine: unpaidFines, violation: unpaidViolations, oldDebt: unpaidOldDebt } = clientUnpaidByCategory(clientId);
   const amounts = { rental: unpaidRental, fine: unpaidFines, violation: unpaidViolations, oldDebt: unpaidOldDebt };
   const defaultPurpose = Object.keys(amounts).reduce((best,k)=> amounts[k]>amounts[best] ? k : best, 'rental');
   openSheet(`
@@ -3291,16 +3316,18 @@ function openClientPaymentForm(clientId){
       ${debt>0 ? `<div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">Текущий долг клиента: <b style="color:var(--danger);">${money(debt)}</b></div>` : `<div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">У клиента сейчас нет долга.</div>`}
       <div class="field">
         <label>За что платёж</label>
-        <div class="gauge-period-row" id="payPurposeRow" style="width:100%;">
-          ${Object.keys(PURPOSE_LABELS).map(k=>`<button type="button" class="${defaultPurpose===k?'active':''}" data-purpose="${k}" style="flex:1;" onclick="setPayPurpose('${k}','${clientId}')">${PURPOSE_LABELS[k]}</button>`).join('')}
+        <div class="gauge-period-row" id="payPurposeRow" style="width:100%;flex-wrap:wrap;">
+          ${PAY_PURPOSE_ORDER.map(k=>`<button type="button" class="${defaultPurpose===k?'active':''}" data-purpose="${k}" style="flex:1 1 30%;min-width:88px;" onclick="setPayPurpose('${k}','${clientId}')">${PURPOSE_LABELS[k]}</button>`).join('')}
         </div>
         <input type="hidden" id="f_pay_purpose" value="${defaultPurpose}">
         <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px;">Долг за аренду: ${money(unpaidRental)} · Штрафы: ${money(unpaidFines)} · Нарушения: ${money(unpaidViolations)} · Старый долг: ${money(unpaidOldDebt)}</div>
+        <div id="payAutoHint" style="font-size:11.5px;color:var(--text-dim);margin-top:6px;${defaultPurpose==='auto'?'':'display:none;'}">🧮 Спишет долг по порядку: <b>${esc(paymentOrderSummary())}</b> — порядок можно изменить в настройках → Долг.</div>
       </div>
-      <div class="field" id="payContractField" style="${['fine','violation','oldDebt'].includes(defaultPurpose)?'':'display:none;'}">
+      <div class="field" id="payContractField" style="${['fine','violation','oldDebt','rental'].includes(defaultPurpose)?'':'display:none;'}">
         <label>Договор (по желанию)</label>
         <select id="f_pay_contract" onchange="onPayContractSelect('${clientId}')">${payContractOptionsHtml(clientId, defaultPurpose)}</select>
-        <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px;">Можно выбрать конкретный договор, чтобы списать долг именно с него, или оставить «Не выбрано» — тогда долг спишется автоматически.</div>
+        <div id="payAutoContractHintWrap">${payAutoContractHint(clientId, defaultPurpose)}</div>
+        <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px;">Можно выбрать конкретный договор, чтобы списать долг именно с него, или оставить «Не выбрано» — тогда долг спишется автоматически с более старых договоров к более новым.</div>
       </div>
       <div class="field"><label>Сумма платежа (${DB.settings.currency})</label><input id="f_pay_amount" type="number" placeholder="0" value="${debt>0?debt:''}"></div>
       <div class="field"><label>Дата платежа</label><input id="f_pay_date" type="datetime-local" value="${nowDT()}"></div>
@@ -3313,9 +3340,13 @@ function openClientPaymentForm(clientId){
   `);
 }
 function purposeContractList(clientId, purpose){
-  const paidFn = { fine: finePaidAmount, violation: violationPaidAmount, oldDebt: oldDebtPaidAmount }[purpose];
+  const paidFn = { fine: finePaidAmount, violation: violationPaidAmount, oldDebt: oldDebtPaidAmount, rental: rentalPaidAmount }[purpose];
   if(!paidFn) return [];
-  return DB.contracts.filter(ct=>ct.clientId===clientId && ct.type===purpose)
+  return DB.contracts.filter(ct=>{
+      if(ct.clientId!==clientId) return false;
+      if(purpose==='rental') return (!ct.type||ct.type==='rental') && ct.status!=='cancelled' && !ct.paid;
+      return ct.type===purpose;
+    })
     .map(ct=>({ ct, paid: paidFn(ct.id), remaining: Math.max(0, (ct.total||0)-paidFn(ct.id)) }))
     .filter(x=>x.remaining>0)
     .sort((a,b)=> new Date(b.ct.start)-new Date(a.ct.start));
@@ -3323,8 +3354,29 @@ function purposeContractList(clientId, purpose){
 function payContractOptionsHtml(clientId, purpose){
   const list = purposeContractList(clientId, purpose);
   const noneLabel = list.length ? '— Не выбрано (списать автоматически) —' : '— Нет неоплаченных договоров —';
-  const opts = list.map(x=>`<option value="${x.ct.id}">${fmtDate(x.ct.start)} · остаток ${money(x.remaining)}${x.ct.notes?' · '+esc(x.ct.notes).slice(0,30):''}</option>`).join('');
+  const opts = list.map(x=>{
+    const car = purpose==='rental' ? DB.cars.find(c=>c.id===x.ct.carId) : null;
+    const carPart = car ? `${esc(car.make)} ${esc(car.model)} · ` : '';
+    return `<option value="${x.ct.id}">${carPart}${fmtDate(x.ct.start)} · остаток ${money(x.remaining)}${x.ct.notes?' · '+esc(x.ct.notes).slice(0,30):''}</option>`;
+  }).join('');
   return `<option value="">${noneLabel}</option>${opts}`;
+}
+function autoContractLabel(purpose, ct){
+  if(purpose==='rental'){
+    const car = DB.cars.find(c=>c.id===ct.carId);
+    return `${car ? esc(car.make)+' '+esc(car.model)+' · ' : ''}${fmtDate(ct.start)}`;
+  }
+  return `${fmtDate(ct.start)}${ct.notes ? ' · '+esc(ct.notes).slice(0,30) : ''}`;
+}
+function payAutoContractHint(clientId, purpose){
+  const list = purposeContractList(clientId, purpose).slice().sort((a,b)=> new Date(a.ct.start)-new Date(b.ct.start));
+  if(!list.length) return '';
+  const first = list[0];
+  const extra = list.length>1 ? ` <span style="color:var(--text-faint);">(+ ещё ${list.length-1}, если не хватит суммы)</span>` : '';
+  return `<div style="font-size:11.5px;color:var(--text-dim);margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+    <span style="display:inline-flex;align-items:center;gap:3px;background:rgba(62,201,167,0.14);color:var(--accent-2);font-weight:700;border-radius:100px;padding:2px 8px;font-size:10px;letter-spacing:.2px;">🤖 АВТО</span>
+    <span>${autoContractLabel(purpose, first.ct)}</span>${extra}
+  </div>`;
 }
 function setPayPurpose(purpose, clientId){
   document.getElementById('f_pay_purpose').value = purpose;
@@ -3333,19 +3385,28 @@ function setPayPurpose(purpose, clientId){
   });
   const contractField = document.getElementById('payContractField');
   if(contractField){
-    if(['fine','violation','oldDebt'].includes(purpose)){
+    if(['fine','violation','oldDebt','rental'].includes(purpose)){
       contractField.style.display = '';
       document.getElementById('f_pay_contract').innerHTML = payContractOptionsHtml(clientId, purpose);
+      const hintWrap = document.getElementById('payAutoContractHintWrap');
+      if(hintWrap) hintWrap.innerHTML = payAutoContractHint(clientId, purpose);
     } else {
       contractField.style.display = 'none';
       document.getElementById('f_pay_contract').value = '';
     }
   }
+  const autoHint = document.getElementById('payAutoHint');
+  if(autoHint) autoHint.style.display = purpose==='auto' ? '' : 'none';
 }
 function onPayContractSelect(clientId){
   const purpose = document.getElementById('f_pay_purpose').value;
   const contractId = document.getElementById('f_pay_contract').value;
-  if(!contractId) return;
+  const hintWrap = document.getElementById('payAutoContractHintWrap');
+  if(!contractId){
+    if(hintWrap) hintWrap.innerHTML = payAutoContractHint(clientId, purpose);
+    return;
+  }
+  if(hintWrap) hintWrap.innerHTML = '';
   const list = purposeContractList(clientId, purpose);
   const found = list.find(x=>x.ct.id===contractId);
   if(found) document.getElementById('f_pay_amount').value = found.remaining;
@@ -3356,27 +3417,86 @@ async function saveClientPayment(clientId){
   const date = document.getElementById('f_pay_date').value || nowDT();
   const purpose = document.getElementById('f_pay_purpose').value || 'rental';
   let note = document.getElementById('f_pay_note').value.trim();
+  if(purpose === 'auto'){ await saveClientAutoPayment(clientId, amount, date, note); return; }
   if(!note) note = purpose==='fine' ? 'Оплата штрафа' : purpose==='violation' ? 'Оплата нарушения' : purpose==='oldDebt' ? 'Оплата старого долга' : 'Оплата аренды';
   const contractField = document.getElementById('payContractField');
   const selectedContractId = (contractField && contractField.style.display!=='none') ? document.getElementById('f_pay_contract').value : '';
-  const entry = { id: uid(), clientId, type:'payment', amount, date, note, purpose };
+  let notifyAmount = amount;
   if(selectedContractId){
     const list = purposeContractList(clientId, purpose);
     const found = list.find(x=>x.ct.id===selectedContractId);
+    const entry = { id: uid(), clientId, type:'payment', amount, date, note, purpose };
     if(found){
       if(amount>found.remaining) amount = found.remaining;
       entry.amount = amount;
-      const idField = { fine:'fineId', violation:'violationId', oldDebt:'oldDebtId' }[purpose];
+      notifyAmount = amount;
+      const idField = { fine:'fineId', violation:'violationId', oldDebt:'oldDebtId', rental:'rentalId' }[purpose];
       if(idField) entry[idField] = selectedContractId;
     }
+    DB.clientLedger.push(entry);
+  } else {
+    // не выбран конкретный договор — списываем автоматически с более старых договоров этой категории к более новым
+    distributePaymentAcrossContracts(clientId, purpose, amount, date, note).forEach(e=>DB.clientLedger.push(e));
   }
-  DB.clientLedger.push(entry);
   await persist('clientLedger');
   const clForMsg = DB.clients.find(x=>x.id===clientId);
-  notifyClient(clientId, buildPaymentMessage(clForMsg, amount, purpose, note), 'payment');
+  notifyClient(clientId, buildPaymentMessage(clForMsg, notifyAmount, purpose, note), 'payment');
   sendPaymentHistoryDocument(clientId);
   showToast('Платёж добавлен, долг клиента уменьшен');
   openClientDetail(clientId);
+}
+function distributePaymentAcrossContracts(clientId, purpose, amount, date, note){
+  const idField = { fine:'fineId', violation:'violationId', oldDebt:'oldDebtId', rental:'rentalId' }[purpose];
+  const list = purposeContractList(clientId, purpose).slice().sort((a,b)=> new Date(a.ct.start)-new Date(b.ct.start));
+  let left = amount;
+  const entries = [];
+  list.forEach(x=>{
+    if(left<=0.005) return;
+    const use = Math.min(left, x.remaining);
+    if(use<=0.005) return;
+    const e = { id: uid(), clientId, type:'payment', amount: use, date, note, purpose };
+    if(idField) e[idField] = x.ct.id;
+    entries.push(e);
+    left -= use;
+  });
+  if(left>0.005){
+    entries.push({ id: uid(), clientId, type:'payment', amount:left, date, note, purpose });
+  }
+  return entries;
+}
+async function saveClientAutoPayment(clientId, amount, date, note){
+  const order = paymentAutoOrder();
+  const remain = clientUnpaidByCategory(clientId);
+  let left = amount;
+  const applied = [];
+  order.forEach(key=>{
+    if(left<=0.005) return;
+    const avail = remain[key] || 0;
+    if(avail<=0.005) return;
+    const use = Math.min(left, avail);
+    applied.push({ key, amount: use });
+    left -= use;
+  });
+  if(left>0.005){
+    const fallbackKey = order[0] || 'rental';
+    applied.push({ key: fallbackKey, amount: left, overpay: true });
+  }
+  if(!applied.length){ showToast('Нет суммы для распределения'); return; }
+  applied.forEach(a=>{
+    const autoNote = note || (a.overpay ? 'Переплата / аванс' : AUTO_PAY_NOTES[a.key]);
+    DB.clientLedger.push({ id: uid(), clientId, type:'payment', amount: a.amount, date, note: autoNote, purpose: a.key });
+  });
+  await persist('clientLedger');
+  const clForMsg = DB.clients.find(x=>x.id===clientId);
+  notifyClient(clientId, buildAutoPaymentMessage(clForMsg, amount, applied, note), 'payment');
+  sendPaymentHistoryDocument(clientId);
+  showToast('Платёж распределён по долгу клиента');
+  openClientDetail(clientId);
+}
+const AUTO_PAY_NOTES = { rental:'Оплата аренды (общий платёж)', fine:'Оплата штрафа (общий платёж)', violation:'Оплата нарушения (общий платёж)', oldDebt:'Оплата старого долга (общий платёж)' };
+function buildAutoPaymentMessage(cl, amount, applied, note){
+  const lines = applied.map(a=> `${a.overpay?'Переплата/аванс':(PAYMENT_ORDER_LABELS[a.key]||a.key)}: ${money(a.amount)}`).join('\n');
+  return `Здравствуйте${cl?', '+cl.name:''}! ✅\n\nПлатёж получен.\n💰 Сумма: ${money(amount)}\n${lines}${note?'\n📝 '+note:''}`;
 }
 function openClientFineForm(clientId){
   const c = DB.clients.find(x=>x.id===clientId); if(!c) return;
@@ -4045,6 +4165,9 @@ function finePaidAmount(fineId){
 }
 function oldDebtPaidAmount(oldDebtId){
   return DB.clientLedger.filter(l=>(l.type==='payment'||l.type==='discount') && l.oldDebtId===oldDebtId).reduce((s,l)=>s+(l.amount||0),0);
+}
+function rentalPaidAmount(rentalId){
+  return DB.clientLedger.filter(l=>(l.type==='payment'||l.type==='discount') && l.rentalId===rentalId).reduce((s,l)=>s+(l.amount||0),0);
 }
 function openFineContractDetail(ct){
   const cl = DB.clients.find(c=>c.id===ct.clientId);
@@ -5346,29 +5469,34 @@ function sharedSourceMethodLine(src){
   if(src.method==='text') return '✍️ Добавлено текстом';
   return `📄 ${esc(src.fileName || 'файл .json')}`;
 }
+function sharedSourceDisplayName(src){
+  if(src.method==='own') return DB.settings.companyName || 'Мои клиенты';
+  return src.name;
+}
 function sharedSourceCard(src){
   const stats = sharedSourceStats(src.id);
   const on = src.enabled !== false;
   return `
-  <div class="card" style="display:block;padding:14px 16px;margin-bottom:10px;${on?'':'opacity:.5;'}">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
-      <div style="min-width:0;">
-        <div style="font-weight:700;font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${src.method==='own'?'📋':'🏢'} ${esc(src.name)}</div>
-        <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${sharedSourceMethodLine(src)}</div>
-        <div style="font-size:11px;color:var(--text-faint);margin-top:1px;">Обновлено ${fmtDateTime(src.importedAt)}</div>
+  <div class="ssc-card" style="${on?'':'opacity:.55;'}">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="ssc-avatar" style="${src.method==='own'?'background:rgba(242,169,59,0.16);color:var(--accent);':'background:rgba(62,201,167,0.16);color:var(--accent-2);'}">${src.method==='own'?'📋':'🏢'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(sharedSourceDisplayName(src))}</div>
+        <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Обновлено ${fmtDateTime(src.importedAt)}</div>
       </div>
       <label class="switch" style="flex-shrink:0;"><input type="checkbox" ${on?'checked':''} onchange="toggleSharedSource('${src.id}')"><span class="slider"></span></label>
     </div>
-    <div class="dr-stats" style="margin-top:12px;margin-bottom:0;">
+    <div class="dr-stats" style="margin-top:14px;margin-bottom:0;">
       <div class="dr-stat total"><div class="val" style="font-size:16px;color:#eab308;">${stats.clients}</div><div class="lbl">Клиентов</div></div>
       <div class="dr-stat paid"><div class="val" style="font-size:16px;color:var(--accent-2);">${stats.rentals}</div><div class="lbl">Аренд</div></div>
       <div class="dr-stat unpaid"><div class="val" style="font-size:16px;color:var(--danger);">${stats.fines}</div><div class="lbl">Штрафов</div></div>
     </div>
     ${stats.violations ? `<div style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:6px;">Нарушений: ${stats.violations}</div>` : ''}
-    <div class="btn-row" style="margin-top:10px;">
-      <button class="btn ghost" style="font-size:11px;padding:7px 4px;" onclick="openSharedSourceClients('${src.id}')">👁 Просмотр</button>
-      <button class="btn ghost" style="font-size:11px;padding:7px 4px;" onclick="openSharedSourceClients('${src.id}', true)">🔍 Поиск</button>
-      <button class="btn danger-ghost" style="font-size:11px;padding:7px 4px;" onclick="removeSharedSource('${src.id}')">🗑 Удалить</button>
+    <div class="ssc-actions">
+      <div class="ssc-action" onclick="openSharedSourceClients('${src.id}')"><div class="ssc-action-ic">👁</div><span>Просмотр</span></div>
+      <div class="ssc-action" onclick="openSharedSourceClients('${src.id}', true)"><div class="ssc-action-ic">🔍</div><span>Поиск</span></div>
+      <div class="ssc-action accent" onclick="openShareSharedSourceSheet('${src.id}')"><div class="ssc-action-ic">📤</div><span>Отправить</span></div>
+      <div class="ssc-action danger" onclick="removeSharedSource('${src.id}')"><div class="ssc-action-ic">🗑</div><span>Удалить</span></div>
     </div>
   </div>`;
 }
@@ -5382,7 +5510,7 @@ function openSharedSourceClients(id, openSearch){
   const clients = q ? allClients.filter(sc=>(sc.name+' '+(sc.doc||'')+' '+(sc.licenseNum||'')).toLowerCase().includes(q)) : allClients;
   const showSearch = openSearch || !!q;
   openSheet(`
-    ${subHeadTo(esc(src.name), 'openClientsDbSettings()')}
+    ${subHeadTo(esc(sharedSourceDisplayName(src)), 'openClientsDbSettings()')}
     <div class="sheet-body">
       <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:14px;">${sharedSourceMethodLine(src)} · Обновлено ${fmtDateTime(src.importedAt)}</div>
       <div class="dr-stats" style="margin-top:0;margin-bottom:18px;">
@@ -5454,18 +5582,18 @@ function openClientsDbSettings(){
       </div>
 
       <div class="section-title" style="margin-top:0;">Управление базой</div>
-      <div class="app-icon-grid" style="margin-bottom:20px;">
-        <div class="app-icon-opt" onclick="openShareClientsDbSheet()">
-          <div class="app-icon-tile" style="font-size:26px;">📤</div>
-          <div style="font-size:11.5px;font-weight:700;text-align:center;color:var(--text);">Поделиться</div>
+      <div class="flat-tile-grid" style="margin-bottom:20px;">
+        <div class="flat-tile" onclick="openShareClientsDbSheet()">
+          <div class="flat-tile-ic" style="background:rgba(242,169,59,0.16);">📤</div>
+          <span>Поделиться</span>
         </div>
-        <div class="app-icon-opt" onclick="openReceiveClientsDbSheet()">
-          <div class="app-icon-tile" style="font-size:26px;">📥</div>
-          <div style="font-size:11.5px;font-weight:700;text-align:center;color:var(--text);">Получить</div>
+        <div class="flat-tile" onclick="openReceiveClientsDbSheet()">
+          <div class="flat-tile-ic" style="background:rgba(62,201,167,0.16);">📥</div>
+          <span>Получить</span>
         </div>
-        <div class="app-icon-opt" onclick="openCopyOwnClientsDbSheet()">
-          <div class="app-icon-tile" style="font-size:26px;">📋</div>
-          <div style="font-size:11.5px;font-weight:700;text-align:center;color:var(--text);">Свои клиенты</div>
+        <div class="flat-tile" onclick="openCopyOwnClientsDbSheet()">
+          <div class="flat-tile-ic" style="background:rgba(99,102,241,0.14);">📋</div>
+          <span>Свои клиенты</span>
         </div>
       </div>
 
@@ -5574,6 +5702,96 @@ async function setSharedExportPhoneMode(mode){
   await persist('settings');
   openShareClientsDbSheet();
   showToast(mode==='hidden' ? 'В копии номера будут полностью скрыты' : 'В копии номера будут видны частично');
+}
+function buildSharedSourceSharePayload(sourceId){
+  const src = (DB.sharedClientSources||[]).find(s=>s.id===sourceId);
+  const clients = (DB.sharedClients||[]).filter(sc=>sc.sourceId===sourceId).map(sc=>({
+    name: sc.name, phone: sc.phone, doc: sc.doc || '', licenseNum: sc.licenseNum || '',
+    notes: sc.notes || '', blacklisted: !!sc.blacklisted, stats: sc.stats || {}, history: sc.history || [],
+  }));
+  return {
+    exportedAt: new Date().toISOString(), scope:'clientsShare',
+    companyName: src ? sharedSourceDisplayName(src) : (DB.settings.companyName || 'XCAR'),
+    clients,
+  };
+}
+function openShareSharedSourceSheet(sourceId){
+  const src = (DB.sharedClientSources||[]).find(s=>s.id===sourceId); if(!src) return;
+  openSheet(`
+    ${subHeadTo('📤 Поделиться', `openSharedSourceClients('${sourceId}')`)}
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;">Отправьте базу «${esc(sharedSourceDisplayName(src))}» другому пользователю XCAR.</div>
+      <div style="font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:10px;">Способ передачи</div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="exportSharedSourceFile('${sourceId}')">⬇️ Файл</button>
+        <button class="btn ghost" onclick="exportSharedSourceText('${sourceId}')">📋 Текст</button>
+        <button class="btn ghost" onclick="openWhatsAppSendSharedSourcePrompt('${sourceId}')">💬 WhatsApp</button>
+      </div>
+    </div>
+  `);
+}
+function exportSharedSourceFile(sourceId){
+  const payload = buildSharedSourceSharePayload(sourceId);
+  if(!payload.clients.length){ showToast('Нет клиентов для отправки'); return; }
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `xcar-shared-${todayISO()}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Копия сохранена в файл');
+}
+function exportSharedSourceText(sourceId){
+  const payload = buildSharedSourceSharePayload(sourceId);
+  if(!payload.clients.length){ showToast('Нет клиентов для отправки'); return; }
+  const text = JSON.stringify(payload);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">База · текстом</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:10px;">Скопируйте текст и перешлите, например, в WhatsApp.</div>
+      <textarea id="backupTextArea" readonly style="width:100%;min-height:160px;font-family:monospace;font-size:11px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);resize:vertical;" onclick="this.select()">${esc(text)}</textarea>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn primary" onclick="copyBackupText()">📋 Скопировать</button>
+      </div>
+    </div>
+  `);
+}
+function openWhatsAppSendSharedSourcePrompt(sourceId){
+  const ga = DB.settings.greenApi;
+  if(!ga || !ga.enabled){ showToast('Сначала подключите WhatsApp в настройках'); return; }
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">💬 Отправить в WhatsApp</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px;">Укажите номер телефона — отправим файл с этой базой прямо в WhatsApp.</div>
+      <div class="field"><label>Номер телефона</label><input id="f_wa_share_phone" type="tel" placeholder="+7 999 000-00-00"></div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="openShareSharedSourceSheet('${sourceId}')">Отмена</button>
+        <button class="btn primary" onclick="sendSharedSourceWhatsApp('${sourceId}')">Отправить</button>
+      </div>
+    </div>
+  `);
+}
+async function sendSharedSourceWhatsApp(sourceId){
+  const phone = document.getElementById('f_wa_share_phone').value.trim();
+  if(!phone){ showToast('Введите номер телефона'); return; }
+  const payload = buildSharedSourceSharePayload(sourceId);
+  if(!payload.clients.length){ showToast('Нет клиентов для отправки'); return; }
+  closeSheet();
+  showCenterLoading('Отправляем в WhatsApp…');
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const r = await sendWhatsAppFile(phone, blob, `xcar-shared-${todayISO()}.json`, 'База клиентов — XCAR');
+  if(r.ok){
+    showCenterReport('Отправлено в WhatsApp', [{ value: payload.clients.length, label:'Клиентов' }]);
+  } else {
+    hideCenterProcess();
+    showToast('Не удалось отправить — проверьте номер и подключение WhatsApp');
+  }
 }
 async function toggleSharedClientsDbEnabled(){
   DB.settings.sharedClientsDbEnabled = document.getElementById('f_shared_db_enabled').checked;
@@ -6113,6 +6331,7 @@ function openDebtHub(){
         Настройки, связанные с долгом клиентов: как его считать, штрафы отдельно, и как начисляется доплата за опоздание с возвратом аренды.
       </div>
       ${settingsMenuItem('💳','Учёт долга', DEBT_MODE_LABELS[DB.settings.debtMode] || DEBT_MODE_LABELS.withFines, `openDebtModeSettings()`)}
+      ${settingsMenuItem('🧮','Порядок общего платежа', paymentOrderSummary(), `openPaymentOrderSettings()`)}
       ${settingsMenuItem('⚠️','Штрафы', `Всего начислено: ${money(finesSum)} · показываются отдельной строкой на карточке клиента`, `showToast('Штраф добавляется на карточке клиента: «Добавить долг → Штраф»')`)}
       ${settingsMenuItem('⏱️','Начисления за опоздание', DB.settings.overdue6hBlocks ? `Включено · ${OVERDUE_VARIANT_LABELS[DB.settings.overdueVariant] || OVERDUE_VARIANT_LABELS.benevolent}` : 'Выключено', `openOverdueAccrualSettings()`)}
     </div>
@@ -6147,6 +6366,47 @@ async function setDebtMode(key){
   await persist('settings');
   openDebtModeSettings();
   render();
+}
+function openPaymentOrderSettings(){
+  const order = paymentAutoOrder();
+  openSheet(`
+    ${debtHubHead('Порядок общего платежа')}
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;">
+        При платеже «🧮 Общий платёж» сумма автоматически списывается по этому порядку: сначала первая категория, остаток переходит на следующую и так далее. Стрелками можно поменять порядок.
+      </div>
+      <div class="card" style="display:block;padding:6px;">
+        ${order.map((key,i)=>`
+          <div class="settings-item" style="padding:10px 8px;">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+              <div style="width:24px;height:24px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-dim);flex-shrink:0;">${i+1}</div>
+              <div class="st">${PAYMENT_ORDER_ICONS[key]||''} ${PAYMENT_ORDER_LABELS[key]||key}</div>
+            </div>
+            <div style="display:flex;gap:4px;flex-shrink:0;">
+              <button class="icon-btn" style="${i===0?'opacity:.3;pointer-events:none;':''}" onclick="movePaymentOrder(${i},-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="16" height="16"><path d="M18 15 12 9l-6 6"/></svg></button>
+              <button class="icon-btn" style="${i===order.length-1?'opacity:.3;pointer-events:none;':''}" onclick="movePaymentOrder(${i},1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="16" height="16"><path d="M6 9l6 6 6-6"/></svg></button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn ghost" style="margin-top:14px;width:100%;" onclick="resetPaymentOrder()">Сбросить порядок по умолчанию</button>
+    </div>
+  `);
+}
+async function movePaymentOrder(index, dir){
+  const order = paymentAutoOrder().slice();
+  const newIndex = index + dir;
+  if(newIndex<0 || newIndex>=order.length) return;
+  [order[index], order[newIndex]] = [order[newIndex], order[index]];
+  DB.settings.paymentAutoOrder = order;
+  await persist('settings');
+  openPaymentOrderSettings();
+}
+async function resetPaymentOrder(){
+  DB.settings.paymentAutoOrder = ['violation','oldDebt','rental','fine'];
+  await persist('settings');
+  openPaymentOrderSettings();
+  showToast('Порядок сброшен по умолчанию');
 }
 const OVERDUE_VARIANT_LABELS = { benevolent: 'Благородный', full: 'Полная сумма' };
 function openOverdueAccrualSettings(){
