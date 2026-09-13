@@ -853,6 +853,15 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
 }
 .center-confirm .cc-check svg{width:26px;height:26px;}
 .center-confirm .cc-text{font-size:14px;font-weight:700;color:var(--text);text-align:center;}
+.center-confirm .cc-spinner{
+  width:44px;height:44px;border-radius:50%;border:4px solid var(--border);border-top-color:var(--accent);
+  flex-shrink:0;animation:ccspin .8s linear infinite;
+}
+@keyframes ccspin{ to{ transform:rotate(360deg); } }
+.center-confirm .cc-report{display:flex;gap:18px;margin-top:2px;}
+.center-confirm .cc-report .r{text-align:center;}
+.center-confirm .cc-report .r .rv{font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--text);}
+.center-confirm .cc-report .r .rl{font-size:9.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
 
 .del-modal{
   position:fixed;inset:0;z-index:95;background:var(--overlay-bg);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
@@ -1036,6 +1045,12 @@ body.win-mode .nav-btn.nav-fab .fab-label{margin-top:0;font-size:14px;font-weigh
   <div class="cc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
   <div class="cc-text" id="centerConfirmText"></div>
 </div>
+<div class="center-confirm" id="centerProcess">
+  <div class="cc-spinner" id="cpSpinner"></div>
+  <div class="cc-check" id="cpCheck" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+  <div class="cc-text" id="cpText"></div>
+  <div class="cc-report" id="cpReport"></div>
+</div>
 <div class="del-modal" id="delModal">
   <div class="del-card" id="delCard">
     <div class="del-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></div>
@@ -1114,6 +1129,8 @@ let searchBarOpen = { cars:false, clients:false, contracts:false };
 let carFilter = 'all';
 let pendingClientsSharePayload = null;
 let pendingClientsShareSourceOpts = null;
+let sharedSourceSearchQ = '';
+let sharedSourceViewId = null;
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const money = n => (Math.round(n||0)).toLocaleString('ru-RU') + ' ' + DB.settings.currency;
@@ -1280,7 +1297,8 @@ async function loadAll(){
     DB.sharedClientSources = safeGet('sharedClientSources') || [];
     DB.settings = safeGet('settings') || { currency:'₽', lastBackupAt:null };
     if(DB.settings.showSharedClients===undefined) DB.settings.showSharedClients = false;
-    if(DB.settings.sharedClientsDbEnabled===undefined) DB.settings.sharedClientsDbEnabled = true;
+    if(DB.settings.sharedClientsDbEnabled===undefined) DB.settings.sharedClientsDbEnabled = false;
+    if(DB.settings.sharedExportPhoneMode===undefined) DB.settings.sharedExportPhoneMode = 'partial';
     if(!DB.settings.templates){
       DB.settings.templates = [
         { id: uid(), name:'Условия аренды', text:'Здравствуйте, {client}!\n\nУсловия аренды автомобиля {car} ({plate}):\n— возврат с полным баком;\n— бережная эксплуатация, без штрафов на счету арендатора;\n— плановое время возврата: {end};\n— сумма к оплате: {total}.' },
@@ -1374,6 +1392,29 @@ function showCenterConfirm(msg){
   clearTimeout(window.__cct);
   window.__cct = setTimeout(()=>el.classList.remove('show'), 1500);
   feedback(/удал/i.test(msg) ? 'warning' : 'success');
+}
+function showCenterLoading(msg){
+  clearTimeout(window.__cpt);
+  document.getElementById('cpSpinner').style.display = '';
+  document.getElementById('cpCheck').style.display = 'none';
+  document.getElementById('cpText').textContent = msg;
+  document.getElementById('cpReport').innerHTML = '';
+  document.getElementById('centerProcess').classList.add('show');
+}
+function showCenterReport(msg, stats){
+  document.getElementById('cpSpinner').style.display = 'none';
+  document.getElementById('cpCheck').style.display = '';
+  document.getElementById('cpText').textContent = msg;
+  document.getElementById('cpReport').innerHTML = (stats||[]).map(s=>
+    `<div class="r"><div class="rv">${esc(String(s.value))}</div><div class="rl">${esc(s.label)}</div></div>`
+  ).join('');
+  document.getElementById('centerProcess').classList.add('show');
+  clearTimeout(window.__cpt);
+  window.__cpt = setTimeout(()=>document.getElementById('centerProcess').classList.remove('show'), 3200);
+  feedback('success');
+}
+function hideCenterProcess(){
+  document.getElementById('centerProcess').classList.remove('show');
 }
 function confirmDelete(msg, okLabel){
   return new Promise(resolve=>{
@@ -2660,30 +2701,77 @@ function sharedClientCard(sc){
 function openSharedClientDetail(id){
   const sc = (DB.sharedClients||[]).find(s=>s.id===id);
   if(!sc) return;
-  const historyHtml = (sc.history||[]).length ? sc.history.map(h=>`
+  const src = (DB.sharedClientSources||[]).find(s=>s.id===sc.sourceId);
+  const history = (sc.history||[]).slice().sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
+  const totalSpent = sc.stats?.rentals?.total || 0;
+  const finesTotal = sc.stats?.fines?.total || 0;
+  const unpaidFine = history.filter(h=>h.type==='fine' && !h.paid).reduce((s,h)=>s+(h.amount||0),0);
+  const ratingCount = sc.stats?.rating?.count || 0;
+  const ratingAvg = sc.stats?.rating?.avg || 0;
+  const violationsCount = sc.stats?.violations?.count || 0;
+  const historyHtml = history.length ? history.map(h=>`
     <div class="detail-row" style="align-items:flex-start;"><span class="k" style="flex-shrink:0;">${fmtDate(h.date)}</span><span class="v" style="text-align:right;">${esc(clientShareHistoryLine(h).split(' · ').slice(1).join(' · '))}</span></div>
   `).join('') : `<div style="font-size:12px;color:var(--text-faint);">История пуста</div>`;
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">${esc(sc.name)}</div>
-      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
     </div>
     <div class="sheet-body">
-      <div style="margin-bottom:14px;"><span class="shared-client-tag">🌐 Клиент из общей базы (данные от коллеги, номер телефона скрыт частично)</span></div>
-      ${sc.blacklisted ? `<div style="margin-bottom:10px;"><span class="badge unpaid">🚫 Чёрный список</span></div>` : ''}
-      <div class="detail-block" style="margin-bottom:14px;">
-        ${(()=>{ const src = (DB.sharedClientSources||[]).find(s=>s.id===sc.sourceId); return src ? `<div class="detail-row"><span class="k">Источник</span><span class="v">${esc(src.name)}</span></div>` : ''; })()}
-        ${sc.phone ? `<div class="detail-row"><span class="k">Телефон</span><span class="v">${esc(sc.phone)}</span></div>` : ''}
-        ${sc.doc ? `<div class="detail-row"><span class="k">Паспорт</span><span class="v">${esc(sc.doc)}</span></div>` : ''}
-        ${sc.licenseNum ? `<div class="detail-row"><span class="k">В/У</span><span class="v">${esc(sc.licenseNum)}</span></div>` : ''}
-        ${sc.stats?.rating?.count ? `<div class="detail-row"><span class="k">Рейтинг</span><span class="v">${starsStr(Math.round(sc.stats.rating.avg))} (${sc.stats.rating.avg.toFixed(1)} из 5, ${sc.stats.rating.count} оценок)</span></div>` : ''}
-        <div class="detail-row"><span class="k">Аренд</span><span class="v">${sc.stats?.rentals?.count||0} на ${money(sc.stats?.rentals?.total||0)}</span></div>
-        <div class="detail-row"><span class="k">Штрафов</span><span class="v">${sc.stats?.fines?.count||0} на ${money(sc.stats?.fines?.total||0)}</span></div>
-        <div class="detail-row"><span class="k">Нарушений</span><span class="v">${sc.stats?.violations?.count||0} на ${money(sc.stats?.violations?.total||0)}</span></div>
+      <div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <span class="shared-client-tag">🌐 Общая база${src ? ' · '+esc(src.name) : ''}</span>
+        ${sc.blacklisted ? `<span class="badge unpaid">🚫 ЧС</span>` : ''}
       </div>
-      ${sc.notes ? `<div class="section-title" style="margin-top:0;">Заметки</div><div style="font-size:12.5px;color:var(--text-dim);line-height:1.5;white-space:pre-wrap;margin-bottom:14px;">${esc(sc.notes)}</div>` : ''}
-      <div class="section-title" style="margin-top:0;">История</div>
+
+      <div class="client-contact-row">
+        <div class="cc-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span>${sc.phone ? esc(sc.phone) : 'Телефон скрыт'}</span>
+        </div>
+        <div class="cc-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M14 9h5M14 13h5M6.5 17h6"/></svg>
+          <span>${esc(sc.doc)||'—'}</span>
+        </div>
+      </div>
+
+      <div class="summary-row2" style="margin-top:12px;">
+        <div class="summary-card2 c-income"><div class="ic">💰</div><div class="n">${money(totalSpent)}</div><div class="l">Аренды на сумму</div></div>
+        <div class="summary-card2 ${finesTotal>0?'c-warn':''}"><div class="ic">📋</div><div class="n">${money(finesTotal)}</div><div class="l">Штрафы</div></div>
+        <div class="summary-card2 ${unpaidFine>0?'c-warn':''}"><div class="ic">⚠️</div><div class="n">${money(unpaidFine)}</div><div class="l">Неоплаченный штраф</div></div>
+        <div class="summary-card2" style="cursor:pointer;" onclick="openSharedClientRatingsList('${sc.id}')"><div class="ic">⭐</div><div class="n">${ratingCount?ratingAvg.toFixed(1):'—'}</div><div class="l">Оценка клиента</div></div>
+      </div>
+      ${violationsCount ? `<div style="font-size:11.5px;color:var(--text-dim);text-align:center;margin-top:8px;">Нарушений: ${violationsCount}</div>` : ''}
+
+      ${sc.licenseNum ? `<div class="detail-block" style="margin-top:14px;"><div class="detail-row"><span class="k">В/У</span><span class="v">${esc(sc.licenseNum)}</span></div></div>` : ''}
+      ${sc.notes ? `<div class="section-title" style="margin-top:16px;">Заметки</div><div style="font-size:12.5px;color:var(--text-dim);line-height:1.5;white-space:pre-wrap;margin-bottom:14px;">${esc(sc.notes)}</div>` : ''}
+      <div class="section-title" style="margin-top:16px;">История</div>
       ${historyHtml}
+      <div style="font-size:11px;color:var(--text-faint);margin-top:16px;line-height:1.5;">Запись из общей базы (данные от коллеги) — номер телефона скрыт (частично или полностью), редактирование недоступно.</div>
+    </div>
+  `);
+}
+function openSharedClientRatingsList(id){
+  const sc = (DB.sharedClients||[]).find(s=>s.id===id); if(!sc) return;
+  const rated = (sc.history||[]).filter(h=>h.rating).slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+  const avg = sc.stats?.rating?.avg || 0;
+  const count = sc.stats?.rating?.count || rated.length;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">Оценки · ${esc(sc.name)}</div>
+      <div class="sheet-head-actions">${iconBtn('close', 'closeSheet()', 'Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div style="text-align:center;padding:8px 0 20px;">
+        <div style="font-size:32px;color:var(--accent);letter-spacing:3px;">${count?starsStr(Math.round(avg)):starsStr(0)}</div>
+        <div style="color:var(--text-dim);font-size:13px;margin-top:8px;">${count ? `Средняя оценка ${avg.toFixed(1)} из 5 · ${count} ${contractWord(count)}` : 'Оценок пока нет'}</div>
+      </div>
+      <div class="section-title">По договорам (из общей базы) <span class="count">${rated.length}</span></div>
+      ${rated.length ? rated.map(h=>`
+        <div class="report-row">
+          <span class="rl">${h.car?esc(h.car):'Аренда'} · ${fmtDate(h.date)}</span>
+          <span class="rv" style="color:var(--accent);letter-spacing:1px;">${starsStr(h.rating)}</span>
+        </div>
+      `).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:6px 2px;">Оценённых договоров пока нет</div>`}
     </div>
   `);
 }
@@ -4657,6 +4745,14 @@ function subHead(title){
       <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>`;
 }
+function subHeadTo(title, backFn){
+  return `<div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <button class="icon-btn" onclick="${backFn}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="sheet-title" style="flex:1;margin-left:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>
+      <button class="icon-btn" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>`;
+}
 function settingsMenuItem(icon, title, sub, onclickFn){
   return `<div class="settings-item" style="cursor:pointer;" onclick="${onclickFn}">
     <div style="display:flex;align-items:center;gap:12px;min-width:0;">
@@ -4943,7 +5039,9 @@ function maskPhoneLast3(phone){
   }
   return chars.join('');
 }
+const PHONE_HIDDEN_PLACEHOLDER = '*'.repeat(11);
 function buildClientsSharePayload(){
+  const phoneMode = DB.settings.sharedExportPhoneMode || 'partial';
   const clients = DB.clients.map(cl=>{
     const related = DB.contracts.filter(ct=>ct.clientId===cl.id && ct.status!=='cancelled');
     const countTotal = (type) => {
@@ -4968,7 +5066,7 @@ function buildClientsSharePayload(){
     const rating = computeClientRating(cl.id);
     return {
       name: cl.name,
-      phone: maskPhoneLast3(cl.phone),
+      phone: phoneMode==='hidden' ? (cl.phone ? PHONE_HIDDEN_PLACEHOLDER : '') : maskPhoneLast3(cl.phone),
       doc: cl.doc || '',
       licenseNum: cl.licenseNum || '',
       notes: cl.notes || '',
@@ -5024,17 +5122,18 @@ function exportClientsShareFile(){
   a.href = url; a.download = `xcar-clients-history-${todayISO()}.json`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('Копия сохранена в файл (номера телефонов скрыты частично)');
+  showToast(DB.settings.sharedExportPhoneMode==='hidden' ? 'Копия сохранена в файл (номера телефонов полностью скрыты)' : 'Копия сохранена в файл (номера телефонов скрыты частично)');
 }
 function exportClientsShareText(){
   const text = JSON.stringify(buildClientsSharePayload());
+  const phoneNote = DB.settings.sharedExportPhoneMode==='hidden' ? 'Номера телефонов в этой копии полностью скрыты.' : 'Номера телефонов в этой копии скрыты частично (видны все цифры, кроме последних трёх).';
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-head"><div class="sheet-title">База клиентов · текстом</div>
       <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
     </div>
     <div class="sheet-body">
-      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:10px;">Номера телефонов в этой копии скрыты частично (видны все цифры, кроме последних трёх). Скопируйте текст и перешлите, например, в WhatsApp.</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:10px;">${phoneNote} Скопируйте текст и перешлите, например, в WhatsApp.</div>
       <textarea id="backupTextArea" readonly style="width:100%;min-height:160px;font-family:monospace;font-size:11px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);resize:vertical;" onclick="this.select()">${esc(text)}</textarea>
       <div class="btn-row" style="margin-top:12px;">
         <button class="btn primary" onclick="copyBackupText()">📋 Скопировать</button>
@@ -5049,7 +5148,7 @@ function openClientsShareImportSheet(){
       <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
     </div>
     <div class="sheet-body">
-      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:10px;">Вставьте текст, полученный от друга или коллеги. Клиенты добавятся в отдельную общую базу — номера телефонов скрыты частично (кроме последних трёх цифр), с историей аренд и штрафов в заметках. Ваши текущие клиенты не изменятся.</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:10px;">Вставьте текст, полученный от друга или коллеги. Клиенты добавятся в отдельную общую базу — номера телефонов скрыты (частично или полностью, как решил отправитель), с историей аренд и штрафов в заметках. Ваши текущие клиенты не изменятся.</div>
       <textarea id="pasteTextArea" placeholder="Вставьте текст сюда..." style="width:100%;min-height:160px;font-family:monospace;font-size:11px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);resize:vertical;"></textarea>
       <div class="btn-row" style="margin-top:12px;">
         <button class="btn ghost" onclick="pasteFromClipboardIntoArea()">📋 Вставить из буфера</button>
@@ -5126,7 +5225,7 @@ function openClientsSharePreview(data, opts){
       </div>
       ${summary.historyCount ? `<div style="font-size:11.5px;color:var(--text-dim);text-align:center;margin-top:10px;">Аренд: ${summary.rentals} · Штрафов: ${summary.fines} · Нарушений: ${summary.violations}${summary.oldDebt?` · Старых долгов: ${summary.oldDebt}`:''}</div>` : ''}
       <div style="font-size:12px;color:var(--text-dim);line-height:1.6;background:var(--surface-2);border-radius:12px;padding:12px 14px;margin:16px 0;">
-        📌 Данные добавятся в отдельную <b>общую базу</b> — номера телефонов скрыты частично (видны все цифры, кроме последних трёх). Ваша личная база клиентов не изменится. Совпадающие клиенты обновятся, а не задвоятся.
+        📌 Данные добавятся в отдельную <b>общую базу</b>${opts.isOwnData ? (DB.settings.sharedExportPhoneMode==='hidden' ? ' — номера телефонов будут полностью скрыты' : ' — номера телефонов будут видны частично (кроме последних трёх цифр)') : ' — номера телефонов переданы отправителем скрытыми (частично или полностью)'}. Ваша личная база клиентов не изменится. Совпадающие клиенты обновятся, а не задвоятся.
       </div>
       <div class="btn-row">
         <button class="btn ghost" onclick="closeSheet()">Отмена</button>
@@ -5203,6 +5302,9 @@ function enabledSharedSourceIds(){
 async function commitClientsSharePayload(data, sourceOpts){
   const incoming = Array.isArray(data?.clients) ? data.clients : null;
   if(!incoming || !incoming.length){ showToast('В копии не найдено клиентов'); return; }
+  closeSheet();
+  showCenterLoading((sourceOpts&&sourceOpts.method==='own') ? 'Копируем в общую базу…' : 'Импортируем базу…');
+  await new Promise(r=>setTimeout(r, 700));
   if(!DB.sharedClients) DB.sharedClients = [];
   const src = resolveSharedClientSource(data, sourceOpts);
   const existingByKey = new Map(DB.sharedClients.map(sc=>[sharedClientDedupeKey(sc), sc]));
@@ -5231,8 +5333,13 @@ async function commitClientsSharePayload(data, sourceOpts){
   });
   await persist('sharedClients');
   await persist('sharedClientSources');
-  closeSheet(); render();
-  showToast(updated ? `Готово — новых: ${added}, обновлено: ${updated}` : `Готово — добавлено: ${added}`);
+  render();
+  const srcStats = sharedSourceStats(src.id);
+  showCenterReport(src.method==='own' ? 'Скопировано в общую базу' : 'База импортирована', [
+    { value: added, label:'Новых' },
+    { value: updated, label:'Обновлено' },
+    { value: srcStats.clients, label:'Всего в базе' },
+  ]);
 }
 function sharedSourceMethodLine(src){
   if(src.method==='own') return '📋 Скопировано из своей базы';
@@ -5258,21 +5365,66 @@ function sharedSourceCard(src){
       <div class="dr-stat unpaid"><div class="val" style="font-size:16px;color:var(--danger);">${stats.fines}</div><div class="lbl">Штрафов</div></div>
     </div>
     ${stats.violations ? `<div style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:6px;">Нарушений: ${stats.violations}</div>` : ''}
-    <button class="btn danger-ghost" style="margin-top:10px;width:100%;font-size:11.5px;padding:7px;" onclick="removeSharedSource('${src.id}')">Удалить эту базу</button>
+    <div class="btn-row" style="margin-top:10px;">
+      <button class="btn ghost" style="font-size:11px;padding:7px 4px;" onclick="openSharedSourceClients('${src.id}')">👁 Просмотр</button>
+      <button class="btn ghost" style="font-size:11px;padding:7px 4px;" onclick="openSharedSourceClients('${src.id}', true)">🔍 Поиск</button>
+      <button class="btn danger-ghost" style="font-size:11px;padding:7px 4px;" onclick="removeSharedSource('${src.id}')">🗑 Удалить</button>
+    </div>
   </div>`;
+}
+function openSharedSourceClients(id, openSearch){
+  const src = (DB.sharedClientSources||[]).find(s=>s.id===id); if(!src) return;
+  if(sharedSourceViewId !== id){ sharedSourceSearchQ = ''; }
+  sharedSourceViewId = id;
+  const stats = sharedSourceStats(id);
+  const q = sharedSourceSearchQ.trim().toLowerCase();
+  const allClients = (DB.sharedClients||[]).filter(sc=>sc.sourceId===id).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+  const clients = q ? allClients.filter(sc=>(sc.name+' '+(sc.doc||'')+' '+(sc.licenseNum||'')).toLowerCase().includes(q)) : allClients;
+  const showSearch = openSearch || !!q;
+  openSheet(`
+    ${subHeadTo(esc(src.name), 'openClientsDbSettings()')}
+    <div class="sheet-body">
+      <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:14px;">${sharedSourceMethodLine(src)} · Обновлено ${fmtDateTime(src.importedAt)}</div>
+      <div class="dr-stats" style="margin-top:0;margin-bottom:18px;">
+        <div class="dr-stat total"><div class="val" style="color:#eab308;">${stats.clients}</div><div class="lbl">Клиентов</div></div>
+        <div class="dr-stat paid"><div class="val" style="color:var(--accent-2);">${stats.rentals}</div><div class="lbl">Аренд</div></div>
+        <div class="dr-stat unpaid"><div class="val" style="color:var(--danger);">${stats.fines}</div><div class="lbl">Штрафов</div></div>
+      </div>
+      ${showSearch ? `<div class="search-bar" style="margin-bottom:10px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="srcSearchInput" autofocus placeholder="Поиск по имени, документу" value="${escapeAttr(sharedSourceSearchQ)}" oninput="sharedSourceSearchQ=this.value;openSharedSourceClients('${id}', true)">
+      </div>` : `<div class="settings-item" style="cursor:pointer;padding:10px 2px;" onclick="openSharedSourceClients('${id}', true)">
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text-dim);font-size:13px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          Поиск по клиентам этой базы
+        </div>
+      </div>`}
+      <div class="section-title" style="margin-top:0;">Клиенты <span class="count">${clients.length}</span></div>
+      ${clients.length ? clients.map(sharedClientCard).join('') : emptyState(q?'Ничего не найдено':'Нет клиентов', q?'Попробуйте другой запрос':'В этой базе пока нет клиентов')}
+      <button class="btn danger-ghost" style="margin-top:14px;width:100%;" onclick="removeSharedSource('${src.id}')">Удалить эту базу</button>
+    </div>
+  `);
 }
 function openClientsDbSettings(){
   const sharedCount = (DB.sharedClients||[]).length;
-  const enabled = DB.settings.sharedClientsDbEnabled !== false;
+  const enabled = DB.settings.sharedClientsDbEnabled === true;
   const sources = (DB.sharedClientSources||[]).slice().sort((a,b)=> new Date(b.importedAt||0) - new Date(a.importedAt||0));
   const personal = computePersonalClientsStats();
   const shared = computeAllSharedClientsStats();
   openSheet(`
     ${subHead('База клиентов')}
     <div class="sheet-body">
-      <div class="settings-item" style="background:var(--surface-2);border-radius:14px;padding:12px 14px;margin-bottom:16px;">
-        <div><div class="st">🌐 Общая база клиентов</div><div class="sd">${enabled ? 'Функция включена' : 'Функция отключена — все действия ниже скрыты'}</div></div>
-        <label class="switch"><input type="checkbox" id="f_shared_db_enabled" ${enabled?'checked':''} onchange="toggleSharedClientsDbEnabled()"><span class="slider"></span></label>
+      <div class="card" style="display:block;cursor:default;background:var(--surface-2);padding:2px 14px;margin-bottom:16px;">
+        <div class="settings-item" style="${enabled?'border-bottom:1px solid var(--border);':''}">
+          <div><div class="st">🌐 Общая база клиентов</div><div class="sd">${enabled ? 'Функция включена' : 'Функция отключена — всё ниже скрыто'}</div></div>
+          <label class="switch"><input type="checkbox" id="f_shared_db_enabled" ${enabled?'checked':''} onchange="toggleSharedClientsDbEnabled()"><span class="slider"></span></label>
+        </div>
+        ${enabled ? `
+        <div class="settings-item">
+          <div><div class="st">🔍 Показывать в поиске</div><div class="sd">Подсвечивать зеленоватым клиентов из общей базы при поиске клиента</div></div>
+          <label class="switch"><input type="checkbox" id="f_show_shared" ${DB.settings.showSharedClients?'checked':''} onchange="toggleShowSharedClients()"><span class="slider"></span></label>
+        </div>
+        ` : ''}
       </div>
 
       ${!enabled ? `
@@ -5280,19 +5432,40 @@ function openClientsDbSettings(){
         Включите, чтобы делиться историей клиентов с друзьями или коллегами по прокату и видеть их общую базу при поиске.
       </div>
       ` : `
-      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:16px;">
-        Делитесь историей клиентов с другом или коллегой по прокату — номера телефонов передаются <b>скрытыми частично</b> (кроме последних трёх цифр), чтобы клиентов нельзя было переманить. В копии остаются имя, документы, чёрный список и история аренд, штрафов и нарушений.
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+        <div class="card" style="display:block;cursor:default;padding:14px 14px;">
+          <div style="font-size:11.5px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:5px;">🏠 Ваша база</div>
+          <div style="display:flex;flex-direction:column;gap:8px;position:relative;z-index:1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;"><span style="color:var(--text-dim);">Клиентов</span><b style="font-family:var(--font-display);font-size:14px;">${personal.clients}</b></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;"><span style="color:var(--text-dim);">Договоров</span><b style="font-family:var(--font-display);font-size:14px;">${personal.rentals}</b></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;"><span style="color:var(--text-dim);">Штрафов</span><b style="font-family:var(--font-display);font-size:14px;">${personal.fines}</b></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;"><span style="color:var(--text-dim);">Нарушений</span><b style="font-family:var(--font-display);font-size:14px;">${personal.violations}</b></div>
+          </div>
+        </div>
+        <div class="card shared-client-card" style="display:block;cursor:default;padding:14px 14px;">
+          <div style="font-size:11.5px;font-weight:700;color:var(--accent-2);margin-bottom:10px;display:flex;align-items:center;gap:5px;">🌐 Общая база</div>
+          <div style="display:flex;flex-direction:column;gap:8px;position:relative;z-index:1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;"><span style="color:var(--text-dim);">Клиентов</span><b style="font-family:var(--font-display);font-size:14px;color:var(--accent-2);">${shared.clients}</b></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;"><span style="color:var(--text-dim);">Договоров</span><b style="font-family:var(--font-display);font-size:14px;color:var(--accent-2);">${shared.rentals}</b></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;"><span style="color:var(--text-dim);">Штрафов</span><b style="font-family:var(--font-display);font-size:14px;color:var(--accent-2);">${shared.fines}</b></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;"><span style="color:var(--text-dim);">Нарушений</span><b style="font-family:var(--font-display);font-size:14px;color:var(--accent-2);">${shared.violations}</b></div>
+          </div>
+        </div>
       </div>
 
-      <div class="card" style="display:block;padding:14px 16px;margin-bottom:22px;">
-        <div style="display:grid;grid-template-columns:1fr 74px 74px;gap:7px 8px;align-items:center;">
-          <div></div>
-          <div style="font-size:10.5px;color:var(--text-dim);font-weight:700;text-align:center;">Ваша база</div>
-          <div style="font-size:10.5px;color:var(--accent-2);font-weight:700;text-align:center;">🌐 Общая</div>
-          <div style="font-size:12.5px;color:var(--text);">Клиентов</div><div style="text-align:center;font-weight:700;font-size:13px;">${personal.clients}</div><div style="text-align:center;font-weight:700;font-size:13px;color:var(--accent-2);">${shared.clients}</div>
-          <div style="font-size:12.5px;color:var(--text);">Договоров</div><div style="text-align:center;font-weight:700;font-size:13px;">${personal.rentals}</div><div style="text-align:center;font-weight:700;font-size:13px;color:var(--accent-2);">${shared.rentals}</div>
-          <div style="font-size:12.5px;color:var(--text);">Штрафов</div><div style="text-align:center;font-weight:700;font-size:13px;">${personal.fines}</div><div style="text-align:center;font-weight:700;font-size:13px;color:var(--accent-2);">${shared.fines}</div>
-          <div style="font-size:12.5px;color:var(--text);">Нарушений</div><div style="text-align:center;font-weight:700;font-size:13px;">${personal.violations}</div><div style="text-align:center;font-weight:700;font-size:13px;color:var(--accent-2);">${shared.violations}</div>
+      <div class="section-title" style="margin-top:0;">Управление базой</div>
+      <div class="app-icon-grid" style="margin-bottom:20px;">
+        <div class="app-icon-opt" onclick="openShareClientsDbSheet()">
+          <div class="app-icon-tile" style="font-size:26px;">📤</div>
+          <div style="font-size:11.5px;font-weight:700;text-align:center;color:var(--text);">Поделиться</div>
+        </div>
+        <div class="app-icon-opt" onclick="openReceiveClientsDbSheet()">
+          <div class="app-icon-tile" style="font-size:26px;">📥</div>
+          <div style="font-size:11.5px;font-weight:700;text-align:center;color:var(--text);">Получить</div>
+        </div>
+        <div class="app-icon-opt" onclick="openCopyOwnClientsDbSheet()">
+          <div class="app-icon-tile" style="font-size:26px;">📋</div>
+          <div style="font-size:11.5px;font-weight:700;text-align:center;color:var(--text);">Свои клиенты</div>
         </div>
       </div>
 
@@ -5302,19 +5475,74 @@ function openClientsDbSettings(){
       ${sources.map(sharedSourceCard).join('')}
       ` : ''}
 
-      <div class="section-title" style="margin-top:24px;">📤 Поделиться</div>
-      <div style="font-size:11.5px;color:var(--text-dim);line-height:1.5;margin-bottom:6px;">Отправьте свою базу другу — он увидит имена, документы и историю, номера телефонов будут скрыты частично.</div>
-      <div class="settings-item">
-        <div><div class="st">Стандартный режим</div><div class="sd">Скачать файлом .json</div></div>
-        <button class="icon-btn" title="Скачать файлом" onclick="exportClientsShareFile()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICON_DOWNLOAD}</svg></button>
+      ${sharedCount ? `<button class="btn danger-ghost" style="margin-top:6px;width:100%;" onclick="clearSharedClients()">Очистить общую базу (${sharedCount})</button>` : ''}
+      `}
+    </div>
+  `);
+}
+function openShareClientsDbSheet(){
+  const phoneMode = DB.settings.sharedExportPhoneMode || 'partial';
+  openSheet(`
+    ${subHeadTo('📤 Поделиться', 'openClientsDbSettings()')}
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;">Отправьте свою базу другу — он увидит имена, документы и историю. Выберите, как показать номера телефонов в копии:</div>
+      <div class="settings-item" style="align-items:center;">
+        <div><div class="st">Номера телефонов</div><div class="sd">${phoneMode==='hidden' ? `Полностью скрыты — вместо номера ${PHONE_HIDDEN_PLACEHOLDER}` : 'Частично видны — кроме последних 3 цифр'}</div></div>
+        <div class="gauge-period-row" style="margin-top:0;flex-shrink:0;">
+          <button class="${phoneMode==='partial'?'active':''}" onclick="setSharedExportPhoneMode('partial')">Частично</button>
+          <button class="${phoneMode==='hidden'?'active':''}" onclick="setSharedExportPhoneMode('hidden')">Скрыть</button>
+        </div>
       </div>
-      <div class="settings-item">
-        <div><div class="st">Текстовый режим</div><div class="sd">Скопировать текстом — удобно переслать в мессенджере</div></div>
-        <button class="icon-btn" title="Скопировать текстом" onclick="exportClientsShareText()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON_CLIPBOARD_COPY}</svg></button>
+      <div style="margin-top:18px;">
+        <div style="font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:10px;">Способ передачи</div>
+        <div class="btn-row">
+          <button class="btn ghost" onclick="exportClientsShareFile()">⬇️ Файл</button>
+          <button class="btn ghost" onclick="exportClientsShareText()">📋 Текст</button>
+          <button class="btn ghost" onclick="openWhatsAppSendClientsDbPrompt()">💬 WhatsApp</button>
+        </div>
       </div>
-
-      <div class="section-title" style="margin-top:24px;">📥 Получить от друга</div>
-      <div style="font-size:11.5px;color:var(--text-dim);line-height:1.5;margin-bottom:6px;">Перед добавлением покажем предпросмотр: от какой компании копия, сколько клиентов и записей истории в ней.</div>
+    </div>
+  `);
+}
+function openWhatsAppSendClientsDbPrompt(){
+  const ga = DB.settings.greenApi;
+  if(!ga || !ga.enabled){ showToast('Сначала подключите WhatsApp в настройках'); return; }
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div class="sheet-title">💬 Отправить в WhatsApp</div>
+      <div class="sheet-head-actions">${iconBtn('close','closeSheet()','Закрыть')}</div>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px;">Укажите номер телефона друга или коллеги — отправим файл с копией базы прямо в WhatsApp.</div>
+      <div class="field"><label>Номер телефона</label><input id="f_wa_share_phone" type="tel" placeholder="+7 999 000-00-00"></div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="openShareClientsDbSheet()">Отмена</button>
+        <button class="btn primary" onclick="sendClientsDbWhatsApp()">Отправить</button>
+      </div>
+    </div>
+  `);
+}
+async function sendClientsDbWhatsApp(){
+  const phone = document.getElementById('f_wa_share_phone').value.trim();
+  if(!phone){ showToast('Введите номер телефона'); return; }
+  const payload = buildClientsSharePayload();
+  if(!payload.clients.length){ showToast('Нет клиентов для отправки'); return; }
+  closeSheet();
+  showCenterLoading('Отправляем в WhatsApp…');
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const r = await sendWhatsAppFile(phone, blob, `xcar-clients-history-${todayISO()}.json`, 'База клиентов — XCAR');
+  if(r.ok){
+    showCenterReport('Отправлено в WhatsApp', [{ value: payload.clients.length, label:'Клиентов' }]);
+  } else {
+    hideCenterProcess();
+    showToast('Не удалось отправить — проверьте номер и подключение WhatsApp');
+  }
+}
+function openReceiveClientsDbSheet(){
+  openSheet(`
+    ${subHeadTo('📥 Получить от друга', 'openClientsDbSettings()')}
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;">Перед добавлением покажем предпросмотр: от какой компании копия, сколько клиентов и записей истории в ней.</div>
       <div class="settings-item">
         <div><div class="st">Стандартный режим</div><div class="sd">Выбрать .json файл копии</div></div>
         <button class="icon-btn" title="Выбрать файл" onclick="document.getElementById('importClientsFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICON_UPLOAD}</svg></button>
@@ -5324,22 +5552,28 @@ function openClientsDbSettings(){
         <div><div class="st">Текстовый режим</div><div class="sd">Вставить текст копии из буфера обмена</div></div>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">${ICON_CLIPBOARD_PASTE}</svg>
       </div>
-
-      <div class="section-title" style="margin-top:24px;">📋 Своими клиентами</div>
-      <div class="settings-item" style="cursor:pointer;" onclick="copyMyClientsIntoSharedBase()">
-        <div><div class="st">Скопировать в общую базу</div><div class="sd">Добавить своих клиентов в общую базу (номера телефонов скрыты частично) — например, перед тем как поделиться</div></div>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      </div>
-
-      <div class="section-title" style="margin-top:24px;">🔍 В поиске клиентов</div>
-      <div class="settings-item">
-        <div><div class="st">Показывать общую базу</div><div class="sd">При поиске в разделе «Клиенты» подсвечивать зеленоватым найденных из общей базы (номер телефона скрыт частично) — чтобы узнавать таких клиентов. Если клиент уже есть в вашей личной базе — дубль из общей не покажется.</div></div>
-        <label class="switch"><input type="checkbox" id="f_show_shared" ${DB.settings.showSharedClients?'checked':''} onchange="toggleShowSharedClients()"><span class="slider"></span></label>
-      </div>
-      ${sharedCount ? `<button class="btn danger-ghost" style="margin-top:10px;" onclick="clearSharedClients()">Очистить общую базу (${sharedCount})</button>` : ''}
-      `}
     </div>
   `);
+}
+function openCopyOwnClientsDbSheet(){
+  const phoneMode = DB.settings.sharedExportPhoneMode || 'partial';
+  const personal = computePersonalClientsStats();
+  openSheet(`
+    ${subHeadTo('📋 Свои клиенты', 'openClientsDbSettings()')}
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;">Скопируйте своих клиентов (${personal.clients}) в общую базу на этом устройстве — например, перед тем как поделиться файлом или текстом.</div>
+      <div class="settings-item" style="cursor:pointer;" onclick="copyMyClientsIntoSharedBase()">
+        <div><div class="st">Скопировать в общую базу</div><div class="sd">Номера телефонов будут ${phoneMode==='hidden'?'полностью скрыты':'скрыты частично'}</div></div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </div>
+    </div>
+  `);
+}
+async function setSharedExportPhoneMode(mode){
+  DB.settings.sharedExportPhoneMode = mode;
+  await persist('settings');
+  openShareClientsDbSheet();
+  showToast(mode==='hidden' ? 'В копии номера будут полностью скрыты' : 'В копии номера будут видны частично');
 }
 async function toggleSharedClientsDbEnabled(){
   DB.settings.sharedClientsDbEnabled = document.getElementById('f_shared_db_enabled').checked;
